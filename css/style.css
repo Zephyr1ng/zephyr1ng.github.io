@@ -641,7 +641,7 @@ canvas#particles {
 /* ======== CATEGORY SIDEBAR ======== */
 .category-sidebar {
   position: fixed;
-  right: 32px;
+  right: 60px;
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
@@ -713,7 +713,7 @@ canvas#particles {
 
 @media (min-width: 1400px) {
   .category-sidebar {
-    right: 48px;
+    right: 80px;
   }
 }
 
