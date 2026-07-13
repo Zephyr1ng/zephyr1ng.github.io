@@ -638,6 +638,85 @@ canvas#particles {
   background: rgba(5,150,105,0.03);
 }
 
+/* ======== CATEGORY SIDEBAR ======== */
+.category-sidebar {
+  position: fixed;
+  right: 32px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 180px;
+  display: none;
+}
+
+.cat-sidebar-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #ccc;
+  margin-bottom: 20px;
+  text-align: right;
+  font-weight: 600;
+}
+
+.cat-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.cat-cloud-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 100px;
+  border: 1px solid #e8e8e8;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(8px);
+  text-decoration: none;
+  color: #888;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.3s;
+  transform: rotate(calc(var(--i) * 1deg - 2deg));
+  white-space: nowrap;
+}
+
+.cat-cloud-item:nth-child(odd) {
+  transform: rotate(calc(var(--i) * -0.8deg + 1deg));
+}
+
+.cat-cloud-item:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(5,150,105,0.04);
+  transform: rotate(0deg) scale(1.05);
+}
+
+.cat-cloud-count {
+  font-size: 11px;
+  color: #ccc;
+}
+
+.cat-cloud-item:hover .cat-cloud-count {
+  color: var(--accent);
+}
+
+/* Show sidebar only on larger screens */
+@media (min-width: 1200px) {
+  .category-sidebar {
+    display: block;
+  }
+}
+
+@media (min-width: 1400px) {
+  .category-sidebar {
+    right: 48px;
+  }
+}
+
 /* ======== PAGINATION ======== */
 .pagination {
   display: flex;
