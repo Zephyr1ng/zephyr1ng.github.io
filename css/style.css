@@ -346,7 +346,7 @@ canvas#particles {
   transform: translateY(-50%);
   font-size: 120px;
   font-weight: 800;
-  color: rgba(0,0,0,0.04);
+  color: rgba(0,0,0,0.06);
   pointer-events: none;
   z-index: 0;
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
