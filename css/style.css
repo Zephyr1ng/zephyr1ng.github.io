@@ -565,6 +565,67 @@ canvas#particles {
 
 .post-nav a:hover { color: var(--accent); }
 
+/* ======== CATEGORIES PAGE ======== */
+.category-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.cat-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #eee;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s;
+}
+
+.cat-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+}
+
+.cat-card .cat-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.cat-card .cat-count {
+  font-size: 13px;
+  color: #bbb;
+  font-weight: 500;
+}
+
+/* ======== TAGS PAGE ======== */
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tag-item {
+  padding: 8px 18px;
+  border-radius: 100px;
+  background: #fff;
+  border: 1px solid #eee;
+  color: #666;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.tag-item:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(5,150,105,0.03);
+}
+
 /* ======== RESPONSIVE ======== */
 @media (max-width: 768px) {
   .hero { flex-direction: column; gap: 24px; }
