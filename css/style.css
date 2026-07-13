@@ -626,6 +626,57 @@ canvas#particles {
   background: rgba(5,150,105,0.03);
 }
 
+/* ======== FRIENDS PAGE ======== */
+.friends-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 32px;
+}
+
+.friend-card {
+  display: block;
+  padding: 22px 28px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #eee;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s;
+}
+
+.friend-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+  transform: translateX(6px);
+}
+
+.friend-card .friend-name {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.friend-card .friend-url {
+  font-size: 13px;
+  color: var(--accent);
+  margin-bottom: 6px;
+  word-break: break-all;
+}
+
+.friend-card .friend-desc {
+  font-size: 14px;
+  color: #999;
+}
+
+.friends-footer {
+  text-align: center;
+  font-size: 13px;
+  color: #ccc;
+  padding: 24px 0;
+  font-weight: 500;
+}
+
 /* ======== RESPONSIVE ======== */
 @media (max-width: 768px) {
   .hero { flex-direction: column; gap: 24px; }
