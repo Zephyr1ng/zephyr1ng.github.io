@@ -121,7 +121,7 @@ canvas#particles {
 .container {
   position: relative;
   z-index: 1;
-  max-width: 800px;
+  max-width: 880px;
   margin: 0 auto;
   padding: 100px 32px 80px;
 }
@@ -343,7 +343,7 @@ canvas#particles {
 
 /* ======== POST PAGE ======== */
 .post-full {
-  max-width: 720px;
+  max-width: 760px;
   margin: 0 auto;
 }
 
@@ -717,6 +717,21 @@ canvas#particles {
 }
 
 /* ======== RESPONSIVE ======== */
+@media (min-width: 1400px) {
+  .container {
+    max-width: 960px;
+  }
+
+  .post-full {
+    max-width: 780px;
+  }
+
+  .year-indicator {
+    font-size: 160px;
+    right: 60px;
+  }
+}
+
 @media (max-width: 768px) {
   .hero { flex-direction: column; gap: 24px; }
   .year-indicator { display: none; }
