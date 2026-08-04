@@ -332,6 +332,20 @@ canvas#particles {
   margin-bottom: 6px;
 }
 
+.tl-pin {
+  margin-right: 4px;
+  font-size: 14px;
+}
+
+.tl-item.pinned {
+  background: var(--card-bg);
+  border-left: 2px solid var(--accent);
+}
+
+.tl-item.pinned:hover {
+  border-left-color: var(--accent);
+}
+
 .tl-item .tl-excerpt {
   font-size: 14px;
   color: #999;
