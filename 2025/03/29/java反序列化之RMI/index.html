@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>java反序列化之RMI~ | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">java反序列化之RMI~</h1>
+    <div class="post-meta">
+      <time datetime="2025-03-29">2025-03-29</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18799307">https://www.cnblogs.com/Zephyr07/articles/18799307</a></p>
+</blockquote>
+<h1 id="一-概念"><a href="#一-概念" class="headerlink" title="一.概念"></a>一.概念</h1><p>RMI全称是Remote Method Invocation，远程⽅法调⽤，就是让某个java虚拟机上的对象去调用另一个java虚拟机中对象上的方法<br><strong>一个RMI过程有以下三个参与者：</strong><br>RMI Registry<br>RMI Server<br>RMI Client<br><strong>他们之间的关系</strong></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329113401162-590322988.png"></p>
+<p><strong>文字叙述过程：</strong></p>
+<ol>
+<li>客户端首先去连接服务端的注册中心RMI Registry，然后在其中寻找name是某个方法(下文中示例是Hello)的对象，这个过程对应数据流中的Call信息</li>
+<li>然后RMI Registry接收到之后，会返回一个序列化之后的数据，里面包含找到的Hello的对象，这个对应的是数据流中的ReturnData的信息</li>
+<li>然后客户端接收到后反序列化该消息，里面包含了远程对象的地址号和端口，然后与该地址建立连接，在这个链接中才真正的实现远程方法调用<br>下面两个是示例代码：</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">#rmi_server</span><br><span class="line">import java.rmi.Naming;</span><br><span class="line">import java.rmi.Remote;</span><br><span class="line">import java.rmi.RemoteException;</span><br><span class="line">import java.rmi.registry.LocateRegistry;</span><br><span class="line">import java.rmi.registry.Registry;</span><br><span class="line">import java.rmi.server.UnicastRemoteObject;</span><br><span class="line"></span><br><span class="line">public class RMI_Server &#123;</span><br><span class="line">    public interface IRemoteHelloWorld extends Remote&#123;</span><br><span class="line">        public String hello() throws RemoteException;</span><br><span class="line">    &#125;</span><br><span class="line">    public class RemoteHelloWorld extends UnicastRemoteObject implements IRemoteHelloWorld&#123;</span><br><span class="line">        protected RemoteHelloWorld() throws RemoteException&#123;</span><br><span class="line">            super();</span><br><span class="line">        &#125;</span><br><span class="line">        public String hello() throws RemoteException&#123;</span><br><span class="line">            System.out.println(&quot;call from&quot;);</span><br><span class="line">            return &quot;hello world&quot;;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private void start() throws Exception&#123;</span><br><span class="line">        RemoteHelloWorld h=new RemoteHelloWorld();</span><br><span class="line">        LocateRegistry.createRegistry(1099);</span><br><span class="line">        Naming.rebind(&quot;rmi://127.0.0.1:1099/Hello&quot;,h);</span><br><span class="line">    &#125;</span><br><span class="line">    public static void main(String[] args)throws Exception&#123;</span><br><span class="line">        new RMI_Server().start();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">#rmi_client</span><br><span class="line">import java.rmi.Naming;</span><br><span class="line">import java.rmi.NotBoundException;</span><br><span class="line">import java.rmi.RemoteException;</span><br><span class="line"></span><br><span class="line">public class RMI_Client &#123;</span><br><span class="line">    public static void main(String[] args )throws Exception&#123;</span><br><span class="line">        RMI_Server.IRemoteHelloWorld HELLO=(RMI_Server.IRemoteHelloWorld)Naming.lookup(&quot;rmi://ip:1099/Hello&quot;);</span><br><span class="line">        String ret= HELLO.hello();</span><br><span class="line">        System.out.println(ret);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="二-RMI带来的安全问题"><a href="#二-RMI带来的安全问题" class="headerlink" title="二.RMI带来的安全问题"></a>二.RMI带来的安全问题</h1><h2 id="1-既然RMI-Registry服务我们可以访问，那么我们如何对其攻击呢？"><a href="#1-既然RMI-Registry服务我们可以访问，那么我们如何对其攻击呢？" class="headerlink" title="1.既然RMI Registry服务我们可以访问，那么我们如何对其攻击呢？"></a>1.既然RMI Registry服务我们可以访问，那么我们如何对其攻击呢？</h2><p>用p神的理解来说，RMI Registry是一个远程对象管理的地方，可以理解为一个远程对象的“后台”。我们可以尝试直接访问“后台”功能，比如修改远程服务器上Hello对应的对象：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">RemoteHelloWorld h = new RemoteHelloWorld();</span><br><span class="line">Naming.rebind(&quot;rmi://192.168.135.142:1099/Hello&quot;, h);</span><br></pre></td></tr></table></figure>
+
+<p>但是却会报错，</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329113650860-576343359.png"></p>
+<p>报错原因是Java对远程访问RMI Registry做了限制，只有来源地址是localhost的时候，才能调用rebind、 bind、unbind等方法。<br>这时候就出现了新的方法，list和lookup方法可以远程调用<br>● list方法可以列出目标上所有绑定的对象：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">String[] s = Naming.list(&quot;rmi://192.168.135.142:1099&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>● lookup作用就是获得某个远程对象。</p>
+<h2 id="2-历史漏洞RMI利用codebase执行任意代码"><a href="#2-历史漏洞RMI利用codebase执行任意代码" class="headerlink" title="2.历史漏洞RMI利用codebase执行任意代码"></a>2.历史漏洞RMI利用codebase执行任意代码</h2><p>在过去有段时间，有个applet标签，可以指定一个codebase属性，进而导致任意代码执行漏洞<br>而在RMI远程加载的过程中，也会涉及到codebase</p>
+<h3 id="首先"><a href="#首先" class="headerlink" title="首先"></a>首先</h3><p>codebase是什么东西：（这里引用p神的文章，讲的很通俗易懂了）</p>
+<blockquote>
+<p>codebase是一个地址，告诉Java虚拟机我们应该从哪个地方去搜索类，有点像我们日常用的 CLASSPATH，但CLASSPATH是本地路径，而codebase通常是远程URL，比如http、ftp等。<br>如果我们指定 codebase&#x3D;<a target="_blank" rel="noopener" href="http://example.com/">http://example.com/</a> ，然后加载 org.vulhub.example.Example 类，则 Java虚拟机会下载这个文件 <a target="_blank" rel="noopener" href="http://example.com/org/vulhub/example/Example.class">http://example.com/org/vulhub/example/Example.class</a> ，并作为 Example类的字节码。<br>RMI的流程中，客户端和服务端之间传递的是一些序列化后的对象，这些对象在反序列化时，就会去寻 找类。如果某一端反序列化时发现一个对象，那么就会去自己的CLASSPATH下寻找想对应的类；如果在 本地没有找到这个类，就会去远程加载codebase中的类。</p>
+</blockquote>
+<h3 id="进而"><a href="#进而" class="headerlink" title="进而"></a>进而</h3><p>所以这时候，当codebase被控制，我们就可以加载恶意类，但是只有满足以下条件的RMI服务器才能被攻击：<br>● 安装并配置了SecurityManager<br>● Java版本低于7u21、6u45，或者设置了java.rmi.server.useCodebaseOnly&#x3D;false 其中 java.rmi.server.useCodebaseOnly 是在Java 7u21、6u45的时候修改的一个默认设置：<br>● <a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/7/docs/technotes/guides/rmi/enhancements-7.html">https://docs.oracle.com/javase/7/docs/technotes/guides/rmi/enhancements-7.html</a><br>● <a target="_blank" rel="noopener" href="https://www.oracle.com/technetwork/java/javase/7u21-relnotes-1932873.html">https://www.oracle.com/technetwork/java/javase/7u21-relnotes-1932873.html</a></p>
+<h3 id="备注："><a href="#备注：" class="headerlink" title="备注："></a>备注：</h3><p>官方将 java.rmi.server.useCodebaseOnly 的默认值由 false 改为了 true 。<br>在 java.rmi.server.useCodebaseOnly 配置为 true 的情况下，Java虚拟机将只信任预先配置好的 codebase ，不再支持从RMI请求中获取</p>
+<h2 id="RMI-demo演示"><a href="#RMI-demo演示" class="headerlink" title="RMI_demo演示"></a>RMI_demo演示</h2><h3 id="rmiserver创建注册中心-绑定"><a href="#rmiserver创建注册中心-绑定" class="headerlink" title="rmiserver创建注册中心+绑定"></a>rmiserver创建注册中心+绑定</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#IRemoteObj</span><br><span class="line">import java.rmi.Remote;</span><br><span class="line">import java.rmi.RemoteException;</span><br><span class="line"></span><br><span class="line">public interface IRemoteObj extends Remote &#123;</span><br><span class="line">    public String sayHello(String keywords) throws RemoteException;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">#RemoteObjImpl：</span><br><span class="line">import java.rmi.RemoteException;</span><br><span class="line">import java.rmi.server.UnicastRemoteObject;</span><br><span class="line"></span><br><span class="line">//因为最后是调用的服务端上的代码，所以要有一个真正的实现类</span><br><span class="line">public class RemoteObjImpl extends UnicastRemoteObject implements IRemoteObj &#123;</span><br><span class="line">    //UnicastRemoteObject是rmi的通用远程对象，如果说想要把服务端绑定在rmi服务上就必须要继承这个类</span><br><span class="line">    public RemoteObjImpl() throws RemoteException&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    @Override</span><br><span class="line">    //就是实现一个字母大写的功能</span><br><span class="line">    public String sayHello(String keywords)&#123;</span><br><span class="line">        String upKeywords=keywords.toUpperCase();</span><br><span class="line">        System.out.println(upKeywords);</span><br><span class="line">        return upKeywords;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">#RMIServer：</span><br><span class="line">import java.rmi.AlreadyBoundException;</span><br><span class="line">import java.rmi.RemoteException;</span><br><span class="line">import java.rmi.registry.LocateRegistry;</span><br><span class="line">import java.rmi.registry.Registry;</span><br><span class="line"></span><br><span class="line">public class RMIServer &#123;</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args)throws RemoteException, AlreadyBoundException&#123;</span><br><span class="line">        IRemoteObj remoteObj=new RemoteObjImpl();</span><br><span class="line">        //服务端创建远程对象，实际上这时候客户端已经可以和服务端通信，但是由于端口不确定，所以需要创建注册中心</span><br><span class="line">        Registry r= LocateRegistry.createRegistry(1099);</span><br><span class="line">        //创建注册中心，默认端口1099</span><br><span class="line">        r.bind(&quot;remoteObj&quot;,remoteObj);</span><br><span class="line">        //利用创建的注册中心和创建的远程对象绑定，这时候客户端通过连接注册中心即可获得服务端远程对象开启的端口</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329113911577-611127281.png"></p>
+<h3 id="客户端请求注册中心"><a href="#客户端请求注册中心" class="headerlink" title="客户端请求注册中心"></a>客户端请求注册中心</h3><p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329113918375-1292249806.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#IRemoteObj：</span><br><span class="line">import java.rmi.Remote;</span><br><span class="line">import java.rmi.RemoteException;</span><br><span class="line"></span><br><span class="line">public interface IRemoteObj extends Remote &#123;</span><br><span class="line">    public String sayHello(String keywords) throws RemoteException;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">#RMIClient：</span><br><span class="line">import java.rmi.NotBoundException;</span><br><span class="line">import java.rmi.RemoteException;</span><br><span class="line">import java.rmi.registry.LocateRegistry;</span><br><span class="line">import java.rmi.registry.Registry;</span><br><span class="line"></span><br><span class="line">public class RMIClient &#123;</span><br><span class="line">    public static void main(String[] args)throws RemoteException, NotBoundException&#123;</span><br><span class="line">        Registry registry= LocateRegistry.getRegistry(&quot;127.0.0.1&quot;,1099);</span><br><span class="line">        //客户端连接服务端注册中心</span><br><span class="line">        IRemoteObj remoteObj= (IRemoteObj) registry.lookup(&quot;remoteObj&quot;);</span><br><span class="line">        //连接上注册中心后查找与其绑定的远程对象并获取</span><br><span class="line">        remoteObj.sayHello(&quot;hello&quot;);</span><br><span class="line">        //利用获取的远程对象执行客户端的sayHello方法</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="步骤："><a href="#步骤：" class="headerlink" title="步骤："></a>步骤：</h3><p>服务端运行后，每运行一次客户端client，服务端就会回显一次HELLO</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114024432-1559960816.png"></p>
+<h3 id="问题："><a href="#问题：" class="headerlink" title="问题："></a>问题：</h3><p>为什么客户端和服务端都要有IRemoteObj接口，但是服务端要实现该接口？<br>这里客户端要有IRemoteObj接口是因为当获取服务端的远程对象的时候要调用服务端的sayhello方法，服务端sayhello方法是实现的IRemoteObj接口方法<br>服务端要实现该接口是因为最终调用的是服务端的上代码即对应的方法</p>
+<h3 id="idea跟方法："><a href="#idea跟方法：" class="headerlink" title="idea跟方法："></a>idea跟方法：</h3><h4 id="1-创建远程服务"><a href="#1-创建远程服务" class="headerlink" title="1.创建远程服务"></a>1.创建远程服务</h4><p>这一步我们就是分析远程对象是如何发布到网络上去的<br>断点下在如图：</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114051741-149111175.png"></p>
+<p>然后跟进去步入，发现到了</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114055587-1255187271.png"></p>
+<p>然后跟到UnicastRemoteObject（继承的类即当前类的父类）的构造方法里面<br>远程对象设置随机端口<br>注意不是注册中心的端口，而是远程对象的随机端口</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114102807-669620947.png"></p>
+<p>继续跟exportObject</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114106694-1868275794.png"></p>
+<p>obj就是远程对象调用的方法（即这里的sayhello），UnicastServerRef是处理端口网络请求的<br>同时我们发现exportObject是一个静态函数，负责的就是将远程对象发布到网络上<br>当我们不继承UnicastRemoteObject这个类的时候，就得手动调用这个函数<br>继续跟到UnicastServerRef里面</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114112768-1704001231.png"></p>
+<p>发现new了一个LiveRef(port)（其实就是一个网络的引用类）<br>跟进去这个方法LiveRef，在跟到this方法里面</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114117931-1829055060.png"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114121407-1067385028.png"></p>
+<p>第一个参数objid就是调用的方法id，然后着重看一下TCPEndpoint，跟进去看一下</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114126309-768875896.png"></p>
+<p>构造函数发现他就是传进去一个ip和端口就能进行网络请求<br>然后继续跟LiveRef 的构造函数 this 里面</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114131081-844079030.png"></p>
+<p>然后看赋值，发现endpoint下面就有ip和远程对象的随机端口号，并且endpoint是封装在一个liveref里面，并且也只有这一个liveref（始终存储着ip和端口号）</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114136026-2049007430.png"></p>
+<p>然后这个liveref就跟的差不多了，知道这个他始终存储着ip和端口号就行了<br>然后一直步过F8，直到走到exportObject里面，发现有个stub的创建</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114141685-1405957507.png"></p>
+<h5 id="tips"><a href="#tips" class="headerlink" title="tips:"></a>tips:</h5><p>什么是stub？</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">stub = Util.createProxy(implClass, getClientRef(), forceStubUse);</span><br></pre></td></tr></table></figure>
+
+<p>这行代码的作用是 创建一个代理对象（Proxy），通常用于封装某个实现类（implClass），并结合客户端引用（getClientRef()）及是否强制使用存根（forceStubUse）的配置<br>简单理解stub可以认为就是封装了一个代理<br>那这里为什么要新建一个stub呢？（网上薅的图）</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114209514-676713899.png"></p>
+<p>● RMI 就是在 Remote Service 的地方创建一个 Stub，再把 Stub 传到 RMI Registry(注册中心)中，最后让 RMI Client 去获取 Stub<br>然后我们跟到createProxy里面：</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114215700-448434078.png"></p>
+<p>往下看就能看到一个明显的类加载的地方<br>第一个参数是 AppClassLoader，第二个参数是一个远程接口，第三个参数是调用处理器，调用处理器里面有一个ref（也就是上文中的有且只有一个）</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114220281-1352113329.png"></p>
+<p>然后stub代理就创建好了<br>然后createProxy出来之后，跟到target里面</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114225711-2026421625.png"></p>
+<p>跟进来看看参数</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114230087-501865425.png"></p>
+<p>发现disp和stub和ref都是同一个ref（验证了上面的ref有且仅有一个）</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114233669-607876600.png"></p>
+<p>看了看没啥用，出来继续跟，再看看exportObject是如何处理target的</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114237289-1910357624.png"></p>
+<p>这里面套了两三个exportObject，一直跟直到碰到synchronized</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114242231-599167244.png"></p>
+<p>好了，找到了真正处理网络请求的了，跟进去listen</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114248991-422068001.png"></p>
+<p>但是我们发现这时候这个端口还是空的</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114253387-1938032793.png"></p>
+<p>然后我我们更到newServerSocket方法里面，然后在最后有一个当检查到port&#x3D;0的时候就会赋一个随机端口</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114258055-1830087018.png"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114301674-1573870446.png"></p>
+<p>走到下面发现就有另一个port<br>继续走，他会走到AcceptLoop方法里面</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114307956-1994404012.png"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114312609-421330993.png"></p>
+<p>走到run方法里面，然后走到</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114316548-1463742846.png"></p>
+<p>就是根据分配到端口进行了一个连接，因为在listen里面就创建了一个socket服务<br>然后listen主要操作就分析完了，走出listen，走到最后</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114321456-1750560194.png"></p>
+<p>就发现了port不再为0了，这时候大致流程就都跟完了，也就是创建远程服务的代码分析<br>然后最后的话就是把这些内容放到了一个hashmap里面，具体就不分析了，也没啥用（好吧，虽然这个过程本身就没啥用）</p>
+<h5 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h5><ol>
+<li>在这个过程中是并没有漏洞产生的，大致就是用 exportObject() 指定到发布的 IP 与端口，负责的就是整个过程中不断的封装（就当更好的理解java特性了）</li>
+<li>在这个过程中有两次tcp连接，第一次是客户端连接注册中心，第二次是服务端发送数据到客户端<br>第一次连接过程中，先寻找remoteObj这个远程对象名称，找到之后注册中心返回远程对象的序列化数据<br>第二次连接，客户端反序列化注册中心发送回来的数据，发现是一个远程对象且包含远程对象地址和端口，然后与远程对象建立tcp连接，然后远程方法调用<br>所以rmi是一个基于序列化的java远程方法调用</li>
+</ol>
+<h4 id="2-创建注册中心-绑定"><a href="#2-创建注册中心-绑定" class="headerlink" title="2.创建注册中心+绑定"></a>2.创建注册中心+绑定</h4><p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114407192-201624323.png"></p>
+<p>更到RegistryImpl，发现新建了一个ref以及创建了一个新的 UnicastServerRef，和创建远程服务差不多</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114411838-1084580095.png"></p>
+<p>更到setup方法看一下，发现也是调用exportObject方法</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114417879-525960278.png"></p>
+<p>然后对比创建远程服务的</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114422191-1031552031.png"></p>
+<p>发现两个exportObject区别就是一个设置true，一个默认false，两者的区别就是true创建的是永久对象，而false创建的是临时对象<br>然后进到setup.exportObject里面，同样创建stub</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114426834-581179374.png"></p>
+<p>和创建远程服务不同的就是，这里创建的时候走到了createStub(remoteClass, clientRef)，remoteClass不为空，走到if里面了，而创建远程服务没走到if里面，而是直接创建的动态代理</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114432516-28336073.png"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114437295-1885272564.png"></p>
+<p>然后到setup.(UnicastServerRef)exportObject下，继续跟，发现是检测到存在stub，就会执行setSkeleton方法</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114445124-1392665302.png"></p>
+<p>setSkeleton方法用来设置Skeleton，跟进去看一下</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114449011-770458464.png"></p>
+<p>发现是forname创建的</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114453040-508585515.png"></p>
+<p>然后到setup.(UnicastServerRef)exportObject，继续到往下跟，到了target，和创建远程服务一样就不在跟了，然后一直f8步过到super.exportobject</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114457241-848243651.png"></p>
+<p>f7跟进去，有一个 putTarget() 方法，是将target封装的数据放进去</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114501539-948861975.png"></p>
+<p>然后看看具体放了什么东西，一直f8直到target的里面的id值变了<br>我们点开objTable看一看里面放的数据，发现随机端口和注册中心端口都有了</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114506685-1327115317.png"></p>
+<p>但是我们发现这里的target是一个DGCImpl_Stub，并不是我们之前创建的（之后会讲）</p>
+<h5 id="绑定"><a href="#绑定" class="headerlink" title="绑定"></a>绑定</h5><p>然后大致创建注册中心的流程就结束了，然后就是绑定，很简单的一个过程，就是在buildings里面放了一个hasgtable，里面存着ip和端口，然后put把ip和端口放进去就结束了，很简单的一个过程（虽然但是没啥用hhhhhhhhhh）</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114517873-1735800137.png"></p>
+<p>走过绑定之后，buildings里面就有数据了</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114521025-986195039.png"></p>
+<h5 id="总结：-1"><a href="#总结：-1" class="headerlink" title="总结："></a>总结：</h5><p>总而言之和创建远程中心差不多，就是唯一比较大的区别就是exportobject的那个对象，一个是永久的，一个是临时的</p>
+<h4 id="3-客户端请求注册中心之客户端："><a href="#3-客户端请求注册中心之客户端：" class="headerlink" title="3.客户端请求注册中心之客户端："></a>3.客户端请求注册中心之客户端：</h4><p>断点三处直接都下，然后后服务端的代码要运行起来</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114537998-125118808.png"></p>
+<p>然后跟到getRegistry()方法里面，发现也是new一个liveref和createproxy，和之前的流程差不多</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114543901-1733045343.png"></p>
+<p>主要就是在这里面，新建一个ref，然后把注册中心ip和端口（stub）都封装到新建的ref里面，然后这里我们就相当于获取到了注册中心的stub<br>然后开始查找远程对象，这里就是存在漏洞的根源所在</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">IRemoteObj remoteObj= (IRemoteObj) registry.lookup(&quot;remoteObj&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>客户端根据一个名字去向注册中心请求远程对象的ip和端口<br>lookup根据传入的名字去搜索，跟进去看看</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">public Remote lookup(String var1) throws AccessException, NotBoundException, RemoteException &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            RemoteCall var2 = super.ref.newCall(this, operations, 2, 4905912898345647071L);</span><br><span class="line"></span><br><span class="line">            try &#123;</span><br><span class="line">                ObjectOutput var3 = var2.getOutputStream();</span><br><span class="line">                var3.writeObject(var1);</span><br><span class="line">            &#125; catch (IOException var18) &#123;</span><br><span class="line">                throw new MarshalException(&quot;error marshalling arguments&quot;, var18);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            super.ref.invoke(var2);</span><br><span class="line"></span><br><span class="line">            Remote var23;</span><br><span class="line">            try &#123;</span><br><span class="line">                ObjectInput var6 = var2.getInputStream();</span><br><span class="line">                var23 = (Remote)var6.readObject();</span><br><span class="line">            &#125; catch (IOException var15) &#123;</span><br><span class="line">                throw new UnmarshalException(&quot;error unmarshalling return&quot;, var15);</span><br><span class="line">            &#125; catch (ClassNotFoundException var16) &#123;</span><br><span class="line">                throw new UnmarshalException(&quot;error unmarshalling return&quot;, var16);</span><br><span class="line">            &#125; finally &#123;</span><br><span class="line">                super.ref.done(var2);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            return var23;</span><br><span class="line">        &#125; catch (RuntimeException var19) &#123;</span><br><span class="line">            throw var19;</span><br><span class="line">        &#125; catch (RemoteException var20) &#123;</span><br><span class="line">            throw var20;</span><br><span class="line">        &#125; catch (NotBoundException var21) &#123;</span><br><span class="line">            throw var21;</span><br><span class="line">        &#125; catch (Exception var22) &#123;</span><br><span class="line">            throw new UnexpectedException(&quot;undeclared checked exception&quot;, var22);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中下面这一段就是将我们要获取的远程对象的名称进行序列化然后写到输出流去</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">try &#123;</span><br><span class="line">    // 获取一个 ObjectOutput 对象，该对象用于将对象写入输出流</span><br><span class="line">    ObjectOutput var3 = var2.getOutputStream();</span><br><span class="line">    // 将对象 var1 写入到输出流中，这会触发对象的序列化过程</span><br><span class="line">    var3.writeObject(var1);</span><br><span class="line">&#125; catch (IOException var18) &#123;</span><br><span class="line">    // 如果在获取输出流或写入对象的过程中发生了 I/O 异常</span><br><span class="line">    // 则抛出一个新的 MarshalException 异常，并将原始的 IOException 作为其原因</span><br><span class="line">    throw new MarshalException(&quot;error marshalling arguments&quot;, var18);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>既然有序列化那肯定就有反序列化（注册中心反序列化后将远程对象ip和端口(stub)再次序列化发送到客户端）<br>然后我们再往下看发现刚好就有一个反序列化的数据</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">try &#123;</span><br><span class="line">    // 获取一个 ObjectInput 对象，该对象用于从输入流中读取对象</span><br><span class="line">    ObjectInput var6 = var2.getInputStream();</span><br><span class="line">    // 从输入流中读取一个对象，并将其强制转换为 Remote 类型，赋值给 var23，然后进行反序列化</span><br><span class="line">    var23 = (Remote)var6.readObject();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那这时候我们就知道了v23就是注册中心返回来的序列化数据（因为是class文件，所以变量赋值不好观看，更多的是理解数据的发送和接受流程）<br>那种这时候我们就知道客户端发送给网络请求到注册中心再到注册中心返回数据就是在这两段代码之间，那就直观明了了，就是super.ref.invoke(var2);有问题了</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114635777-993103865.png"></p>
+<p>executeCall就是真正进行请求网络的地方</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">public void executeCall() throws Exception &#123;</span><br><span class="line">        ...</span><br><span class="line"></span><br><span class="line">        // read return value</span><br><span class="line">        switch (returnType) &#123;</span><br><span class="line">        case TransportConstants.NormalReturn:</span><br><span class="line">            break;</span><br><span class="line"></span><br><span class="line">        case TransportConstants.ExceptionalReturn:</span><br><span class="line">            Object ex;</span><br><span class="line">            try &#123;</span><br><span class="line">                ex = in.readObject();</span><br><span class="line">            &#125; catch (Exception e) &#123;</span><br><span class="line">                throw new UnmarshalException(&quot;Error unmarshaling return&quot;, e);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            // An exception should have been received,</span><br><span class="line">            // if so throw it, else flag error</span><br><span class="line">            if (ex instanceof Exception) &#123;</span><br><span class="line">                exceptionReceivedFromServer((Exception) ex);</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                throw new UnmarshalException(&quot;Return type not Exception&quot;);</span><br><span class="line">            &#125;</span><br><span class="line">            // Exception is thrown before fallthrough can occur</span><br><span class="line">        default:</span><br><span class="line">            if (Transport.transportLog.isLoggable(Log.BRIEF)) &#123;</span><br><span class="line">                Transport.transportLog.log(Log.BRIEF,</span><br><span class="line">                    &quot;return code invalid: &quot; + returnType);</span><br><span class="line">            &#125;</span><br><span class="line">            throw new UnmarshalException(&quot;Return code invalid&quot;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>invoke() —&gt; call.executeCall() —&gt; out.getDGCAckHandler()<br>这里我们可以观察到当有一个异常为TransportConstants.ExceptionalReturn时，就会对注册中心发送回来的序列化数据进行一个反序列化，这里获取异常的本意应该是在报错的时候把一整个信息都拿出来，这样会更清晰一点，但是当返回的是一个恶意的序列化数据，就会导致客户端受到攻击</p>
+<h5 id="tip"><a href="#tip" class="headerlink" title="tip:"></a>tip:</h5><p>in就是返回的数据流里面的东西</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114702383-1448738309.png"></p>
+<h4 id="4-客户端请求服务端之客户端："><a href="#4-客户端请求服务端之客户端：" class="headerlink" title="4.客户端请求服务端之客户端："></a>4.客户端请求服务端之客户端：</h4><p>客户端第三句代码remoteObj.sayHello(“hello”);<br>这里你直接跟是无法跟进去的，因为你这里获取到的远程对象是一个动态代理，而动态代理在cc分析的时候也知道当他调用任意一个方法的时候，就会调用invoke方法，我们这里直接到RemoteObjectInvocationHandler里面给invoke下一个断点</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114714232-1204758470.png"></p>
+<p>然后执行到这然后一步一步f8（都是一些if判断异常，就不看了），直到下面有一个return，跟进去方法看看</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114719571-1142354311.png"></p>
+<p>然后看到ref.invoke，感觉有问题，跟进去看看</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114724202-799228627.png"></p>
+<p>我们可以看到executeCall，上面的分析我们知道有这个就是会有网络请求</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114729608-570025762.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">try &#123;</span><br><span class="line">    // 从 call 对象中获取一个 ObjectOutput 类型的输出流，用于后续的对象序列化操作</span><br><span class="line">    ObjectOutput out = call.getOutputStream();</span><br><span class="line"></span><br><span class="line">    // 调用自定义方法 marshalCustomCallData，将自定义的调用数据进行序列化并写入到输出流 out 中</span><br><span class="line">    marshalCustomCallData(out);</span><br><span class="line"></span><br><span class="line">    // 获取要调用的方法的参数类型数组，该数组包含了方法每个参数的类型信息</span><br><span class="line">    Class&lt;?&gt;[] types = method.getParameterTypes();</span><br><span class="line"></span><br><span class="line">    // 遍历参数类型数组</span><br><span class="line">    for (int i = 0; i &lt; types.length; i++) &#123;</span><br><span class="line">        // 调用 marshalValue 方法，将每个参数的类型、参数值以及输出流作为参数传入</span><br><span class="line">        // 该方法会将参数值按照其类型进行序列化并写入到输出流中</span><br><span class="line">        marshalValue(types[i], params[i], out);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>跟入marshalValue，发现就是序列化数据，而且参数是hello(就是调用远程对象执行sayhello方法要传入的参数)</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114740411-1699103292.png"></p>
+<p>既然有序列化，那肯定就有反序列化，下面就有unmarshalValue反序列化</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114746080-1666705738.png"></p>
+<p>而且因为我们传入的是字符串hello，所以上面那个if就不会进去，然后就会到unmarshalValue反序列化，然后把数据读取回来</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114750920-2138393162.png"></p>
+<p>然后再f8就会发现数据被读回来了</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114756439-1322124732.png"></p>
+<h5 id="总结：-2"><a href="#总结：-2" class="headerlink" title="总结："></a>总结：</h5><p>攻击存在的点就是注册中心返回序列化的数据到客户端时，入口类是call.executeCall()，当抛出固定异常的时候就会进行反序列化<br>客户端请求服务端同样存在，一个是call.executeCall()，另一个就是unmarshalValue</p>
+<h4 id="5-客户端请求注册中心之注册中心"><a href="#5-客户端请求注册中心之注册中心" class="headerlink" title="5.客户端请求注册中心之注册中心"></a>5.客户端请求注册中心之注册中心</h4><p>上面我们分析的是客户端如何处理，这里分析一下注册中心如何处理，大致逻辑肯定是反序列化客户端发送的数据，经过处理后把要发送的数据序列化后发送给客户端<br>因为在客户端那里，我们操作的是一个stub，而服务端操作的是一个skel，而在之前的分析里我们知道skel会被存在target里面，所以断点下到服务端代码里的处理target的地方</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114814459-1954231076.png"></p>
+<p>先debug服务端的代码，然后在运行客户端的代码即可，如下图</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114818575-303819540.png"></p>
+<p>然后往下走走到if判断里面，然后看看target里面</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114822502-275594930.png"></p>
+<p>发现里面有一个stub，stub中是一个ref，对应的1099，然后过了if之后，走到了final Dispatcher disp &#x3D; target.getDispatcher();，作用是将skel放到disp里面</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114826702-1015074482.png"></p>
+<p>然后继续往下走，就会调用disp.dispatch方法</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114831310-1818282293.png"></p>
+<p>进来之后，到了if判断，这里skel不为空，所以到oldDispatch()这里，然后下面就是一堆switch-case<br>而这些case分别代表的就是客户端和注册中心交互的几种方式<br>● 0-&gt;bind<br>● 1-&gt;list<br>● 2-&gt;lookup<br>● 3-&gt;rebind<br>● 4-&gt;unbind<br>如果这些交互方式里面对应着有反序列化的话，就可以实现客户端打注册中心<br>然后观察一下代码发现除了list都可以（只要有readobject就说明可以反序列化）</p>
+<h5 id="总结：-3"><a href="#总结：-3" class="headerlink" title="总结："></a>总结：</h5><p>注册中心处理target，进行skel的生成和一系列的处理。<br>反序列化客户端发送来的数据之后对处理后的数据进行序列化后再发送给客户端，而攻击点就产生在注册中心反序列化客户端数据的时候，就可以实现客户端攻击注册中心的流程</p>
+<h4 id="6-客户端请求服务端之服务端"><a href="#6-客户端请求服务端之服务端" class="headerlink" title="6.客户端请求服务端之服务端"></a>6.客户端请求服务端之服务端</h4><p>这个流程就较为简单了，要记得在客户端和服务端之间通信的时候，中间永远有一个注册中心作为传话人，在第五条中我们知道注册中心会生成一个skel，而得到的这个skel是一个$Proxy0类，在前面我们提过封装了三个target，这个就是其中之一<br>这里下两个断点</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114849747-315261117.png"></p>
+<p>这里还有一个需要注意的就是打完这两个断点之后，得到的第一个target中的stub是DGCImpl，但这个是用来处理内存垃圾的，所以我们要按两下f9，直到看到proxy动态代理的stub为止</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114854360-935976669.png"></p>
+<p>然后我们继续跟到dispatch里面，这是skel是空的，所以不会像注册中心的那时一样执行oldDispatch 方法</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114858689-1696772608.png"></p>
+<p>继续往下走，到metho这里，这时method就是我们之前写的sayhello方法</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114902745-1597460942.png"></p>
+<p>继续往下走，会发现执行到了一个循环里面的unmarshalValue</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114906886-1334845841.png"></p>
+<p>看到这个就知道这里是存在漏洞的了，流程就是把我们的hello序列化读进去，反序列化读出来</p>
+<h5 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h5><p>那这里在解决一个疑问就是开头的那个DGC的stub（三个target中的一个）</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114916578-850040379.png"></p>
+<p>断点需要下在ObjectTable 类的 putTarget() 方法里面（要把之前那两个去掉）然后运行到光标处f9</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114921264-1452532760.png"></p>
+<p>而DGC运行的原理就是将target放到一个静态表里面（这个就是之前说的objectTable里面封装了三个target）</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114926808-1951083143.png"></p>
+<p>put完之后我们发现是Proxy 这个动态代理的 Target 而非 DGC 的 Target被放进去了<br>而DGC的target是被封装到了static里面</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114930952-1787904228.png"></p>
+<p>创建的流程—–&gt;<br>在 DGC 这个类在调用静态变量的时候，就会完成类的初始化<br>类的初始化是由 DGCImpl 这个类完成的，所以我们到里面看看，看到一个作用于class initializer的static方法</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114936526-460174157.png"></p>
+<p>然后就new了一堆target的属性，然后到createproxy()</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114943642-92516828.png"></p>
+<p>createProxy() 方法进去，会看到一个 createStub() 方法，跟进去</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114948894-1443019749.png"></p>
+<p>然后判断尝试是否可以获取到DGCImpl_Stub，如果获取不到就抛出异常</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329114953817-1570118696.png"></p>
+<p>然后一个DGCImpl_Stub 的服务就创建成功了<br>而在这个过程中存在漏洞的地方就是到 DGCImpl_Stub 这个类下有两个clean和dirty两个方法<br>而clean方法就存在反序列化漏洞</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329115002824-40235255.png"></p>
+<p>同样在DGCImpl_Skel 这个类下也存在</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250329115006963-1739646041.png"></p>
+<h5 id="总结：-4"><a href="#总结：-4" class="headerlink" title="总结："></a>总结：</h5><p>总而言之dgc就是一个自动创建的过程，用于清理内存<br>而漏洞点在客户端和服务端都有，因为都会清理内存，存在于skel和stub，也就是所谓的JRMP绕过（还没学，看其他博主博客学习的，之后会补充对应笔记）</p>
+<h2 id="大总结："><a href="#大总结：" class="headerlink" title="大总结："></a>大总结：</h2><p>在整个rmi的分析过程中，虽然存在不少漏洞点，但实际上d单纯攻击rmi没啥用，因为在jdk8u1之后就都修复完毕了<br>一般是和fastjso和strust2等打组合拳较多</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/07/09/Redis-hyperloglog-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-CVE-2025-32023/" class="prev">← Redis hyperloglog 远程代码执行漏洞(CVE-2025-32023)</a>
+    
+    
+      <a href="/2025/03/25/%E4%BF%A1%E5%91%BCoa2-6-7%E5%90%8E%E5%8F%B0%E6%B3%A8%E5%85%A5/" class="next">信呼oa2.6.7后台注入！！！ →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

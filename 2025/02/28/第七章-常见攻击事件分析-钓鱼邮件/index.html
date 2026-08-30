@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第七章 常见攻击事件分析--钓鱼邮件 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">第七章 常见攻击事件分析--钓鱼邮件</h1>
+    <div class="post-meta">
+      <time datetime="2025-02-28">2025-02-28</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18743030">https://www.cnblogs.com/Zephyr07/articles/18743030</a></p>
+</blockquote>
+<h2 id="第一关：请分析获取黑客发送钓鱼邮件时使用的IP，flag格式：-flag"><a href="#第一关：请分析获取黑客发送钓鱼邮件时使用的IP，flag格式：-flag" class="headerlink" title="第一关：请分析获取黑客发送钓鱼邮件时使用的IP，flag格式： flag"></a>第一关：请分析获取黑客发送钓鱼邮件时使用的IP，flag格式： flag</h2><p>让找到hacker发邮件的ip，所以分析钓鱼邮件.eml文件<br>打开之后其实很容易就能看到ip</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228130850727-760442515.png"></p>
+<h3 id="补充："><a href="#补充：" class="headerlink" title="补充："></a>补充：</h3><p>在分析邮件的来源时，邮件头部的 “Received” 部分是关键。邮件在传输过程中，每经过一个邮件服务器，这部分都会新增一条记录。最早的一条记录（即最后一个 “Received” 部分）通常包含了原始发件者的IP地址，因此通过查看这条记录，可以更准确地找到邮件的真实发件IP地址。</p>
+<p>flag{121.204.224.15}</p>
+<h2 id="第二关：请分析获取黑客钓鱼邮件中使用的木马程序的控制端IP，flag格式：flag"><a href="#第二关：请分析获取黑客钓鱼邮件中使用的木马程序的控制端IP，flag格式：flag" class="headerlink" title="第二关：请分析获取黑客钓鱼邮件中使用的木马程序的控制端IP，flag格式：flag"></a>第二关：请分析获取黑客钓鱼邮件中使用的木马程序的控制端IP，flag格式：flag</h2><p>可以直接扔到沙箱里面分析<br>flag{107.16.111.57}</p>
+<h2 id="第三关：黑客在被控服务器上创建了webshell，请分析获取webshell的文件名，请使用完整文件格式，flag格式：flag"><a href="#第三关：黑客在被控服务器上创建了webshell，请分析获取webshell的文件名，请使用完整文件格式，flag格式：flag" class="headerlink" title="第三关：黑客在被控服务器上创建了webshell，请分析获取webshell的文件名，请使用完整文件格式，flag格式：flag"></a>第三关：黑客在被控服务器上创建了webshell，请分析获取webshell的文件名，请使用完整文件格式，flag格式：flag</h2><p>d盾直接分析var&#x2F;www&#x2F;html&#x2F;目录就行，就找到了</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228130918786-918751512.png"></p>
+<p>flag{&#x2F;var&#x2F;www&#x2F;html&#x2F;admin&#x2F;ebak&#x2F;ReData.php}</p>
+<h2 id="第四关：黑客在被控服务器上创建了内网代理隐蔽通信隧道，请分析获取该隧道程序的文件名，请使用完整文件路径，flag格式：flag"><a href="#第四关：黑客在被控服务器上创建了内网代理隐蔽通信隧道，请分析获取该隧道程序的文件名，请使用完整文件路径，flag格式：flag" class="headerlink" title="第四关：黑客在被控服务器上创建了内网代理隐蔽通信隧道，请分析获取该隧道程序的文件名，请使用完整文件路径，flag格式：flag"></a>第四关：黑客在被控服务器上创建了内网代理隐蔽通信隧道，请分析获取该隧道程序的文件名，请使用完整文件路径，flag格式：flag</h2><p>黑客在被控服务器上创建了内网代理隐蔽通信隧道，请分析获取该隧道程序的文件名，请使用完整文件路径</p>
+<h3 id="tip：可以去临时目录下分析文件"><a href="#tip：可以去临时目录下分析文件" class="headerlink" title="tip：可以去临时目录下分析文件"></a>tip：可以去临时目录下分析文件</h3><p>然后发现两个文件</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228130930066-775709517.png"></p>
+<p>分析my.conf：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">[common]</span><br><span class="line">server_addr=178.102.115.17:52329</span><br><span class="line">conn_type=tcp</span><br><span class="line">vkey=6bHW7m4SMvy</span><br><span class="line">auto_reconnection=true</span><br><span class="line">max_conn=1000</span><br><span class="line">flow_limit=1000</span><br><span class="line">rate_limit=1000</span><br><span class="line"></span><br><span class="line"># username and password of http and socks5 proxy</span><br><span class="line"># basic_username=11</span><br><span class="line"># basic_password=3</span><br><span class="line"># web_username=user</span><br><span class="line"># web_password=1234</span><br><span class="line">crypt=true</span><br><span class="line">compress=true</span><br></pre></td></tr></table></figure>
+
+<p>● [common]:<br>这个部分表明配置文件的通用设置。<br>● server_addr&#x3D;178.102.115.17:52329:<br>服务器地址和端口号。这个配置指向外部服务器（IP 地址 178.102.115.17，端口 52329），可能是黑客用来控制或接管服务器的地址。<br>● conn_type&#x3D;tcp:<br>连接类型为 TCP。<br>● vkey&#x3D;6bHW7m4SMvy:<br>验证密钥或访问密钥，用于验证连接请求。<br>● auto_reconnection&#x3D;true:<br>自动重连设置为 true，表示断线后会自动重连。<br>● max_conn&#x3D;1000:<br>最大连接数为 1000，表示最多可以建立 1000 个连接。<br>● flow_limit&#x3D;1000 和 rate_limit&#x3D;1000:<br>流量限制和速率限制，均为 1000。这些限制可能用于控制带宽使用。<br>● crypt&#x3D;true 和 compress&#x3D;true:<br>数据加密和压缩设置为 true，表示传输的数据会被加密和压缩，以提高安全性和效率。<br>● # username and password of http and socks5 proxy:<br>注释部分，提到 HTTP 和 SOCKS5 代理的用户名和密码配置（已被注释掉）<br>这个就是隧道程序文件<br>本来以为提交这个文件，交了发现不对，题目让交的是获取该隧道程序的文件，所以提交mysql文件正确<br>flag{&#x2F;var&#x2F;tmp&#x2F;proc&#x2F;mysql}</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/02/28/%E7%AC%AC%E5%85%AB%E7%AB%A0-%E5%86%85%E5%AD%98%E9%A9%AC%E5%88%86%E6%9E%90-java01-nacos/" class="prev">← 第八章 内存马分析-java01-nacos</a>
+    
+    
+      <a href="/2025/02/28/%E7%AC%AC%E5%85%AD%E7%AB%A0-%E6%B5%81%E9%87%8F%E7%89%B9%E5%BE%81%E5%88%86%E6%9E%90-waf-%E4%B8%8A%E7%9A%84%E6%88%AA%E8%8E%B7%E7%9A%84%E9%BB%91%E5%AE%A2%E6%94%BB%E5%87%BB%E6%B5%81%E9%87%8F/" class="next">第六章 流量特征分析-waf 上的截获的黑客攻击流量 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

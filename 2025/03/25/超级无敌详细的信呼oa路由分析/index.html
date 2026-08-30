@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>超级无敌详细的信呼oa路由分析！！！ | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">超级无敌详细的信呼oa路由分析！！！</h1>
+    <div class="post-meta">
+      <time datetime="2025-03-25">2025-03-25</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18792069">https://www.cnblogs.com/Zephyr07/articles/18792069</a></p>
+</blockquote>
+<h2 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h2><p>信呼oa的路由分析对于新手来说还是有点难以理解，刚好自己也有点混乱，所以写篇文章从头记录一下</p>
+<h2 id="源码下载："><a href="#源码下载：" class="headerlink" title="源码下载："></a>源码下载：</h2><p><a target="_blank" rel="noopener" href="https://xinhu-1251238447.file.myqcloud.com/xinhu/xinhu_utf8_v2.6.5.zip">https://xinhu-1251238447.file.myqcloud.com/xinhu/xinhu_utf8_v2.6.5.zip</a></p>
+<h2 id="路由分析："><a href="#路由分析：" class="headerlink" title="路由分析："></a>路由分析：</h2><p>首先我们搭建好网站之后打开，对于新手来说分析路由很好的一个办法就是在登陆口登录一下，看一下请求</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325183013054-797309002.png"></p>
+<p>这里我们发现他是访问的index.php文件，然后又a，m，d等参数传参了，所以我们看一下代码<br>然后发现开头检测rewriteurl参数内容，然后将其再传递给$_uurl参数，当它不为空走if中的代码，为空则走else，然后我们发现我们看请求包该参数是空的，所以直接看else代码</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325183018427-2068009450.png"></p>
+<p>然后发现其中对m，d，a三个参数的内容都做了一个gettoken函数的处理，但是这里我们是跟不进去的我们可以直接搜索该函数的定义</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325183024626-207958541.png"></p>
+<p>然后跟进去发现就是将这三个参数放到数组里面，如果没有传递的参数内容，就按照默认的内容gettoken(‘m’, ‘index’);（白费心思，还以为是过滤呢~）</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325183029827-1054881251.png"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325183035904-47156626.png"></p>
+<p>那就回到index.php中继续往下看，发现把m有又传递给了mode参数，然后还多了一个ajaxbool参数，并且默认赋值为false(最用后面说)</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325183044773-710833114.png"></p>
+<p>然后跟到view.php文件中看一下，首先判断ajaxbool值是否为空，为空则赋值false</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325183049107-1870659249.png"></p>
+<p>然后p是定义了一个常量webmain</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325183054358-85176527.png"></p>
+<p>然后就是又一遍的判断a，d，m是否有值，并且把给大写的M,A,D,P四个参数定义常量</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325183058274-1113351596.png"></p>
+<p>然后是将m参数传递给_mc参数，如果有|，就会把|后面的内容再次赋值给_m参数</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325183103986-1776607766.png"></p>
+<p>eg：m&#x3D;a|c—–&gt;m&#x3D;a&amp;&amp;_m&#x3D;c<br>接下来就是稍微有点难以理解的地方了，他是用占位符传参</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325183108827-1507820126.png"></p>
+<p>又因为ROOT_PATH是&#x2F;，p是webmain，所以替换完之后就是&#x2F;webmain&#x2F;webmainAction.php，然后我们看一下目录发现的确有该文件</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325183113455-1982755116.png"></p>
+<p>然后rand就是一个随机数，就不说了，这个是截取d字符串最后一个字符，如果不等于&#x2F;并且不为空，就在d参数后面拼接一个&#x2F;</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325183118624-879329354.png"></p>
+<p>然后下面又是三个占位符传参</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325183122785-679162492.png"></p>
+<p>在这里面，root_path和p都是固定的，这一段代码就是当m中有|的话，就会生成两个actfile，然后下面就是判断这两个actfile文件是否存在，并且处理a参数和m参数<br>如果存在第一个actfile，就会对m拼接classaction，给a拼接action，如果ajaxbool为true，就给a拼接ajax，然后访问对应文件</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325183127172-686019001.png"></p>
+<p>拿登录口的调用举例：</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325183131538-1994960810.png"></p>
+<p>首先是</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$actpath=/webmain/login</span><br><span class="line">$actfile=/webmain/login/loginAction.php</span><br><span class="line">$actfile1=/webmain/login/loginAction.php</span><br></pre></td></tr></table></figure>
+
+<p>这时候可以看一下发现在对应目录的确有该文件</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325183138434-905040792.png"></p>
+<p>然后这里的a是代表在loginAction中的方法，这时候ajaxbool是true，所以调用的是loginAction.php中的checkAjax方法</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325183143308-1833051532.png"></p>
+<p>这里说明一下为什么登陆的时候d为空，这是因为在login目录下没有其他目录了，如果想要调用某目录下的某个目录下的文件，这时候就要给d赋值了<br>举例：<br>这里我们调用system目录下的cog目录下的cogAction目录<br><a target="_blank" rel="noopener" href="http://127.0.0.1:86/index.php?a=getinfo&d=system&m=cog&ajaxbool=true">http://127.0.0.1:86/index.php?a=getinfo&amp;d=system&amp;m=cog&amp;ajaxbool=true</a></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325183149079-1762245460.png"></p>
+<p>这样就成功调用了</p>
+<h2 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h2><p>m代表要调用的方法所在的php文件(会自动拼接Action)<br>a是代表调用的方法(根据ajaxbool拼接不同内容)<br>d参数是当调用二级目录下的文件方法的时候才会传参</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/03/25/%E4%BF%A1%E5%91%BCoa2-6-7%E5%90%8E%E5%8F%B0%E6%B3%A8%E5%85%A5/" class="prev">← 信呼oa2.6.7后台注入！！！</a>
+    
+    
+      <a href="/2025/03/23/CVE-2025-24813-RCE%E5%A4%8D%E7%8E%B0/" class="next">CVE-2025-24813 RCE复现 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

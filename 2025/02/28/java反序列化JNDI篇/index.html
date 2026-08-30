@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>java反序列化JNDI篇 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">java反序列化JNDI篇</h1>
+    <div class="post-meta">
+      <time datetime="2025-02-28">2025-02-28</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18743597">https://www.cnblogs.com/Zephyr07/articles/18743597</a></p>
+</blockquote>
+<h2 id="概念："><a href="#概念：" class="headerlink" title="概念："></a>概念：</h2><p>简答来说可以类比为map中的键值对，就是会给每一个对象对应一个名称，可以通过名称去找到指定对象<br>漏洞名称叫做jndi注入，但其实和注入并没有太大关系，大体来说应该是可控参数存在，导致远程类加载执行恶意代码<br>官方文档(JNDI)：<br><a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/tutorial/jndi/overview/index.html">https://docs.oracle.com/javase/tutorial/jndi/overview/index.html</a></p>
+<h2 id="结构包装："><a href="#结构包装：" class="headerlink" title="结构包装："></a>结构包装：</h2><p>JNDI 包含在 Java SE 平台中。要使用 JNDI，您必须具有 JNDI 类和一个或多个服务提供者。JDK 包括以下命名&#x2F;目录服务的服务提供商：<br>● 轻量级目录访问协议 （LDAP）<br>● 通用对象请求代理架构 （CORBA） 通用对象服务 （COS） 名称服务<br>● Java 远程方法调用 （RMI） 注册表<br>● 域名服务 （DNS）</p>
+<h2 id="JNDI-RMI"><a href="#JNDI-RMI" class="headerlink" title="JNDI+RMI"></a>JNDI+RMI</h2><p>1.调用方法<br>首先开启RMIServer服务</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228164234297-271747711.png"></p>
+<p>然后开启JNDIRMIServer</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228164239734-1938517048.png"></p>
+<p>最后开启客户端JNDIRMIClient</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228164244956-379305189.png"></p>
+<p>最后JNDIRMIServer出现回显</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228164250096-1383111783.png"></p>
+<p>其实仔细看一下代码，发现答题逻辑上和rmi调用其实是一样的，唯一不同的就是多了一个<strong>initialContext</strong>函数的调用<br>那为什么要调用这个函数呢，又为什么说这样调用就会存在jndi注入呢？<br>我们可以对比一下RMIClient和JNDIRMIClient的代码<br>RMIClient</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228164308034-465125896.png"></p>
+<p>JNDIRMIClient</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228164312086-808302653.png"></p>
+<p>我们可以发现两个代码中lookup中的内容并不相同，而在rmi之前的学习中我们可以知道lookup这里是存在可以序列化和反序列化的地方的，也就是说存在可能出现恶意代码加载的地方，但是由于RMIClient当中lookup只能查询远程对象名称，是无法控制远程地址的，所以在rmi当中是无法实现的，而在JNDIRMIClient当中我们可以发现lookup是可以控制远程地址以及远程对象，也就存在利用的地方<br>然后这里就存在另一个问题就是，上面所说的一切的前提是lookup的加载方法是rmi的原生方法才能实现，所以我们动态调试更进去看一下，发现果真如此</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228164318354-1198401605.png"></p>
+<p>看到这里我们发现就是调用的ResgistryImpl_Stub中的lookup方法，所以说存在查询恶意对象导致的远程代码执行<br>但其实这并不是真正意义上的jndi注入，只是这里存在一个恶意代码的利用点，真正的jndi注入是发生在引用类型</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228164325247-1389168812.png"></p>
+<p>JNDIRMIServer</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228164330799-2002774033.png"></p>
+<p>TestRef是恶意引用类，后面的是远程对象地址<br>之所以用这个是因为当我们的恶意类不满足条件时，我们可以用引用做一个转换，将我们要执行的恶意代码包含在引用当中<br>跟到Referce中看一看参数</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228164336282-819358784.png"></p>
+<p>变量字面意思是工厂和工厂位置，其实就可以用他包裹住我们的恶意代码进而调用它的时候去执行我们的恶意代码<br>这时候我们写一个弹计算机的恶意代码，编译好之后，开启三个服务，就会在客户端上弹出计算器</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228164340381-1601905859.png"></p>
+<p>python在恶意类目录下开启http服务就能弹计算器了</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228164346493-1665900991.png"></p>
+<p>在这个过程中，JNDIRMIServer和RMIServer相当于是恶意机器，而JNDIRMIClient相当于是存在漏洞的机器，而这个存在漏洞的机器事实上是需要一个lookup方法就行了<br>整个跟代码的流程：（简述）<br>前面我们已经分析过的实际上调用的还是rmi原生lookup方法<br>然后lookup方法得到一个对象，是ReferenceWrapper_Stub对象，但是实际上绑定的是Reference对象，所以说问题就出在了JNDIRMIServer中rebind方法<br>跟进去看之后发现在调用rebind方法的时候，我们传入的方法会被encodeObject方法处理一下，说白就是封装了一下<br>然后encodeObject方法也很简单就是当对象是Reference时，就会包装成一个ReferenceWrapper<br>然后接着上面客户端的分析，我们发现lookup方法得到一个ReferenceWrapper_Stub对象，然后经过处理之后就会被decodeObject转回成Reference<br>但是在这个过程中（RegistryContext类中）我们是没有发现其对恶意类进行初始化的操作的，所以只能接着往下分析<br>继续跟进去decodeObject中，然后里面return的时候会走入NamingManager中的getObjectInstance方法中<br>跟进去getObjectInstance方法中发现了一个关键方法getObjectFactoryFromReference方法，字面意思就是从引用中获取工厂方法<br>然后跟到这个方法里面就会找到工厂类加载的地方helper.loadClass(factoryName)<br>然后loadClass我们也知道先会使用AppClassLoader，在本地寻找，找不到的话看代码就会进一步中从codebase中去获取，找到之后就会类加载helper.loadClass(factoryName，codebase)<br>然后往下面看发现新建了一个URLClassLoader，会将codebase传入，同时进行了newInstance实例化（因为恶意代码是在构造函数当中，所以必须要实例化）<br>又因为实例化在getObjectFactoryFromReference方法中，所以最后实例化就执行了代码</p>
+<h2 id="JNDI-LDAP"><a href="#JNDI-LDAP" class="headerlink" title="JNDI+LDAP"></a>JNDI+LDAP</h2><h3 id="前情概要："><a href="#前情概要：" class="headerlink" title="前情概要："></a>前情概要：</h3><p>ldap并不是固定在java中的东西，而是一个用于访问和管理目录服务的协议<br>而在最之前我们是发现jdk是包含此服务的，所以产生了该漏洞<br>在jdk8u121之后修复了rmi和COBAR的攻击点，但是漏了一个ldap（jdk1.8_191）</p>
+<h3 id="复现"><a href="#复现" class="headerlink" title="复现"></a>复现</h3><p>JNDILDAPServer:</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228164414776-898409026.png"></p>
+<p>首先使用apache Directory Studio创建一个LDAP服务<br>然后创建一个客户端JNDILDAPClient</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228164420895-1584631789.png"></p>
+<p>然后JNDILDAPServer和JNDILDAPClient先后运行起来，就弹计算器了</p>
+<h3 id="原理分析："><a href="#原理分析：" class="headerlink" title="原理分析："></a>原理分析：</h3><p>照常从客户端的lookup开始断点调试吗，一路跟下去，最终会走到LdapCtx下的c_lookup方法中去，然后在这个方法中会调用DirectoryManager下的getObjectInstance方法<br>然后进来之后就和JNDI+RMI后半段是一样的，会进入getObjectFactoryFromReference中去，最后恶意类初始执行代码</p>
+<h3 id="JNDI-JDK高版本绕过"><a href="#JNDI-JDK高版本绕过" class="headerlink" title="JNDI+JDK高版本绕过"></a>JNDI+JDK高版本绕过</h3><p>在jdk8u191之后，ldap也被修复了，修复的地方在于当进行codebase远程类加载的时候会有一个限制条件<br>就是只有当trustURLCodebase的值为true的时候，才能进行远程类加载，但是默认是false<br>这时候就会像如果不能加载远程对象，那我们想是否会有本地工厂可以供我们来利用呢？事实证明，的确有<br>在tomcat的核心包当中，有一个BeanFactory，他的getObjectInstance方法存在一个invoke，也就是存在反射调用，当参数可控的时候，我们也可以rce<br>首先运行RMIServer</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228164438537-1689502749.png"></p>
+<p>然后再写一个JNDIRMIServerBypass</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">import javax.naming.InitialContext;</span><br><span class="line">import javax.naming.StringRefAddr;</span><br><span class="line">import java.security.spec.ECField;</span><br><span class="line"></span><br><span class="line">public class JNDIRMIServerBypass &#123;</span><br><span class="line">    public static void main(String[]args)throws Exception&#123;</span><br><span class="line">        InitialContext initialContext=new InitialContext();</span><br><span class="line">        //ResourceRef ref=new ResourceRef(&quot;java.el.ELProcessor&quot;,null,&quot;&quot;,&quot;&quot;,true,&quot;org.apache.naming.factory.BeanFactory&quot;,null);</span><br><span class="line">        ref.add(new StringRefAddr(&quot;forceString&quot;,&quot;x=eval&quot;));</span><br><span class="line">        ref.add(new StringRefAddr(&quot;x&quot;,&quot;Runtime.getRuntime().exec(&#x27;calc&#x27;)&quot;));</span><br><span class="line">        initialContext.rebind(&quot;rmi://127.0.0.1:1099/remoteObj&quot;,ref);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们在分析JNDI+RMI的时候可以记的在初始化类加载之前loadclass会先使用Apploadclass在本地查找，之前是找不到所以远程加载，但是现在是可以在本地知道的BeanFactory，最后实例化的时候就可以得到一个BeanFactory类<br>然后在执行factory.getObjectInstance的是或就会执行BeanFactory的getObjectInstance方法，而他里面会有反射调用<br>然后里面大致过程就是有个ra会先从引用中获取forceString，我们传入的值是eval，然后当反射调用ra的时候，会执行里面的方法，我们传入的值是Runtime.getRuntime().exec(‘calc’)，最后就会导致代码执行<br>图解示例</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228164455476-1833344825.png"></p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/02/28/Tomcat-value%E5%86%85%E5%AD%98%E9%A9%AC/" class="prev">← Tomcat-value内存马</a>
+    
+    
+      <a href="/2025/02/28/java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collection%E7%AF%8703-CC3%E9%93%BE/" class="next">java反序列化Commons-Collection篇03-CC3链 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

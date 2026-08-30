@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第二章日志分析-apache日志分析 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">第二章日志分析-apache日志分析</h1>
+    <div class="post-meta">
+      <time datetime="2025-02-22">2025-02-22</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18731529">https://www.cnblogs.com/Zephyr07/articles/18731529</a></p>
+</blockquote>
+<p>前情概要<br>● 访问日志：默认位置通是&#x2F;var&#x2F;log&#x2F;apache2&#x2F;access.log.1（Debian&#x2F;Ubuntu）<br>或&#x2F;var&#x2F;log&#x2F;httpd&#x2F;access_log.1（CentOS&#x2F;RHEL）。<br>● 错误日志：默认位置通常是&#x2F;var&#x2F;log&#x2F;apache2&#x2F;error.log.1（Debian&#x2F;Ubuntu）<br>或&#x2F;var&#x2F;log&#x2F;httpd&#x2F;error_log.1（CentOS&#x2F;RHEL）。</p>
+<h2 id="1、提交当天访问次数最多的IP，即黑客IP："><a href="#1、提交当天访问次数最多的IP，即黑客IP：" class="headerlink" title="1、提交当天访问次数最多的IP，即黑客IP："></a>1、提交当天访问次数最多的IP，即黑客IP：</h2><p>题目都说了是apache日志分析，所以直接</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd /var/log/apache2/</span><br><span class="line">cat access.log.1</span><br></pre></td></tr></table></figure>
+
+<p>其实这里，数据虽然多，但是哪个ip访问次数多，大致看一看就知道了，这里的话就用语法筛选一下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cut -d- -f 1 access.log.1|uniq -c | sort -rn | head -20</span><br></pre></td></tr></table></figure>
+
+<p>语法解析：<br>● cut：这是一个命令行工具，用于从每一行中提取特定的部分。<br>● -d-：指定字段的分隔符是-（一个连字符）。<br>● -f 1：指定要提取第一个字段（即连字符前的部分）。<br>● access.log.1：输入文件，假设这是Apache访问日志的文件名。<br><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222220720491-1148975910.png"></p>
+<p>flag{192.168.200.2}</p>
+<h2 id="2、黑客使用的浏览器指纹是什么，提交指纹的md5："><a href="#2、黑客使用的浏览器指纹是什么，提交指纹的md5：" class="headerlink" title="2、黑客使用的浏览器指纹是什么，提交指纹的md5："></a>2、黑客使用的浏览器指纹是什么，提交指纹的md5：</h2><p>所谓浏览器指纹你可以简单理解为抓包里面的ua头</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat access.log.1 |grep 192.168.200.2 |more</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222220732175-554956452.png"></p>
+<p>都一样，直接复制出来加密就行<br>Mozilla&#x2F;5.0 (Windows NT 10.0; Win64; x64) AppleWebKit&#x2F;537.36 (KHTML, like Gecko) Chrome&#x2F;87.0.4280.88 Safari&#x2F;537.36<br><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222220737289-1919945026.png"></p>
+<h2 id="3、查看包含index-php页面被访问的次数，提交次数："><a href="#3、查看包含index-php页面被访问的次数，提交次数：" class="headerlink" title="3、查看包含index.php页面被访问的次数，提交次数："></a>3、查看包含index.php页面被访问的次数，提交次数：</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat access.log.1 | grep &quot;/index.php&quot; | wc -l</span><br></pre></td></tr></table></figure>
+
+<p>回显数字27，命令和之前的同一个道理，慢慢理解就好<br>flag{27}</p>
+<h2 id="4、查看黑客IP访问了多少次，提交次数："><a href="#4、查看黑客IP访问了多少次，提交次数：" class="headerlink" title="4、查看黑客IP访问了多少次，提交次数："></a>4、查看黑客IP访问了多少次，提交次数：</h2><p>这个说白了考的还是语法的使用，多练习多熟悉即可</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat access.log.1|grep &quot;192.168.200.2&quot;|cut -d&#x27; &#x27; -f1 |sort|unic -c</span><br></pre></td></tr></table></figure>
+
+<p>cut -d’ ‘ -f1：<br>● cut 命令用于从每行中提取指定的字段。<br>● -d’ ‘ 表示字段分隔符是空格。<br>● -f1 表示提取第一个字段，即 IP 地址。<br>sort：<br>● sort 命令用于对输入内容进行排序。<br>● 这里它对提取出的 IP 地址进行排序。<br>uniq -c：<br>● uniq 命令用于去除重复的行。<br>● -c 选项表示在输出中包含每个唯一行前出现的次数。<br>● 这里它统计每个唯一 IP 地址出现的次数。<br><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222220802983-1726121167.png"></p>
+<p>flag{6555}</p>
+<h2 id="5、查看2023年8月03日8时这一个小时内有多少IP访问，提交次数"><a href="#5、查看2023年8月03日8时这一个小时内有多少IP访问，提交次数" class="headerlink" title="5、查看2023年8月03日8时这一个小时内有多少IP访问，提交次数:"></a>5、查看2023年8月03日8时这一个小时内有多少IP访问，提交次数:</h2><p>还是语法的使用</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat access.log.1|grep &quot;03/Aug/2023:08:&quot;|awk &#x27;&#123;print $1&#125;&#x27;|sort -nr |uniq -c|wc -l</span><br></pre></td></tr></table></figure>
+
+<p>● 不加 wc -l：显示每个 IP 地址的访问次数。<br>● 加上 wc -l：显示不同 IP 地址的总数量。<br>这里要看有多少种ip访问，所以就加上wc -l<br><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222220817234-161704971.png"></p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/02/22/%E7%AC%AC%E4%BA%8C%E7%AB%A0%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90-mysql%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/" class="prev">← 第二章日志分析-mysql应急响应</a>
+    
+    
+      <a href="/2025/02/22/%E7%AC%AC%E4%B8%80%E7%AB%A0-%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94-webshell%E6%9F%A5%E6%9D%80/" class="next">第一章 应急响应-webshell查杀 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

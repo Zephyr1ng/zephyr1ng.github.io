@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第四章 windows实战-emlog | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">第四章 windows实战-emlog</h1>
+    <div class="post-meta">
+      <time datetime="2025-02-27">2025-02-27</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18742237">https://www.cnblogs.com/Zephyr07/articles/18742237</a></p>
+</blockquote>
+<h2 id="1-通过本地-PC-RDP到服务器并且找到黑客植入-shell-将黑客植入-shell-的密码-作为-FLAG-提交"><a href="#1-通过本地-PC-RDP到服务器并且找到黑客植入-shell-将黑客植入-shell-的密码-作为-FLAG-提交" class="headerlink" title="1. 通过本地 PC RDP到服务器并且找到黑客植入 shell,将黑客植入 shell 的密码 作为 FLAG 提交;"></a>1. 通过本地 PC RDP到服务器并且找到黑客植入 shell,将黑客植入 shell 的密码 作为 FLAG 提交;</h2><p>连接上之后打开直接看到phpstudy，就猜到hacker从这里面下手的，这里简单一点，直接放到工具里面查杀</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250227224811629-293147477.png"></p>
+<p>然后把phpstudy的www目录压缩放到本机里面用工具扫，然后就找到了</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250227224816427-1243770635.png"></p>
+<p>打开之后看一看就知道连接密码了rebeyond，知道的人一看就知道是冰蝎马</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250227224820653-1347468620.png"></p>
+<p><strong>flag{rebeyond}</strong></p>
+<h2 id="2-通过本地-PC-RDP到服务器并且分析黑客攻击成功的-IP-为多少-将黑客-IP-作为-FLAG-提交"><a href="#2-通过本地-PC-RDP到服务器并且分析黑客攻击成功的-IP-为多少-将黑客-IP-作为-FLAG-提交" class="headerlink" title="2. 通过本地 PC RDP到服务器并且分析黑客攻击成功的 IP 为多少,将黑客 IP 作为 FLAG 提交"></a>2. 通过本地 PC RDP到服务器并且分析黑客攻击成功的 IP 为多少,将黑客 IP 作为 FLAG 提交</h2><p>让找ip，那肯定就是看日志，nginx日志打开可以看到大小都是0，就不看了，所以直接看apache的access.log<br>因为已经找到了马的路径，所以直接在日志里面搜就好了</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250227224830936-1714412489.png"></p>
+<p>发现某一ip对马进行了多次请求，这就是黑客通过访问这个目录来rce，所以ip就显而易见了</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250227224837671-1377639913.png"></p>
+<p><strong>flag{192.168.126.1}</strong></p>
+<h2 id="3-通过本地-PC-RDP到服务器并且分析黑客的隐藏账户名称-将黑客隐藏账户名称作为-FLAG-提交"><a href="#3-通过本地-PC-RDP到服务器并且分析黑客的隐藏账户名称-将黑客隐藏账户名称作为-FLAG-提交" class="headerlink" title="3. 通过本地 PC RDP到服务器并且分析黑客的隐藏账户名称,将黑客隐藏账户名称作为 FLAG 提交;"></a>3. 通过本地 PC RDP到服务器并且分析黑客的隐藏账户名称,将黑客隐藏账户名称作为 FLAG 提交;</h2><p>找隐藏账户也简单，windows直接计算机管理看用户组</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250227224844715-836938169.png"></p>
+<p>最后也是找到了</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250227224850653-300330401.png"></p>
+<p>其实还有一种方法就是用命令net user查看，但是也看情况，这里就查不出来<br><strong>flag{hacker138}</strong></p>
+<h2 id="4-通过本地-PC-RDP到服务器并且分析黑客的挖矿程序的矿池域名-将黑客挖矿程序的矿池域名称作为-仅域名-FLAG-提交"><a href="#4-通过本地-PC-RDP到服务器并且分析黑客的挖矿程序的矿池域名-将黑客挖矿程序的矿池域名称作为-仅域名-FLAG-提交" class="headerlink" title="4. 通过本地 PC RDP到服务器并且分析黑客的挖矿程序的矿池域名,将黑客挖矿程序的矿池域名称作为(仅域名)FLAG 提交;"></a>4. 通过本地 PC RDP到服务器并且分析黑客的挖矿程序的矿池域名,将黑客挖矿程序的矿池域名称作为(仅域名)FLAG 提交;</h2><p>这里让找到挖矿程序的矿池域名，我们点到我们发现的用户目录下的桌面下，发现了一个直接命名为Kuang的文件，那就直接确定了呗</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250227224905449-841506676.png"></p>
+<p>发现是exe文件，用工具pyinstxtractor.py把exe转换成pyc文件，然后用010打开就看到域名了</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python pyinstxtractor.py kuang.exe</span><br></pre></td></tr></table></figure>
+
+<p>在生成的目录下面找到kuang.pyc（如果没有的话找到kuang空白文件，加上pyc后缀即可），010打开</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250227224924305-2106686959.png"></p>
+<p><strong>flag{wakuang.zhigongshanfang.top}</strong></p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/02/28/%E7%AC%AC%E5%9B%9B%E7%AB%A0-windows%E5%AE%9E%E6%88%98-%E5%90%91%E6%97%A5%E8%91%B5/" class="prev">← 第四章 windows实战-向日葵</a>
+    
+    
+      <a href="/2025/02/22/%E7%AC%AC%E4%BA%8C%E7%AB%A0%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90-redis%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94/" class="next">第二章日志分析-redis应急响应 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

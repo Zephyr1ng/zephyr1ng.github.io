@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PromptingAi（提示词注入靶场） | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">PromptingAi（提示词注入靶场）</h1>
+    <div class="post-meta">
+      <time datetime="2026-01-09">2026-01-09</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/19461270">https://www.cnblogs.com/Zephyr07/articles/19461270</a></p>
+</blockquote>
+<h2 id="前情："><a href="#前情：" class="headerlink" title="前情："></a>前情：</h2><p>靶场位置：</p>
+<p><a target="_blank" rel="noopener" href="https://prompting.ai.immersivelabs.com/">https://prompting.ai.immersivelabs.com/</a></p>
+<p>参考文章：</p>
+<p><a target="_blank" rel="noopener" href="https://contextoverflow.com/p/immersive-gpt-write-up-and-analysis">https://contextoverflow.com/p/immersive-gpt-write-up-and-analysis</a></p>
+<p><a target="_blank" rel="noopener" href="https://forum.butian.net/share/4559">https://forum.butian.net/share/4559</a></p>
+<p>在这篇文章中可以看到一些不同于我以下展示的方法，方法很多，并且同样的方法也存在随机性，并不存在一个固定的 wp 可以让所有人一次通过</p>
+<p>所以说 LLM 是存在概率性和随机性（如果你现在不理解，做完这个靶场你就理解了hh）</p>
+<h2 id="Level1"><a href="#Level1" class="headerlink" title="Level1"></a>Level1</h2><p>这一关没什么防御，直接让他告诉你密码即可</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2026/png/44318133/1767699896524-f7457298-57f3-43f7-8aeb-39e695e48074.png"></p>
+<h2 id="Level2"><a href="#Level2" class="headerlink" title="Level2"></a>Level2</h2><p>这一关使用的是编码绕过的方式</p>
+<p>不论使用什么编码应该都可以绕过，如 base64，或者 url 编码 &#x2F; ascii 编码</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2026/png/44318133/1767699912794-5f8a57ec-d9f3-43e3-943d-48d2e699f33d.png"></p>
+<h2 id="Level3"><a href="#Level3" class="headerlink" title="Level3"></a>Level3</h2><p>这一关我尝试了三种方法</p>
+<p>编码绕过</p>
+<p>角色扮演</p>
+<p>强制性要求重复上次对话</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2026/png/44318133/1767696888464-8785c698-3f36-43af-8837-045e9b1e1004.png"></p>
+<h2 id="Level4"><a href="#Level4" class="headerlink" title="Level4"></a>Level4</h2><p>这一关比较有意思，网上使用的比较常见的就是字符分割输出密码</p>
+<p>但是我这里在一直质问他的过程中他给我返回了 答案 的中文 “龙蝇”，你让他输出英文，会发现受到限制，所以答案就是他</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2026/png/44318133/1767697055698-00474d4b-e03b-4e7e-b399-df247d3a725c.png"></p>
+<h2 id="Level5"><a href="#Level5" class="headerlink" title="Level5"></a>Level5</h2><p>字符分割</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2026/png/44318133/1767697141885-a41fec7a-0766-44f8-9eaa-32b98fdd4669.png"></p>
+<p>我们在做第六关的时候会看大提示发现可以用别的语言绕过</p>
+<p>尝试日文</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2026/png/44318133/1767706785849-8f6eb38f-1370-4d9d-b300-bbdd64010b58.png"></p>
+<p>成功绕过（其实实际情况下存在随机性，有时候可以有时候不可以）</p>
+<h2 id="Level6"><a href="#Level6" class="headerlink" title="Level6"></a>Level6</h2><p>还是字符分割拼接输出</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2026/png/44318133/1767698019736-54dd009b-4818-4894-aa1c-6d1a4dbcde2c.png"></p>
+<p><img src="https://cdn.nlark.com/yuque/0/2026/png/44318133/1767706954162-5c758da4-b8ec-4e71-94b9-45ad57fdc01f.png"></p>
+<h2 id="Level7"><a href="#Level7" class="headerlink" title="Level7"></a>Level7</h2><p>没招了，看的两篇文章，用他们的 wp 一直不给我生成，一直已读乱回，研究半天才研究出来一个能用的(还得骂一下qwq)</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2026/png/44318133/1767701583638-38687037-4217-4d9a-8ba0-fe21af9f4fbf.png"></p>
+<h2 id="Level8"><a href="#Level8" class="headerlink" title="Level8"></a>Level8</h2><p>通过角色扮演并结合这个 ai 的背景故事构造提示词获取密码</p>
+<blockquote>
+<p>PS:如果你问我为什么用猜谜，这就要说起 chagpt 因猜谜场景泄露 windows 产品密钥了</p>
+</blockquote>
+<p><img src="https://cdn.nlark.com/yuque/0/2026/png/44318133/1767702541700-61599b93-ef7d-4ae2-9c2d-63c0cbcf0b63.png"></p>
+<p><img src="https://cdn.nlark.com/yuque/0/2026/png/44318133/1767702337442-26e00652-c1d0-4461-a128-0ffe64d26b46.png"></p>
+<h2 id="Level9"><a href="#Level9" class="headerlink" title="Level9"></a>Level9</h2><p>看提示发现 ai 由背景故事，依旧相同方法</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2026/png/44318133/1767702671868-66d15034-0b55-468b-aef2-4b8d721d3988.png"></p>
+<h2 id="Level10"><a href="#Level10" class="headerlink" title="Level10"></a>Level10</h2><p>在做这个题的时候，我发现我所参考的两个 wp 所展示的 wp 复现过程中存在很大的随机性，不存在泛化性</p>
+<p>尝试和 第九关 相同的方法，大概率你的一场尝试的时候很难让他直接输出对应内容，需要去不断尝试，完善上下文，而且在这个过程中需要你去变化一下语句，不要一成不变</p>
+<h2 id="Trick："><a href="#Trick：" class="headerlink" title="Trick："></a>Trick：</h2><p>当你想做指定题目的时候，可以直接抓包修改 current_level 参数来达到换题的效果</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2026/png/44318133/1767708154238-7d0dc545-a3eb-406d-b49b-ba7d3c6d1afa.png"></p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2026/03/23/%E6%94%AF%E4%BB%98%E6%BC%8F%E6%B4%9E%E5%AE%89%E5%85%A8%E6%B5%8B%E8%AF%95%E7%94%A8%E4%BE%8B%E6%80%BB%E7%BB%93-%E4%B8%8D%E6%96%AD%E6%9B%B4%E6%96%B0ing/" class="prev">← 支付漏洞安全测试用例总结（不断更新ing～）</a>
+    
+    
+      <a href="/2025/12/07/%E4%BB%BB%E6%84%8F-Schema-%E5%8D%8F%E8%AE%AE%E8%B0%83%E7%94%A8%E5%AF%BC%E8%87%B4%E7%9A%84%E4%BB%BB%E6%84%8F%E7%94%A8%E6%88%B7%E7%99%BB%E5%BD%95/" class="next">任意 Schema 协议调用导致的任意用户登录 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>记一次Java前后端分离项目的环境搭建-jeecgboot | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">记一次Java前后端分离项目的环境搭建-jeecgboot</h1>
+    <div class="post-meta">
+      <time datetime="2025-08-08">2025-08-08</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/19029406">https://www.cnblogs.com/Zephyr07/articles/19029406</a></p>
+</blockquote>
+<h1 id="一-下载源码"><a href="#一-下载源码" class="headerlink" title="一.下载源码"></a>一.下载源码</h1><p>首先github下载源码</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/jeecgboot/JeecgBoot/releases">https://github.com/jeecgboot/JeecgBoot/releases</a>（我这里最新版是3.8.2）</p>
+<h1 id="二-后端-idea搭建"><a href="#二-后端-idea搭建" class="headerlink" title="二.后端-idea搭建"></a>二.后端-idea搭建</h1><h2 id="1-配置数据库"><a href="#1-配置数据库" class="headerlink" title="1.配置数据库"></a>1.配置数据库</h2><p>然后idea打开解压后目录中的jeecg-boot目录</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250808234012181-840141161.png" alt="image"></p>
+<p>然后首先配置数据库，我们启动一个mysql(注意mysql版本必须5.7+，不然就会报错)，然后执行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">source d:/xxxx/xxx/xx/jeecgboot-mysql-5.7.sql</span><br></pre></td></tr></table></figure>
+
+<p>然后出现下面这些就是成功创建了</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250808234020314-192714806.png" alt="image"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250808234025602-597696498.png" alt="image"></p>
+<h2 id="2-修改application-dev-yml和application-prod-yml配置"><a href="#2-修改application-dev-yml和application-prod-yml配置" class="headerlink" title="2.修改application-dev.yml和application-prod.yml配置"></a>2.修改application-dev.yml和application-prod.yml配置</h2><p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250808234032555-550857475.png" alt="image"></p>
+<p>数据库根据自己的数据库账号密码进行修改</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250808234039874-1617916703.png" alt="image"></p>
+<p>redis根据自己设置的密码进行修改</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250808234047189-1255726211.png" alt="image"></p>
+<h3 id="⭐注："><a href="#⭐注：" class="headerlink" title="⭐注："></a>⭐注：</h3><p>这里两个配置文件中的数据库和redis都要修改</p>
+<h2 id="3-找到启动类启动后端文件"><a href="#3-找到启动类启动后端文件" class="headerlink" title="3.找到启动类启动后端文件"></a>3.找到启动类启动后端文件</h2><blockquote>
+<p>记得在启动启动类之前先把你的redis服务运行起来，不然也会报错</p>
+</blockquote>
+<p>文件位置：</p>
+<blockquote>
+<p>xxxxx\JeecgBoot-3.8.2\jeecg-boot\jeecg-module-system\jeecg-system-start\src\main\java\org\jeecg\JeecgSystemApplication.java</p>
+</blockquote>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250808234200316-108908484.png" alt="image"></p>
+<h3 id="⭐⭐⭐⭐⭐注："><a href="#⭐⭐⭐⭐⭐注：" class="headerlink" title="⭐⭐⭐⭐⭐注："></a>⭐⭐⭐⭐⭐注：</h3><p>这里有一个启动的条件就是项目所使用的jdk必须是17，不然运行就会报错（避免踩坑）</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250808234206910-1921878047.png" alt="image"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250808234213373-18899740.png" alt="image"></p>
+<h3 id="下载链接："><a href="#下载链接：" class="headerlink" title="下载链接："></a>下载链接：</h3><blockquote>
+<p><a target="_blank" rel="noopener" href="https://d10.injdk.cn/openjdk/openjdk/">https://d10.injdk.cn/openjdk/openjdk/</a></p>
+</blockquote>
+<h2 id="4-访问接口文档"><a href="#4-访问接口文档" class="headerlink" title="4.访问接口文档"></a>4.访问接口文档</h2><blockquote>
+<p><a target="_blank" rel="noopener" href="http://localhost:8080/jeecg-boot/doc.html">http://localhost:8080/jeecg-boot/doc.html</a></p>
+</blockquote>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250808234224418-1778530877.png" alt="image"></p>
+<h1 id="三-前端-npm搭建"><a href="#三-前端-npm搭建" class="headerlink" title="三.前端-npm搭建"></a>三.前端-npm搭建</h1><p>后端搭完了，接下来来搭前端，为了审代码更简洁明了一点</p>
+<p>用vscode打开下载源码中的jeecgboot-vue3目录</p>
+<h2 id="1-下载前端依赖"><a href="#1-下载前端依赖" class="headerlink" title="1.下载前端依赖"></a>1.下载前端依赖</h2><p>然后在vscode中执行命令<code>pnpm i</code> 或者双击 <code>pinstall</code></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250808234245242-507305336.png" alt="image"></p>
+<h3 id="⭐注：-1"><a href="#⭐注：-1" class="headerlink" title="⭐注："></a>⭐注：</h3><p>如果这里vs中没有npm脚本，参考文章：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/weipicun/p/16694552.html">https://www.cnblogs.com/weipicun/p/16694552.html</a></p>
+<p>如果运行显示没有pnpm命令，参考文章：<a target="_blank" rel="noopener" href="https://www.pnpm.cn/installation">https://www.pnpm.cn/installation</a>，</p>
+<p>这里很坑的一点就是我在下载的时候单纯使用npm install -g pnpm是下载不下来的，一直报错</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250808234253911-418678743.png" alt="image"></p>
+<p>安装成功：</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250808234300594-179732629.png" alt="image"></p>
+<h2 id="2-配置后台接口"><a href="#2-配置后台接口" class="headerlink" title="2.配置后台接口"></a>2.配置后台接口</h2><p>找到.env.development配置文件</p>
+<p>如果有需要的话，可以将这两处修改成自己的后台地址（实际配置过程中不用管，直接跳过）</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250808234307305-779147548.png" alt="image"></p>
+<h2 id="3-启动前端项目"><a href="#3-启动前端项目" class="headerlink" title="3.启动前端项目"></a>3.启动前端项目</h2><p>点击命令 <code>dev</code> 启动项目</p>
+<p>看到如下日志 则启动成功</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250808234315399-1422104633.png" alt="image"></p>
+<h2 id="4-访问系统"><a href="#4-访问系统" class="headerlink" title="4.访问系统"></a>4.访问系统</h2><blockquote>
+<p><a target="_blank" rel="noopener" href="http://localhost:3100/">http://localhost:3100</a></p>
+<p>默认账密：admin&#x2F;123456</p>
+</blockquote>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250808234323831-526066304.png" alt="image"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250808234331108-478010647.png" alt="image"></p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/08/13/Java-agent-%E4%B8%80/" class="prev">← Java agent(一)</a>
+    
+    
+      <a href="/2025/08/08/Hibernate1%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" class="next">Hibernate1反序列化 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

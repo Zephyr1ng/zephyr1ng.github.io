@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第四章-windows日志分析 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">第四章-windows日志分析</h1>
+    <div class="post-meta">
+      <time datetime="2025-02-28">2025-02-28</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18743004">https://www.cnblogs.com/Zephyr07/articles/18743004</a></p>
+</blockquote>
+<h2 id="第一关-审计桌面的logs日志，定位所有扫描IP，并提交扫描次数"><a href="#第一关-审计桌面的logs日志，定位所有扫描IP，并提交扫描次数" class="headerlink" title="第一关:审计桌面的logs日志，定位所有扫描IP，并提交扫描次数"></a>第一关:审计桌面的logs日志，定位所有扫描IP，并提交扫描次数</h2><p>让定位所有扫描ip，并统计次数<br>想到统计次数，就能想到之前linux的日志分析可以用命令直接提取出来，所以复制access.log文件到虚拟机</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">awk &#x27;&#123;print $1&#125;&#x27; access.log | sort | uniq -c | sort -nr</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>6331 192.168.150.67<br>524 192.168.150.1<br>169 127.0.0.1<br>54 192.168.150.33<br>1 192.168.150.60</p>
+</blockquote>
+<p>但是题目让找的是恶意ip，然后分析日志发现192.168.150.1是业务站点ip，排除<br>192.168.150.60只出现一次排除<br>所以最后就是</p>
+<blockquote>
+<p>6331 192.168.150.67<br>54 192.168.150.33</p>
+</blockquote>
+<p>flag{6385}</p>
+<h2 id="第二关-审计相关日志，提交rdp被爆破失败次数"><a href="#第二关-审计相关日志，提交rdp被爆破失败次数" class="headerlink" title="第二关:审计相关日志，提交rdp被爆破失败次数"></a>第二关:审计相关日志，提交rdp被爆破失败次数</h2><p>让找爆破失败的次数<br>rdp就是远程连接桌面，所以直接打开windows的事件管理器，搜索id为4625的事件（登陆失败的事件id为4625）<br>点击windows 日志—&gt;安全，再然后点击右边的筛选当前日志即可；<br>最后统计发现共有2594条<br>flag{2594}</p>
+<h2 id="第三关-审计相关日志，提交成功登录rdp的远程IP地址，多个以-连接-以从小到大顺序排序提交"><a href="#第三关-审计相关日志，提交成功登录rdp的远程IP地址，多个以-连接-以从小到大顺序排序提交" class="headerlink" title="第三关:审计相关日志，提交成功登录rdp的远程IP地址，多个以&amp;连接,以从小到大顺序排序提交"></a>第三关:审计相关日志，提交成功登录rdp的远程IP地址，多个以&amp;连接,以从小到大顺序排序提交</h2><p>让找到登陆成功的ip<br>事件管理器将事件id为4624的成功登录事件导出来用<strong>FullEventLogView</strong>工具打开后也能看到<br>或者就是嫌麻烦的话事件管理器查看事件属性也能得到，排除自己的ip，最后统计出来<br>192.168.150.1&amp;192.168.150.128&amp;192.168.150.178<br>按时间排序</p>
+<h3 id="tips"><a href="#tips" class="headerlink" title="tips:"></a>tips:</h3><p>筛选事件id4648</p>
+<blockquote>
+<p>事件 ID 4648 在 Windows 事件日志中代表 “使用显式凭据登录”，这意味着用户在登录时手动输入了用户名和密码，而不是通过自动登录或凭据缓存来进行身份验证。筛选 4648 事件通常是为了获取有关使用特定账户显式登录的信息，尤其是远程桌面协议 (RDP) 场景下。</p>
+</blockquote>
+<h2 id="第四关-提交黑客创建的隐藏账号"><a href="#第四关-提交黑客创建的隐藏账号" class="headerlink" title="第四关:提交黑客创建的隐藏账号"></a>第四关:提交黑客创建的隐藏账号</h2><p>让提交黑客创建的隐藏账户</p>
+<h3 id="第一种方法"><a href="#第一种方法" class="headerlink" title="第一种方法"></a>第一种方法</h3><p>事件查看器查看事件id4720<br>事件 ID 4720 专门用于记录 用户账户创建 的事件。当一个新用户账户被创建时，Windows 会自动生成一个带有这个 ID 的日志条目，详细记录该账户的相关信息。</p>
+<h3 id="第二种方法："><a href="#第二种方法：" class="headerlink" title="第二种方法："></a>第二种方法：</h3><p>net user查看（但一般行不通）</p>
+<h3 id="第三种方法："><a href="#第三种方法：" class="headerlink" title="第三种方法："></a>第三种方法：</h3><p>“WIN”+“R”输入“lusrmgr.msc”，或者直接“cmd‘”输入“lusrmgr”也是可以<br>简单来说lusrmgr.msc 是 Windows 本地用户和组管理器（Local Users and Groups Management）的一个管理控制台。它允许管理员在本地系统上管理用户账户和用户组。这个工具可以帮助你查看、创建、删除或修改本地用户和组。</p>
+<h3 id="第四种方法"><a href="#第四种方法" class="headerlink" title="第四种方法"></a>第四种方法</h3><p>wmic useraccount get Name<br>wmic useraccount get Name 是在 Windows 系统中使用 WMIC（Windows Management Instrumentation Command-line） 命令行工具查询本地计算机上所有用户账户名称的命令。它会列出所有用户账户的名称，包括本地用户和系统用户。<br>flag{hacker$}</p>
+<h2 id="第五关-提交黑客创建的影子账号"><a href="#第五关-提交黑客创建的影子账号" class="headerlink" title="第五关:提交黑客创建的影子账号"></a>第五关:提交黑客创建的影子账号</h2><p>第三种方法可以获得，但是似乎并不是正确的解法<br>正常流程注册表查询<br>然后找注册表地址<strong>HKEY_LOCAL_MACHINE\SAM\SAM\Domains\Account\Users\Names</strong><br>这个路径列出了系统中存在的所有用户账户，如果有账户不出现在用户管理工具中，但在这里可以找到，那它可能是被隐藏的账户<br>或者d盾也能检测影子账户<br>flag{hackers$}</p>
+<h2 id="第六关-提交远程shell程序的连接IP-端口，以IP-port方式提交"><a href="#第六关-提交远程shell程序的连接IP-端口，以IP-port方式提交" class="headerlink" title="第六关:提交远程shell程序的连接IP+端口，以IP:port方式提交"></a>第六关:提交远程shell程序的连接IP+端口，以IP:port方式提交</h2><p>让提交远程shell的连接ip+端口</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netstat -ano</span><br></pre></td></tr></table></figure>
+
+<p>查看系统所有网络连接<br>找不到，看计时任务就发现一个可疑项，每天定时启动，然后确认启动项发现叫xiaowei.exxe，一看就是绕过杀毒<br>或者注册表查启动项，只要计算机启动，所有用户登录时这些程序都会自动运行<br>HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Run<br>然后搞到本机放到沙箱里面直接就分析出来了<br>flag{185.117.118.21:4444}</p>
+<h2 id="第七关-黑客植入了一个远程shell，审计相关进程和自启动项提交该程序名字"><a href="#第七关-黑客植入了一个远程shell，审计相关进程和自启动项提交该程序名字" class="headerlink" title="第七关:黑客植入了一个远程shell，审计相关进程和自启动项提交该程序名字"></a>第七关:黑客植入了一个远程shell，审计相关进程和自启动项提交该程序名字</h2><p>让找到远程shell的自启动项，第六关已经找到了，所以<br>flag{xiaowei.exe}</p>
+<h2 id="第八关-黑客使用了计划任务来定时执行某shell程序，提交此程序名字"><a href="#第八关-黑客使用了计划任务来定时执行某shell程序，提交此程序名字" class="headerlink" title="第八关:黑客使用了计划任务来定时执行某shell程序，提交此程序名字"></a>第八关:黑客使用了计划任务来定时执行某shell程序，提交此程序名字</h2><p>黑客使用了计划任务来定时执行某shell程序，提交此程序名字<br>找到启动项download.bat，定时每天下载xiaowei.exe<br>flag{download.bat}</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/02/28/%E7%AC%AC%E4%BA%94%E7%AB%A0-linux%E5%AE%9E%E6%88%98-%E9%BB%91%E9%93%BE/" class="prev">← 第五章 linux实战-黑链</a>
+    
+    
+      <a href="/2025/02/28/%E7%AC%AC%E5%9B%9B%E7%AB%A0-windows%E5%AE%9E%E6%88%98-%E5%90%91%E6%97%A5%E8%91%B5/" class="next">第四章 windows实战-向日葵 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

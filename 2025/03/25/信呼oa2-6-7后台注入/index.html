@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>信呼oa2.6.7后台注入！！！ | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">信呼oa2.6.7后台注入！！！</h1>
+    <div class="post-meta">
+      <time datetime="2025-03-25">2025-03-25</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18792497">https://www.cnblogs.com/Zephyr07/articles/18792497</a></p>
+</blockquote>
+<h2 id="漏洞描述："><a href="#漏洞描述：" class="headerlink" title="漏洞描述："></a>漏洞描述：</h2><p>信呼oa最新版本在uploadAction处存在sql注入</p>
+<h2 id="环境搭建："><a href="#环境搭建：" class="headerlink" title="环境搭建："></a>环境搭建：</h2><p>源码下载：<a target="_blank" rel="noopener" href="https://xinhu-1251238447.file.myqcloud.com/file/xinhu_utf8_v2.6.7.zip">https://xinhu-1251238447.file.myqcloud.com/file/xinhu_utf8_v2.6.7.zip</a><br>然后解码后放到phpstudy里面新建网站即可</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250326192659777-1920901224.png"></p>
+<p>路由分析看我之前的文章：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18792069">https://www.cnblogs.com/Zephyr07/articles/18792069</a></p>
+<h2 id="漏洞原理："><a href="#漏洞原理：" class="headerlink" title="漏洞原理："></a>漏洞原理：</h2><p>首先打开看一下uploadAction文件看一下，问题出在getmfilvAction函数处</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325222834710-1111245976.png"></p>
+<p>分析一下函数，在这个函数中我们可以看到有两个参数是可以控制的fileid，$fname两个参数，而fileid进行了int转换，很难存在sql注入，所以注入点就放在了fname参数上，这里我们观察到fname是base64解码后的内容，这样就有可能绕过sql过滤<br>获取文件 ID 并检查文件记录是否存在</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325222840098-1776053778.png"></p>
+<p>● 从请求参数中获取 fileid，并将其转换为整数类型<br>● 调用 m(‘file’)-&gt;getone($fileid) 方法根据文件 ID 从数据库中获取文件的详细记录<br>● 如果文件记录不存在，则调用 returnerror 函数返回错误信息<br>确定文件路径</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325222844707-1246766809.png"></p>
+<p>● 首先尝试获取 filepathout 作为文件路径<br>● 如果 filepathout 为空，则使用 filepath 作为文件路径<br>● 检查文件路径是否为 HTTP 链接，如果不是，则检查文件是否存在。如果文件不存在，则调用 returnerror 函数返回错误信息<br>获取文件扩展名并处理文件名</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325222848906-1363835516.png"></p>
+<p>生成新的文件路径并复制文件内容，使用 file_get_contents 函数读取原文件的内容，并调用 $this-&gt;rock-&gt;createtxt 方法将内容写入新文件</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325222853566-920896175.png"></p>
+<p>准备插入数据库的数据</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325222858904-340497067.png"></p>
+<p>插入数据到数据库并返回结果，问题函数出在insert上</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325222903817-1186263066.png"></p>
+<p>跟进去看一下insert函数，对传入的参数进行record方法的校验，若不为false，那么就获取到其id值</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325222914883-1435876922.png"></p>
+<p>跟进去record方法</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325222918674-164737278.png"></p>
+<p>这里发现跟不进去这个record方法，所以全局搜索一下</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325222923025-1080751578.png"></p>
+<p>此函数依据 $where 参数是否为空来判断执行插入操作还是更新操作。若 $where 为空，就执行插入操作；若 $where 不为空，则执行更新操作，而前面where是空的，所以遍历array数组并放到cont变量中，然后直接放到sql语句</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325222932346-1588779870.png"></p>
+<p>然后跟到tranbegin中发现没有在对sql进行任何过滤，直接query</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325222937676-1359692750.png"></p>
+<h3 id="tips："><a href="#tips：" class="headerlink" title="tips："></a>tips：</h3><p>其实在传参的时候是对参数内容进行过过滤，我们跟到get函数中去</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325222945722-242519463.png"></p>
+<p>然后再全局搜索get</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325222950402-1199497582.png"></p>
+<p>但是我们看这个函数似乎并没有过滤，那是因为在rockClass.php文件中有个构造函数，当实例化该类的时候就会调用该方法，而在这个构造函数中就有了过滤</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325222955114-1304753207.png"></p>
+<h2 id="漏洞复现："><a href="#漏洞复现：" class="headerlink" title="漏洞复现："></a>漏洞复现：</h2><p>登录之后直接上payload</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">payload：</span><br><span class="line">api.php?a=getmfilv&amp;m=upload|api&amp;d=task&amp;fileid=1&amp;fname=MScgYW5kIHNsZWVwKDMpIw==</span><br></pre></td></tr></table></figure>
+
+<p>成功延时</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250325223015030-1490869679.png"></p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/03/29/java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BRMI/" class="prev">← java反序列化之RMI~</a>
+    
+    
+      <a href="/2025/03/25/%E8%B6%85%E7%BA%A7%E6%97%A0%E6%95%8C%E8%AF%A6%E7%BB%86%E7%9A%84%E4%BF%A1%E5%91%BCoa%E8%B7%AF%E7%94%B1%E5%88%86%E6%9E%90/" class="next">超级无敌详细的信呼oa路由分析！！！ →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

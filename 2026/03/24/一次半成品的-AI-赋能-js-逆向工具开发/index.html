@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>一次半成品的 AI 赋能 js 逆向工具开发～ | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">一次半成品的 AI 赋能 js 逆向工具开发～</h1>
+    <div class="post-meta">
+      <time datetime="2026-03-24">2026-03-24</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/19766139">https://www.cnblogs.com/Zephyr07/articles/19766139</a></p>
+</blockquote>
+<h2 id="吐槽："><a href="#吐槽：" class="headerlink" title="吐槽："></a>吐槽：</h2><p>近来AI越来越火，各种各样层出不穷的新概念都蹦出来了，偏偏偶遇本人正在找暑期实习，不论和ai有没有关系的岗位，都要问一下 ai for security或者security for ai，还会问在实际情况下有没有写过一些结合ai的工具用来提效，恰遇前段时间学校开学就有个课设导致没有时间研究这方面，现在时间空出来了，所以写一个工具先试试水</p>
+<h2 id="失败原因："><a href="#失败原因：" class="headerlink" title="失败原因："></a>失败原因：</h2><p>但是为什么说失败了，主包的这个工具主要实现的是静态分析下支持用户上传多js文件或者直接输入js外部url后进行解析分析指定参数的加密方式，并且在对于一些被混淆过的参数加密，优化了很多，但是在开发的过程中主包发现这些功能似乎目前这些智能体如codex，claude code似乎都能实现，比如上传文件，访问外部url提取js文件内容，无非是需要你写点提示词或者编排一下流程就可以更好的实现，并不需要像现在这样，需要承担服务端调用api无法存储上下文以及在传递模型答案的时候如果使用思考模式会占用过多输出token导致无法返回有效的结果等问题</p>
+<p>但是还是写出来，一些被简单混淆过的加密方式还是可以直接分析出来的，也支持多js文件和外部url获取分析，感兴趣的小伙伴可以去看一下～</p>
+<p>主包后续打算将其做成skills更方便的集成在当今的智能体当中，更好用，更轻量</p>
+<h2 id="工具链接："><a href="#工具链接：" class="headerlink" title="工具链接："></a>工具链接：</h2><p><a target="_blank" rel="noopener" href="https://github.com/Zephyr1ng/TraceCipher-AI">https://github.com/Zephyr1ng/TraceCipher-AI</a></p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2026/07/13/hello-world/" class="prev">← 搬新家了</a>
+    
+    
+      <a href="/2026/03/23/%E6%94%AF%E4%BB%98%E6%BC%8F%E6%B4%9E%E5%AE%89%E5%85%A8%E6%B5%8B%E8%AF%95%E7%94%A8%E4%BE%8B%E6%80%BB%E7%BB%93-%E4%B8%8D%E6%96%AD%E6%9B%B4%E6%96%B0ing/" class="next">支付漏洞安全测试用例总结（不断更新ing～） →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

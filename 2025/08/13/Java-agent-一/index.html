@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java agent(一) | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">Java agent(一)</h1>
+    <div class="post-meta">
+      <time datetime="2025-08-13">2025-08-13</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/19035903">https://www.cnblogs.com/Zephyr07/articles/19035903</a></p>
+</blockquote>
+<h1 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h1><p>最近在看字节码插桩和rasp的一些内容，发现其中都绕不开java agent的使用，刚好之前的agent的内存马还没分析过，所以这篇文章先学习一下java agent的知识，后续再继续出rasp的一些内容</p>
+<h1 id="0x01-agent基础"><a href="#0x01-agent基础" class="headerlink" title="0x01 agent基础"></a>0x01 agent基础</h1><p>我们知道在java中多会有.java文件和.class文件的区分，而.class就是将java文件编译后的字节码文件，然后jvm虚拟机执行的就是class文件，这也是为什么java“一次编译到处运行”</p>
+<blockquote>
+<p>不论该字节码文件来自何方，由哪种编译器编译，甚至是手写字节码文件，只要符合java虚拟机的规范，那么它就能够执行该字节码文件。</p>
+</blockquote>
+<p>——&gt;javac xxx.java</p>
+<p>使用上面这一条命令就可以将一个java文件编译为class文件，而java agent就是一种可以在不影响正常编译的前提下修改java字节码文件的技术，进而可以达到动态修改已加载或未加载的类，属性以及方法</p>
+<p>其实这种技术在平时还是很常见的，就像是热加载补丁或者插件化等</p>
+<h2 id="1-1-JAVA-Instrumentation-Agent"><a href="#1-1-JAVA-Instrumentation-Agent" class="headerlink" title="1.1 JAVA Instrumentation Agent"></a>1.1 JAVA Instrumentation Agent</h2><p>JDK1.5之后，引入了<code>java.lang.instrument</code>包，java基于<code>Instrumentation</code>类约定俗成了两个类方法名：premain和agentmain</p>
+<p><code>Instrumentation</code>类可以与jvmi通讯，来实现类加载的时候获取类信息并改变，而改变类信息就涉及到修改java字节码</p>
+<p>修改字节码的工具有两个，一是javassist，操作较人性化，但是效率低；二是asm ，底层复杂，但效率高。下文文中的demo使用的是javassist做演示</p>
+<blockquote>
+<p>官方文档：<a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/9/docs/api/java/lang/instrument/package-summary.html">https://docs.oracle.com/javase/9/docs/api/java/lang/instrument/package-summary.html</a></p>
+</blockquote>
+<ol>
+<li><strong>premain</strong></li>
+</ol>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250813154039188-234547265.png" alt="image"></p>
+<ul>
+<li>使用方法：将agent.jar包在应用运行前通过java -javaagent:&lt;jar 路径&gt; -jar 应用程序.jar来绑定jvm，进而实现class文件的修改</li>
+</ul>
+<ol start="2">
+<li><strong>agentmain</strong></li>
+</ol>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250813154046416-78778904.png" alt="image"></p>
+<ul>
+<li>使用方法：当我们要修改的类在运行的时候，将agent.jar主动运行，agent获取目前所有运行的jvm，通过特定条件来获取希望修改的jvm-id，然后通过VirtualMachine.attach()方法将agent注入，实现class文件的修改。</li>
+</ul>
+<h2 id="1-2-premain-agentDemo"><a href="#1-2-premain-agentDemo" class="headerlink" title="1.2 premain-agentDemo"></a>1.2 premain-agentDemo</h2><blockquote>
+<p>具体代码我放到github上了，代码太长，贴出来影响阅读体验</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/Zephyr1ng/Java-Agent">https://github.com/Zephyr1ng/Java-Agent</a></p>
+</blockquote>
+<h3 id="demo测试"><a href="#demo测试" class="headerlink" title="demo测试"></a>demo测试</h3><p>将代码拉下来，在target目录下运行命令：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -jar -javaagent:./premainDemo-1.0-SNAPSHOT-jar-with-dependencies.jar agent-1.0-SNAPSHOT.jar</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250813154103766-1317130318.png" alt="image"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250813154110048-1524127152.png" alt="image"></p>
+<p>发现成功修改class文件中name字段（GEM-&gt;wx）</p>
+<h2 id="1-3-agentmain-AgentDemo"><a href="#1-3-agentmain-AgentDemo" class="headerlink" title="1.3 agentmain-AgentDemo"></a>1.3 agentmain-AgentDemo</h2><p>premain-Agent 只能在 JVM 启动前加载，适用于项目没有运行时对字节码文件进行修改，而如果应用agent技术到内存马的话，都是JVM已经运行了，所以我们看一下agentmain</p>
+<p>java通过premain和agentmain给了开发者非常大的权利去控制其他jvm的行为，这种权限最先是希望开发者更好的监控程序的运行，反之也可以被运用于安全防护和破坏，还是非常具有危险性的一个功能。</p>
+<p>在写demo之前需要先了解两个类<code>VirtualMachine</code>和<code>VirtualMachineDescriptor</code></p>
+<h3 id="1-31-VirtualMachine"><a href="#1-31-VirtualMachine" class="headerlink" title="1.31 VirtualMachine"></a>1.31 VirtualMachine</h3><p>主要用来获取系统信息，内存&#x2F;现存dump或者类信息统计</p>
+<ul>
+<li><p>attach：允许通过给attach方法传入一个jvm的pid进而远程连接到jvm上</p>
+</li>
+<li><p>loadAgent：注册一个代理agent向jvm，然后运行后会会得到一个Instrumentation实例，该实例可以 在class加载前改变class的字节码，也可以在class加载后重新加载。在调用Instrumentation实例的方法时，这些方法会使用ClassFileTransformer接口中提供的方法进行处理</p>
+</li>
+<li><p>Detach：解除<code>Attach</code></p>
+</li>
+</ul>
+<blockquote>
+<p>官方文档：<a target="_blank" rel="noopener" href="https://doc.qzxdp.cn/jdk/20/zh/api/jdk.attach/com/sun/tools/attach/VirtualMachine.html">https://doc.qzxdp.cn/jdk/20/zh/api/jdk.attach/com/sun/tools/attach/VirtualMachine.html</a></p>
+</blockquote>
+<h3 id="1-32-VirtualMachineDescriptor"><a href="#1-32-VirtualMachineDescriptor" class="headerlink" title="1.32 VirtualMachineDescriptor"></a>1.32 VirtualMachineDescriptor</h3><p><code>VirtualMachineDescriptor</code> 是用于描述 Java 虚拟机的容器类。它封装了一个标识目标虚拟机的标识符，以及一个对 <a target="_blank" rel="noopener" href="https://doc.qzxdp.cn/jdk/20/zh/api/jdk.attach/com/sun/tools/attach/spi/AttachProvider.html">AttachProvider</a>的引用，在尝试连接到虚拟机时应该使用它。标识符是依赖于实现的，但通常是进程标识符（或 pid）环境，其中每个 Java 虚拟机都在其自己的操作系统进程中运行</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">VirtualMachineDescriptor(AttachProvider provider, String id)</span><br><span class="line">从给定的组件创建虚拟机描述符。</span><br><span class="line">VirtualMachineDescriptor(AttachProvider provider, String id, String displayName)</span><br><span class="line">从给定的组件创建虚拟机描述符。</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>官方文档：<a target="_blank" rel="noopener" href="https://doc.qzxdp.cn/jdk/20/zh/api/jdk.attach/com/sun/tools/attach/VirtualMachineDescriptor.html">https://doc.qzxdp.cn/jdk/20/zh/api/jdk.attach/com/sun/tools/attach/VirtualMachineDescriptor.html</a></p>
+</blockquote>
+<h3 id="demo测试-1"><a href="#demo测试-1" class="headerlink" title="demo测试"></a>demo测试</h3><blockquote>
+<p>同理demo代码我贴到了github上，自行参考：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/Zephyr1ng/Java-Agent">https://github.com/Zephyr1ng/Java-Agent</a></p>
+</blockquote>
+<ul>
+<li>先运行Sleep_Hello也就是fake 目标jvm</li>
+<li>再运行Inject_Agent进行注入</li>
+<li>发现再运行Sleep_Hello输出”Hello World!”的时候就会输出”调用了agentmain-Agent!”，说明agent-main 方法被成功插入</li>
+</ul>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250813154148340-675736230.png" alt="image"></p>
+<h3 id="⭐⭐⭐⭐⭐注："><a href="#⭐⭐⭐⭐⭐注：" class="headerlink" title="⭐⭐⭐⭐⭐注："></a>⭐⭐⭐⭐⭐注：</h3><p>在部署这个源码打包的时候用到了.mf文件，在mf文件中指定agent-class的时候，必须要换行，一定要换行，不然就会报错找不到agent-class！！！！！（不换行他就解析不到mf文件的最后一行）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Manifest-Version: 1.0</span><br><span class="line">Agent-Class: Java_Agent_agentmain</span><br></pre></td></tr></table></figure>
+
+<p>报错如下：</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250813154200385-587447328.png" alt="image"></p>
+<h1 id="0x02-动态修改字节码"><a href="#0x02-动态修改字节码" class="headerlink" title="0x02 动态修改字节码"></a>0x02 动态修改字节码</h1><h2 id="2-1-前置知识：Javassist"><a href="#2-1-前置知识：Javassist" class="headerlink" title="2.1 前置知识：Javassist"></a>2.1 前置知识：Javassist</h2><p>javassist是一个用来处理java字节码的类库，即可以在一个已编译好的类中添加新的方法或者修改现有的方法 ，或者手动生成一个新的类对象，使用方式类似于反射</p>
+<p>我们上面premain-agentDemo就是使用的javassist</p>
+<blockquote>
+<p>一些javassist的一些主要函数的用法我就不贴了，参考文章：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/rickiyang/p/11336268.html">https://www.cnblogs.com/rickiyang/p/11336268.html</a></p>
+<p>rickiyang师傅写的很全了</p>
+</blockquote>
+<h3 id="使用Javassist生成恶意class"><a href="#使用Javassist生成恶意class" class="headerlink" title="使用Javassist生成恶意class"></a>使用Javassist生成恶意class</h3><p>之前在cc分析中（如cc3）：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18743517">java反序列化Commons-Collection篇03-CC3链 - Zephyr07 - 博客园</a></p>
+<p>写到过动态加载字节码进行代码执行时，我们的恶意类需要继承AbstractTranslet类并必须重写两个transform方法，否则没法编译成class文件，这里就可以用javassist从字节码层面来生成恶意class，跳过恶意类的编译过程</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">import javassist.ClassPool;</span><br><span class="line">import javassist.CtClass;</span><br><span class="line">import javassist.CtConstructor;</span><br><span class="line"></span><br><span class="line">import java.io.File;</span><br><span class="line">import java.io.FileOutputStream;</span><br><span class="line"></span><br><span class="line">public class createClass &#123;</span><br><span class="line">    public static byte[] getTemplatesImpl(String cmd) &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            ClassPool classPool = ClassPool.getDefault();</span><br><span class="line">            CtClass ctClass = classPool.makeClass(&quot;Evil&quot;);</span><br><span class="line">            CtClass superClass = classPool.get(&quot;com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet&quot;);</span><br><span class="line">            ctClass.setSuperclass(superClass);</span><br><span class="line">            CtConstructor ctConstructor = ctClass.makeClassInitializer();</span><br><span class="line">            ctConstructor.setBody(&quot;try&#123;\n&quot; +</span><br><span class="line">                    &quot;            Runtime.getRuntime().exec(\&quot;&quot; + cmd + &quot;\&quot;);\n&quot; +</span><br><span class="line">                    &quot;        &#125;catch (Exception e)&#123;\n&quot; +</span><br><span class="line">                    &quot;        &#125;&quot;);</span><br><span class="line">            byte[] bytes = ctClass.toBytecode();</span><br><span class="line">            ctClass.detach();</span><br><span class="line">            return bytes;</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">            return new byte[]&#123;&#125;;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">        public static void writeShell() throws Exception &#123;</span><br><span class="line">            byte[] shell = createClass.getTemplatesImpl(&quot;calc&quot;);</span><br><span class="line">            FileOutputStream fileOutputStream = new FileOutputStream(new File(&quot;Sean.class&quot;));</span><br><span class="line">            fileOutputStream.write(shell);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        public static void main (String[]args) throws Exception &#123;</span><br><span class="line">            writeShell();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>生成的恶意class文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">//</span><br><span class="line">// Source code recreated from a .class file by IntelliJ IDEA</span><br><span class="line">// (powered by FernFlower decompiler)</span><br><span class="line">//</span><br><span class="line"></span><br><span class="line">import com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet;</span><br><span class="line"></span><br><span class="line">public class Evil extends AbstractTranslet &#123;</span><br><span class="line">    static &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            Runtime.getRuntime().exec(&quot;calc&quot;);</span><br><span class="line">        &#125; catch (Exception var1) &#123;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public Evil() &#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-2-Instrumentation"><a href="#2-2-Instrumentation" class="headerlink" title="2.2 Instrumentation"></a>2.2 Instrumentation</h2><blockquote>
+<p>一些函数用法参考文章：（个人认为写的很好</p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/5c62b71fd882">https://www.jianshu.com/p/5c62b71fd882</a></p>
+</blockquote>
+<p>JVMI的一部分，java agent通过这个类和目标jvm交互来达到修改数据的效果</p>
+<p>在其中有一个叫transformer的class文件转换器可以改变二进制流的数据，可以对未加载或者已加载的类进行拦截，拦截之后就可以使用上述的javassist对拦截下来的类进行动态修改字节码</p>
+<h3 id="demo测试-2"><a href="#demo测试-2" class="headerlink" title="demo测试"></a>demo测试</h3><blockquote>
+<p>代码在github上：<a target="_blank" rel="noopener" href="https://github.com/Zephyr1ng/Java-Agent">https://github.com/Zephyr1ng/Java-Agent</a></p>
+</blockquote>
+<ul>
+<li>idea先运行Hello_Sleep</li>
+<li>再运行Inject_Agent</li>
+<li>然后就发现原来在输出hello world，修改之后就把hello world修改为了hacker</li>
+</ul>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250813154242820-294541381.png" alt="image"></p>
+<h2 id="2-3-Instrumentation-的局限性"><a href="#2-3-Instrumentation-的局限性" class="headerlink" title="2.3 Instrumentation 的局限性"></a>2.3 Instrumentation 的局限性</h2><p>参考了drun1baby师傅的文章，了解到这个实例也会存在一些缺陷</p>
+<p>获取Instrumentation接口的实例有两个premain和agentmain，但是这两者回调时机都是类文件字节码读取之后（或者说是类加载之后），但是没办法重新定义一个不存在的类</p>
+<p>类的字节码修改就称为类转换，而类转换最终都会回调到Instrumentation#<code>redefineClasses</code>中使用ClassFileTransformer来实现字节码修改，就会产生如下限制：</p>
+<ol>
+<li>新类和老类的父类必须相同</li>
+<li>新类和老类实现的接口数也要相同，并且是相同的接口</li>
+<li>新类和老类访问符必须一致。 新类和老类字段数和字段名要一致</li>
+<li>新类和老类新增或删除的方法必须是 private static&#x2F;final 修饰的</li>
+<li>可以修改方法体</li>
+</ol>
+<h1 id="0x03-总结："><a href="#0x03-总结：" class="headerlink" title="0x03 总结："></a>0x03 总结：</h1><p>分析了一圈下来，虽然还没仔细看agent内存马，但也猜到了大致利用流程就是通过在项目运行的时候遍历jvm进程，然后向对应进程中去注入恶意agent类（动态修改字节码为恶意</p>
+<p>并且rasp本质上也是将一段程序中注入到一个正常项目中，并且不影响项目的本身的运行，只不过的是这段程序主要是用来保护程序的</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/08/15/%E6%B5%85%E6%9E%90behinder-agent%E5%86%85%E5%AD%98%E9%A9%AC%E6%B3%A8%E5%85%A5/" class="prev">← 浅析behinder agent内存马注入</a>
+    
+    
+      <a href="/2025/08/08/%E8%AE%B0%E4%B8%80%E6%AC%A1Java%E5%89%8D%E5%90%8E%E7%AB%AF%E5%88%86%E7%A6%BB%E9%A1%B9%E7%9B%AE%E7%9A%84%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA-jeecgboot/" class="next">记一次Java前后端分离项目的环境搭建-jeecgboot →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

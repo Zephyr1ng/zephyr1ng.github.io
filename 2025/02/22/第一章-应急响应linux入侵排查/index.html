@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第一章 应急响应linux入侵排查 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">第一章 应急响应linux入侵排查</h1>
+    <div class="post-meta">
+      <time datetime="2025-02-22">2025-02-22</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18731514">https://www.cnblogs.com/Zephyr07/articles/18731514</a></p>
+</blockquote>
+<h2 id="1-web目录存在木马，请找到木马的密码提交"><a href="#1-web目录存在木马，请找到木马的密码提交" class="headerlink" title="1.web目录存在木马，请找到木马的密码提交"></a>1.web目录存在木马，请找到木马的密码提交</h2><p>题目已经提示在web目录中存在木马，所以直接&#x2F;var&#x2F;www&#x2F;html&#x2F;目录（比较常见）下去查看是否有异常文件</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls -a</span><br></pre></td></tr></table></figure>
+
+<p>备注：如果常规方法这里找不到的话，可以用下面这些命令</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#搜索目录下适配当前应用的网页文件，查看内容是否有Webshell特征</span><br><span class="line">find ./ type f -name “.jsp&quot; | xargs grep “exec(”</span><br><span class="line">find ./ type f -name &quot;.php” | xargs grep “eval(”</span><br><span class="line">find ./ type f -name “.asp&quot; | xargs grep “execute(”</span><br><span class="line">find ./ type f -name &quot;.aspx” | xargs grep “eval(”</span><br></pre></td></tr></table></figure>
+
+<p>&#x2F;#对于免杀Webshell，可以查看是否使用编码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find ./ type f -name “*.php” | xargs grep “base64_decode”</span><br></pre></td></tr></table></figure>
+
+<p>然后发现了4个可疑文件<br><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222215810853-862153394.png"></p>
+<p>然后先看1.php，发现是一句话木马，密码是1，直接提交，<br><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222215816107-1984149345.png"></p>
+<p>flag正确</p>
+<h2 id="2-服务器疑似存在不死马，请找到不死马的密码提交"><a href="#2-服务器疑似存在不死马，请找到不死马的密码提交" class="headerlink" title="2.服务器疑似存在不死马，请找到不死马的密码提交"></a>2.服务器疑似存在不死马，请找到不死马的密码提交</h2><p><strong>&#x3D;&#x3D;&#x3D;&#x3D;&gt;什么是不死马？</strong><br>顾名思义就是杀不死的马，可以让攻击者一直掌握某台服务器的权限，&#96;不死马特征：<br>1.持久性：<br>自启动：通过修改系统启动项、服务、计划任务等方式实现自启动。<br>文件隐藏：使用技术手段隐藏自身文件，避免被发现和删除。<br>多重存在：可能在多个位置部署副本，增强存活能力。<br>2.隐蔽性：<br>低调运行：以低优先级运行，不占用过多系统资源，减少被注意的可能。<br>多态性：定期更改自身代码或行为模式，规避签名检测。<br>日志清除：清除自身操作痕迹，减少被追踪的可能。<br>3.多样化的保持机制：<br>启动项：在 Windows 中，可以修改注册表中的启动项，在 Linux 中，可以修改 rc.local 或 crontab。<br>服务劫持：创建或劫持合法的系统服务。<br>计划任务：在系统计划任务中添加恶意任务。</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/administratorlws/article/details/139577643">https://blog.csdn.net/administratorlws/article/details/139577643</a></p>
+</blockquote>
+<p>因为上文发现几个可疑的php文件，所以直接一个一个看就好了<br>然后发现index.php里卖弄生成了.shell.php，还修改了它的时间戳，<br><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222220104259-211795084.png"></p>
+<p>所以.shell.php可能就是不死马，然后打开之后发现一串代码<br><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222220108974-52533752.png"></p>
+<p>大致意思就是pass的内容经过加密之后如果匹配就可以执行cmd中的命令<br>然后直接cmd5解密，获得flag<br><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222220113303-1045371025.png"></p>
+<p>flag{hello}</p>
+<h2 id="3-不死马是通过哪个文件生成的，请提交文件名"><a href="#3-不死马是通过哪个文件生成的，请提交文件名" class="headerlink" title="3.不死马是通过哪个文件生成的，请提交文件名"></a>3.不死马是通过哪个文件生成的，请提交文件名</h2><p>这个我们在第二关分析index.php的时候就已经知道是index.php生成的，所以直接提交即可<br>flag{index.php}</p>
+<h2 id="4-黑客留下了木马文件，请找出黑客的服务器ip提交"><a href="#4-黑客留下了木马文件，请找出黑客的服务器ip提交" class="headerlink" title="4.黑客留下了木马文件，请找出黑客的服务器ip提交"></a>4.黑客留下了木马文件，请找出黑客的服务器ip提交</h2><p>这种一般常见方法就是找到木马，然后直接启动，运行在机器上之后，去找该木马的外联地址，也就是所谓的hack服务器ip和端口<br>然后我们在查看&#x2F;var&#x2F;www&#x2F;html&#x2F;的时候就已经发现了一个.elf文件，就是linux的可执行文件，我们修改其权限后，运行它</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">chmod 777 &quot;shell(1).elf&quot;</span><br><span class="line">./&#x27;shell(1).elf&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>执行之后没有回显，然后我们另起一台机子去连接该靶机，然后执行以下命令</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netstat -antlp | more</span><br></pre></td></tr></table></figure>
+
+<p>然后找到shell(1).elf的网络连接，就显示出了外联地址和端口<br>flag{10.11.55.21}</p>
+<h2 id="5-黑客留下了木马文件，请找出黑客服务器开启的监端口提交"><a href="#5-黑客留下了木马文件，请找出黑客服务器开启的监端口提交" class="headerlink" title="5.黑客留下了木马文件，请找出黑客服务器开启的监端口提交"></a>5.黑客留下了木马文件，请找出黑客服务器开启的监端口提交</h2><p>由第四关即可得到端口<br>flag{3333}</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/02/22/%E7%AC%AC%E4%B8%80%E7%AB%A0-%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94-webshell%E6%9F%A5%E6%9D%80/" class="prev">← 第一章 应急响应-webshell查杀</a>
+    
+    
+      <a href="/2025/02/22/%E7%AC%AC%E4%B8%80%E7%AB%A0-%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94linux%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90/" class="next">第一章，应急响应linux日志分析 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

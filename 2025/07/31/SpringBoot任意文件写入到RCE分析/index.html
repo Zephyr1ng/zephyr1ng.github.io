@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpringBoot任意文件写入到RCE分析 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">SpringBoot任意文件写入到RCE分析</h1>
+    <div class="post-meta">
+      <time datetime="2025-07-31">2025-07-31</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/19015042">https://www.cnblogs.com/Zephyr07/articles/19015042</a></p>
+</blockquote>
+<h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>在之前研究契约锁的一个漏洞的时候，那篇文章的作者提到了一个知识点是springboot服务是不能通过写webshell来达到rce的，所以当时也在想如果是一个springboot的项目的话有什么办法可以rce~</p>
+<h2 id="springboot不能写webshell-rce原因"><a href="#springboot不能写webshell-rce原因" class="headerlink" title="springboot不能写webshell-&gt;rce原因"></a>springboot不能写webshell-&gt;rce原因</h2><p>springboot项目之所以不能写webshell来rce，主要是因为这种项目一般都是会去打包成一个整体的fatjar，也就是把整个项目所依赖的所有第三方jar包也打包进自身的<code>app.jar</code> 中，最后以 <code>java -jar app.jar</code> 形式来运行整个项目，而运行时候的项目的classpath包括app.jar中的<code>BOOT-INF/classes</code> 目录和 <code>BOOT-INF/lib</code> 目录下的所有 jar，所以你是无法在项目运行的时候在classpath中直接写入文件。除此之外，现在的springboot项目多是以RESTful API 接口向外提供服务，所以他很少会动态解析jsp或者其它外部模板文件(后台有相关功能除外)，所以直接写webshell的情况一般不会出现</p>
+<h2 id="引出问题："><a href="#引出问题：" class="headerlink" title="引出问题："></a>引出问题：</h2><p>那这时候就会想，如果我现在有一个springboot项目存在一个任意文件写入漏洞，我该如何去升级为rce漏洞</p>
+<p>网上由两种常见的方法就是要么通过写linux计划文件，要么就是替换so&#x2F;dll系统文件进行劫持一些操作系统层面的东西来实现rce，但实际环境因为项目的网络波动性以及权限等问题都不是很好用</p>
+<p>但是看了<a target="_blank" rel="noopener" href="https://forum.butian.net/people/820">LandGrey</a>师傅的文章，才知道也是有从java层面的利用方法</p>
+<h2 id="类装载和类初始化"><a href="#类装载和类初始化" class="headerlink" title="类装载和类初始化"></a>类装载和类初始化</h2><p>在分析这个之前，首先我们需要搞清楚一下类装载和类初始化两个操作，在实际生活中大多人会将其统称为类加载，在大多数情况下也并不需要区别对待，但是在一些漏洞利用过程精细的情况下还是需要分清楚的</p>
+<h3 id="类装载："><a href="#类装载：" class="headerlink" title="类装载："></a>类装载：</h3><p>类装载是由jvm的不同classloader包括<code>Bootstrap Classloder</code>、<code>Extention ClassLoader</code>、<code>App ClassLoader</code> 和用户自定义的 <code>Classloder</code> 完成的</p>
+<p>他通常是在一个class字节码中引用另一个class时被动触发的，当然也有通过classloader loaderclass和class forname等方式主动触发的</p>
+<p>example：</p>
+<p>当在一个java程序运行的时候在命令行输入-XX:+TraceClassLoading，可以看一下日志</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[Opened **/jre/lib/rt.jar]</span><br><span class="line">//Opened 操作代表打开指定文件，通常表示第一次读取相关字节码到内存</span><br><span class="line">[Loaded java.lang.Object from **/jre/lib/rt.jar]</span><br><span class="line">//Loaded 操作代表将读取的指定类的字节码进行装载</span><br><span class="line">[Loaded java.io.Serializable from **/jre/lib/rt.jar]</span><br><span class="line">[Loaded java.lang.Comparable from **/jre/lib/rt.jar]</span><br><span class="line">[Loaded java.lang.CharSequence from **/jre/lib/rt.jar]</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+
+<p>看LandGrey师傅的文章，在其中师傅仔细跟踪了jdk的类装载过程，发现了当经过<code>java.lang.Classloder.defineClass</code> 方法的时候，即读取字节码并定义Class类型后，类装载 <code>Loaded</code> 操作也就是完成了</p>
+<h3 id="类初始化："><a href="#类初始化：" class="headerlink" title="类初始化："></a>类初始化：</h3><p>类初始化是一定发生在类装载之后，当调用类中的静态属性或着静态方法时，就会触发类的初始化</p>
+<p>调用 <code>new</code> 关键词、<code>newInstance</code> 方法、<code>Class.forName</code> 等方法时，会主动触发类的初始化(在学反射的时候会了解一些)</p>
+<blockquote>
+<p>可以这样理解就是一个类，在项目运行的时候，必须先获取(也就是装载)后，才能讨论去是否初始化这个类中的属性以及方法，但是一个类被获取之后却不一定会接着就被初始化</p>
+</blockquote>
+<h1 id="漏洞思考："><a href="#漏洞思考：" class="headerlink" title="漏洞思考："></a>漏洞思考：</h1><p>知道了这两者，我们再来看一下我们今天研究的问题就是写文件rce</p>
+<ul>
+<li>类初始化是会执行static方法和属性的，同样也可能会执行构造器中的代码</li>
+<li>而类加载，项目在第一次启动的时候会装载很多类，以及在运行过程中也会因为一些代码第一次执行或者第一次异常报错而触发一些类的装载和初始化操作</li>
+<li>除此之外就是一些框架和程序员也很喜欢用class.forname(classname)这样的类去初始化类的代码，但是classname也很容易被外部控制</li>
+</ul>
+<p>所以说如果能找到一种方法可以控制程序在能写入文件的文件范围内去主动触发初始化恶意的类，就有可能让写文件漏洞变成rce</p>
+<h1 id="漏洞分析："><a href="#漏洞分析：" class="headerlink" title="漏洞分析："></a>漏洞分析：</h1><h2 id="写什么文件？往哪里写？"><a href="#写什么文件？往哪里写？" class="headerlink" title="写什么文件？往哪里写？"></a>写什么文件？往哪里写？</h2><p>前言已经讲过了是没办法写文件到classpath目录中去的，那既然写不到应用层的classpath目录，我们是否可以写道系统层的classpath目录，也就是JDK HOME目录下</p>
+<p>在<a target="_blank" rel="noopener" href="https://forum.butian.net/people/820">LandGrey</a>师傅的文章中，师傅是对类装载的过程进行过一段时间的不断调试分析，发现jvm为了避免一次性加载太多暂时用不到的类，并不会在运行一开始就把所有的JDK HOME目录下的jar包全部装载，它存在”懒加载”的行为，表现在</p>
+<p>调试过程中就是相关 jar 文件的 <code>Opened</code> 操作没有在一开始就发生，而是调用到相关类时被触发</p>
+<p>这样的话我们就可以想到在jdk home目录下写入jar包，然后主动触发jar文件中的类初始化来达到rce的效果</p>
+<p>但是还有一个问题就是我们写入jar又要如何去主动触发，这很难（JDK 在启动后，不会主动寻找 HOME 目录下新增的 jar 文件去尝试加载），但是还有一个方法就是我们去替换一个在jdk home目录中本身就存在的包，但是这个包必须满足</p>
+<p>在某一个外部可控的因素下去被程序装载</p>
+<p><a target="_blank" rel="noopener" href="https://forum.butian.net/people/820">LandGrey</a>师傅找到了，就是当程序代码中如果没有使用<code>Charset.forName(&quot;GBK&quot;)</code> 类似的代码，默认就不会加载到 <code>/jre/lib/charsets.jar</code> 文件，反之则会加载</p>
+<p>注：</p>
+<p>写文件一般会指定文件写入的目录，但是jdk home的目录一般不固定，所以可以提前收集好字典，然后去爆破批量上传</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/usr/lib/jvm/java-8-oracle/jre/lib/</span><br><span class="line">/usr/lib/jvm/java-1.8-openjdk/jre/lib/</span><br><span class="line">/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<h2 id="如何控制类去主动触发类初始化"><a href="#如何控制类去主动触发类初始化" class="headerlink" title="如何控制类去主动触发类初始化"></a>如何控制类去主动触发类初始化</h2><p>现在写什么文件？往哪里写？两个问题都解决了，还有一个最难的问题就是该如何去控制能主动初始化恶意方法，这个的话就要取决于项目本身的实际场景了，这里<a target="_blank" rel="noopener" href="https://forum.butian.net/people/820">LandGrey</a>师傅总结了六种，我也就跟着学习一下</p>
+<h3 id="1-spring原生的场景"><a href="#1-spring原生的场景" class="headerlink" title="1.spring原生的场景"></a>1.spring原生的场景</h3><p>在spring-web组件中的org.springframework.web.accept.HeaderContentNegotiationStrategy类中有下面这样一段代码</p>
+<p><img src="/" alt="image"></p>
+<p>这个类中只有resolveMediaTypes这一个方法，作用是对于每一次的请求，spring框架都会尝试解析web请求包中的accept头的值，然后设置相应的字符集编码</p>
+<p>正常的 <code>Accept</code> 头示例：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Accept: text/plain, */*; q=0.01</span><br></pre></td></tr></table></figure>
+
+<p>可以利用的地方是<code>MediaType.parseMediaTypes(headerValues)</code> 这行代码，他在经过调用之后会到<code>org.springframework.util.MimeTypeUtils</code> 类的 <code>parseMimeTypeInternal</code> 方法中</p>
+<p><img src="/" alt="image"></p>
+<p>看一下代码会发现他在解析完accept头格式后，最终用可控的<code>type</code>、<code>subtype</code> 和 <code>parameters</code> 生成 <code>org.springframework.util.MimeType</code> 类型实例</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">new MimeType(type, subtype, parameters)</span><br></pre></td></tr></table></figure>
+
+<p>跟到有参构造函数中去：</p>
+<p><img src="/" alt="image"></p>
+<p>会发现使用<code>checkParameters(attribute, value)</code> 对 <code>parameters</code> 进行解析</p>
+<p><img src="/" alt="image"></p>
+<p>然后这时候就看到了<code>Charset.forName(value)</code> 用来主动加载字符集的代码，所以我们只需要替换正常的<code>charsets.jar</code> 后，在请求包的accept添加charset&#x3D;GBK就可以成功触发恶意代码</p>
+<h3 id="2-fastjson-1-2-76-默认配置场景"><a href="#2-fastjson-1-2-76-默认配置场景" class="headerlink" title="2.fastjson(1.2.76)默认配置场景"></a>2.fastjson(1.2.76)默认配置场景</h3><p>替换<code>charsets.jar</code> 文件可以绕过 fastjson(1.2.76) autoType 限制</p>
+<p>在fastjson(1.2.76)中的com.alibaba.fastjson.parser.ParserConfig类中有一段这样的代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">if (clazz == null) &#123;</span><br><span class="line">    clazz = this.deserializers.findClass(typeName);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>实际的findclass会枚举<code>this.buckets</code> 中保存的 <code>IdentityHashMap&lt;Type, ObjectDeserializer&gt;</code> 类型键值对</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">public Class findClass(String keyString) &#123;</span><br><span class="line">    for(int i = 0; i &lt; this.buckets.length; ++i) &#123;</span><br><span class="line">        IdentityHashMap.Entry bucket = this.buckets[i];</span><br><span class="line">        if (bucket != null) &#123;</span><br><span class="line">            for(IdentityHashMap.Entry entry = bucket; entry != null; entry = entry.next) &#123;</span><br><span class="line">                Object key = bucket.key;</span><br><span class="line">                if (key instanceof Class) &#123;</span><br><span class="line">                    Class clazz = (Class)key;</span><br><span class="line">                    String className = clazz.getName();</span><br><span class="line">                    if (className.equals(keyString)) &#123;</span><br><span class="line">                        return clazz;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return null;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>巧合的是<code>java.nio.charset.Charset</code> 类名正好在白名单中，所以可以直接返回 clazz</p>
+<p>并且更巧的是在 fastjson <code>com.alibaba.fastjson.serializer.MiscCodec</code> 类的后续处理中有以下代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">else if (clazz == Charset.class) &#123;</span><br><span class="line">    return Charset.forName(strVal);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>感慨一下，师傅tql~</p>
+</blockquote>
+<p>使用该方法后最终会调用到<code>jre/lib/rt.jar!/sun/nio/cs/AbstractCharsetProvider.class</code> 类的这段代码、</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Class var4 = Class.forName(this.packagePrefix + &quot;.&quot; + var9, true, this.getClass().getClassLoader());</span><br><span class="line">Charset var5 = (Charset)var4.newInstance();</span><br></pre></td></tr></table></figure>
+
+<p><code>this.packagePrefix</code> 值为 <code>sun.nio.cs.ext</code>，而他是<code>charsets.jar</code> 的包名前缀，构造json包去加载可控类</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;x&quot;:&#123;</span><br><span class="line">    &quot;@type&quot;:&quot;java.nio.charset.Charset&quot;,</span><br><span class="line">    &quot;val&quot;:&quot;GBK&quot;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样当你写入文件后，就可以主动触发了</p>
+<h3 id="3-jackson-开启-enableDefaultTyping-场景"><a href="#3-jackson-开启-enableDefaultTyping-场景" class="headerlink" title="3.jackson 开启 enableDefaultTyping 场景"></a>3.jackson 开启 enableDefaultTyping 场景</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[&quot;sun.nio.cs.ext.IBM33722&quot;,&#123;&quot;x&quot;:&quot;y&quot;&#125;]</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-jdbc-url-getConnection-场景"><a href="#4-jdbc-url-getConnection-场景" class="headerlink" title="4.jdbc url getConnection 场景"></a>4.jdbc url getConnection 场景</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GET /jdbc?url=jdbc:mysql://127.0.0.1:3306/test?statementInterceptors=sun.nio.cs.ext.IBM33722</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-直接-Class-forName-场景"><a href="#5-直接-Class-forName-场景" class="headerlink" title="5.直接 Class forName 场景"></a>5.直接 Class forName 场景</h3><h3 id="6-直接-loadClass-newInstance-场景"><a href="#6-直接-loadClass-newInstance-场景" class="headerlink" title="6.直接 loadClass newInstance 场景"></a>6.直接 loadClass newInstance 场景</h3><h2 id="不足："><a href="#不足：" class="headerlink" title="不足："></a>不足：</h2><p>但是在分析的过程中我个人认为他还是有一点缺陷的，</p>
+<ul>
+<li>文件太大，charsets.jar文件的大小大概有3m左右，实际上传环境很难可以正常上传</li>
+<li>需要针对目标服务jdk版本准备恶意charsets.jar文件，不然在测试过程中很容易影响到正常业务</li>
+</ul>
+<h1 id="参考文章："><a href="#参考文章：" class="headerlink" title="参考文章："></a>参考文章：</h1><p><a target="_blank" rel="noopener" href="https://forum.butian.net/share/99">https://forum.butian.net/share/99</a></p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/08/06/%E4%B8%80%E6%AC%A1%E6%B8%97%E9%80%8F%E5%BC%95%E5%87%BA%E7%9A%84Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8BXStream%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" class="prev">← 一次渗透引出的Java反序列化之XStream反序列化</a>
+    
+    
+      <a href="/2025/07/29/%E5%A5%91%E7%BA%A6%E9%94%81%E7%94%B5%E5%AD%90%E7%AD%BE%E7%AB%A0%E7%B3%BB%E7%BB%9FQVD-2025-27432%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90-pdfverifier%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C/" class="next">契约锁电子签章系统QVD-2025-27432代码分析(pdfverifier远程代码执行) →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第九章-实战篇-运维杰克 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">第九章-实战篇-运维杰克</h1>
+    <div class="post-meta">
+      <time datetime="2025-02-28">2025-02-28</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18743049">https://www.cnblogs.com/Zephyr07/articles/18743049</a></p>
+</blockquote>
+<h2 id="1-攻击者使用的的漏洞扫描工具有哪些-两个-flag"><a href="#1-攻击者使用的的漏洞扫描工具有哪些-两个-flag" class="headerlink" title="1.攻击者使用的的漏洞扫描工具有哪些(两个) flag"></a>1.攻击者使用的的漏洞扫描工具有哪些(两个) flag</h2><p>其实说实话，这个看到flag的提示应该立马就能猜出来是fscan和goby（偷鸡）</p>
+<h3 id="分析："><a href="#分析：" class="headerlink" title="分析："></a>分析：</h3><p>常见的日志文件中是空的（access.log和error.log）<br>然后在root目录下发现了一个流量包，finalshell导出来<br>流量包很大，所以先筛选http<br>然后在post请求访问apply_sec.cgi文件的流量包下发现了goby的扫描痕迹</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131806218-1076710813.png"></p>
+<p>然后看一下协议分级，发现了一个可以的ICMP协议，筛选看一下<br>发现有很多Echo ping reply的请求，然后这里其实就是icmp echo 来探测存活（其实就是ping的原理），如fscan和nmap都会用这种方法<br>然后这种请求一般还会附带一段特定的字符</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131811744-944875157.png"></p>
+<p>101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f3031323334353637<br>然后http筛选的过程中，还会发现一段特别突兀的请求，因为带着java的Runtime类，很可疑，因为一般这种就是测试RCE</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131820198-18992371.png"></p>
+<p>加上这个判断，其实就可以知道这里的扫描器是fscan了，因为nmap不能测试rce等web漏洞</p>
+<h3 id="tips："><a href="#tips：" class="headerlink" title="tips："></a>tips：</h3><p>如果为了分析更方便一些，可以在access.log.1的文件里面筛选访问次数较多的ip，然后固定去查看这些IP的请求，因为扫描器的话会频繁发送大量请求</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cut -d- -f 1 access.log.1 | sort -nr | uniq -c | sort -nr</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131838017-1719848152.png"></p>
+<p>flag{fscan-goby}</p>
+<h2 id="2-攻击者上传webshell的绝对路径及User-agent-flag格式-xxx-xxx-xxxx-xxx-xxxxx-xxxxxx-xxxxxx-xxxx-xxxx-xxxxagent-中间值-md5-后作为-flag-提交-flag-md5-是链接符"><a href="#2-攻击者上传webshell的绝对路径及User-agent-flag格式-xxx-xxx-xxxx-xxx-xxxxx-xxxxxx-xxxxxx-xxxx-xxxx-xxxxagent-中间值-md5-后作为-flag-提交-flag-md5-是链接符" class="headerlink" title="2.攻击者上传webshell的绝对路径及User-agent flag格式{&#x2F;xxx&#x2F;xxx&#x2F;xxxx&#x2F;xxx&#x2F;xxxxx&#x2F;xxxxxx&#x2F;xxxxxx&#x2F;xxxx&#x2F;xxxx-xxxxagent} 中间值 md5 后作为 flag 提交 flag{md5} - 是链接符"></a>2.攻击者上传webshell的绝对路径及User-agent flag格式{&#x2F;xxx&#x2F;xxx&#x2F;xxxx&#x2F;xxx&#x2F;xxxxx&#x2F;xxxxxx&#x2F;xxxxxx&#x2F;xxxx&#x2F;xxxx-xxxxagent} 中间值 md5 后作为 flag 提交 flag{md5} - 是链接符</h2><p>如果是简单的让找马，直接用用工具扫描即可，但是这里让找ua头，所以必须分析流量包了<br>我们先用工具扫描出shell的路径</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131845168-1184392884.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/var/www/html/lot/admin/assets/uploads/maps/1701324180_Shell123.php</span><br></pre></td></tr></table></figure>
+
+<p>然后去流量包里面找上传文件的包</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http.request.method == &quot;POST&quot; &amp;&amp; http.content_type contains &quot;multipart/form-data&quot;</span><br></pre></td></tr></table></figure>
+
+<p>post是因为文件上传一般都是post传参，因为数据量大，get请求无法处理<br>multipart&#x2F;form-data的原因一般经常挖洞的人都知道，文件上传的点都会带这个字段，就是用来方便提取文件的各项属性</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131900169-392174691.png"></p>
+<p>就这样成功的发现了ua头，他就是上传shell的文件<br>&#x2F;var&#x2F;www&#x2F;html&#x2F;lot&#x2F;admin&#x2F;assets&#x2F;uploads&#x2F;maps&#x2F;1701324180_Shell123.php-my_is_user_agent<br>md5:flag{14bea1643a4b97600ba13a6dd5dbbd04}</p>
+<h2 id="3-攻击者反弹shell的IP及端口是什么"><a href="#3-攻击者反弹shell的IP及端口是什么" class="headerlink" title="3.攻击者反弹shell的IP及端口是什么"></a>3.攻击者反弹shell的IP及端口是什么</h2><p>上一题d盾扫描出来的文件里面就有，就不多赘述了</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131918233-1186396038.png"></p>
+<p>flag{192.168.150.110:5678}</p>
+<h2 id="4-攻击者利用提权攻击添加的用户，用户名是什么"><a href="#4-攻击者利用提权攻击添加的用户，用户名是什么" class="headerlink" title="4.攻击者利用提权攻击添加的用户，用户名是什么"></a>4.攻击者利用提权攻击添加的用户，用户名是什么</h2><p>看用户名，那肯定就是</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /etc/passwd</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131936691-1929980047.png"></p>
+<p>flag{zhangsan}</p>
+<h2 id="5-攻击者留下了后门脚本，找到绝对路径-有SUID权限"><a href="#5-攻击者留下了后门脚本，找到绝对路径-有SUID权限" class="headerlink" title="5.攻击者留下了后门脚本，找到绝对路径(有SUID权限)"></a>5.攻击者留下了后门脚本，找到绝对路径(有SUID权限)</h2><h3 id="第一种："><a href="#第一种：" class="headerlink" title="第一种："></a>第一种：</h3><p>d盾能直接扫出来</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131952724-2000611258.png"></p>
+<h3 id="第二种："><a href="#第二种：" class="headerlink" title="第二种："></a>第二种：</h3><p>既然让找有suid权限的文件，那就看哪些文件有这个权限不就行了</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find / -perm -u=s -type f 2&gt;/dev/null</span><br></pre></td></tr></table></figure>
+
+<p>● -type f:<br>○ 只查找普通文件（即不包括目录、设备文件等）。<br>● 2&gt;&#x2F;dev&#x2F;null:<br>○ 将错误消息（如权限不足导致的“Permission denied”错误）重定向到 &#x2F;dev&#x2F;null，即忽略它们。这使输出更加简洁，只显示查找到的文件。</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228132006679-1126668561.png"></p>
+<p>flag{&#x2F;var&#x2F;www&#x2F;html&#x2F;lot&#x2F;admin&#x2F;assets&#x2F;vendor&#x2F;.shell&#x2F;.decodeshell.php}<br>6.攻击者留下了持续化监控和后门脚本，找到绝对路径<br>说到持续化监控和后门，就能想到定时任务写马，定时任务可以在系统中保持持久性<br>crontab -l</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228132012273-1663415283.png"></p>
+<p>这明显的有点太明显了~</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /opt/.script/.script.sh</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228132023124-229263360.png"></p>
+<p>创建php文件，给文件最高权限，然后u+s给予suid权限<br>然后.sh文件定时执行写马<br>flag{&#x2F;opt&#x2F;.script&#x2F;.script.sh}</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/02/28/java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96Commons-Collection%E7%AF%8702-CC6%E9%93%BE/" class="prev">← java反序列化Commons-Collection篇02-CC6链</a>
+    
+    
+      <a href="/2025/02/28/%E7%AC%AC%E4%B9%9D%E7%AB%A0-blueteam-%E7%9A%84%E5%B0%8F%E5%BF%83%E6%80%9D/" class="next">第九章-blueteam 的小心思 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

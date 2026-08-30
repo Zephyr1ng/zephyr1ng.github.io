@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2.搭建环境成功后的漏洞审计~ | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">2.搭建环境成功后的漏洞审计~</h1>
+    <div class="post-meta">
+      <time datetime="2025-03-01">2025-03-01</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18745238">https://www.cnblogs.com/Zephyr07/articles/18745238</a></p>
+</blockquote>
+<h2 id="前情提要："><a href="#前情提要：" class="headerlink" title="前情提要："></a>前情提要：</h2><p>学习自深情哥微信公众号文章~<br><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/k6j4QJuwmJAeZQAiLquUaA">https://mp.weixin.qq.com/s/k6j4QJuwmJAeZQAiLquUaA</a><br>如若环境不会搭建，请参考上一篇文章：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">https://www.cnblogs.com/pmv57/articles/18743858</span><br></pre></td></tr></table></figure>
+
+<h2 id="源码来源："><a href="#源码来源：" class="headerlink" title="源码来源："></a>源码来源：</h2><p><a target="_blank" rel="noopener" href="https://gitee.com/zj1983/zz">https://gitee.com/zj1983/zz</a></p>
+<h2 id="审计流程："><a href="#审计流程：" class="headerlink" title="审计流程："></a>审计流程：</h2><p>首先我们查看\zz-master\src\main\resources下的spring.xml文件<br>然后在115行可以发现一个全局路由拦截器</p>
+<blockquote>
+<p>原因是因为：&lt;mvc:mapping path&#x3D;”&#x2F;<strong>“&#x2F;&gt;，这个的path路径是</strong>，说明他是对于所有目录都可以起到一个拦截作用</p>
+</blockquote>
+<p>然后我们跟进去看一下AllHandlerInterceptor到底是如何拦截的~（ctrl+鼠标右键点击）<br>然后跟进去能在59行看到一个哪些是不用登陆就能访问方法（也就是所谓的前台漏洞）</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301175607969-950987266.png"></p>
+<p>然后跟进去isSystemNoStateFunction方法，看一下哪些方法可以前台访问</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301175613254-157638267.png"></p>
+<p>总共有19条，审计的话一条一条看就好了</p>
+<h3 id="1-UserLogin前台注入"><a href="#1-UserLogin前台注入" class="headerlink" title="1.UserLogin前台注入"></a>1.UserLogin前台注入</h3><p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301175619090-1008909313.png"></p>
+<p>右键在文件中查找</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301175633680-1999350813.png"></p>
+<p>找到这个方法，然后发现传参进去了user_id，用来查询是否登录<br>更进去GetDBUser方法</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301175639591-1483220315.png"></p>
+<p>发现直接拼接，前面没有任何过滤，后面也没有任何过滤</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301175644390-2077031626.png"></p>
+<p>本来认为密码处也有漏洞，但是跟进去CreatePassword方法</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301175648750-1037118704.png"></p>
+<p>但是这里先是密码md5的32位加密，然后又分为四组再md5一次，根本不可逆~~~<br>tips：<br>一般前台写登录框，都不会查询密码，在查用户名的时候，会把密码顺带带出来，所以如果黑盒测试的话，用户名处可以多下功夫（当然也不一定orz）<br><a target="_blank" rel="noopener" href="http://localhost:8082/UserLogin?user_id=sa%27and%20sleep(5)%23">http://localhost:8082/UserLogin?user_id&#x3D;sa’and sleep(5)%23</a><br>页面成功sleep</p>
+<h3 id="2-UserLoginJson前台注入"><a href="#2-UserLoginJson前台注入" class="headerlink" title="2.UserLoginJson前台注入"></a>2.UserLoginJson前台注入</h3><p>和UserLogin几乎是一模一样，方法调用都一样</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301175702009-1139818889.png"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://localhost:8082/UserLoginJson?user_id=sa%27and%20sleep(5)%23</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-getUserOrgForUserId前台注入"><a href="#3-getUserOrgForUserId前台注入" class="headerlink" title="3.getUserOrgForUserId前台注入"></a>3.getUserOrgForUserId前台注入</h3><p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301175727174-834131569.png"></p>
+<p>也是传进去一个id，然后调用GetUserOrg</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301175733284-1748330645.png"></p>
+<p>同样发现也是没有过滤</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://localhost:8082/getUserOrgForUserId?userId=sa%27and%20sleep(5)%23</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-RunSQL任意SQL执行"><a href="#4-RunSQL任意SQL执行" class="headerlink" title="4.RunSQL任意SQL执行"></a>4.RunSQL任意SQL执行</h3><p>RunSQL路由中跟进来就可以发现一个根据；分割sql语句的方法</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301175741892-1859158842.png"></p>
+<p>然后也是传进去很多参数，而分割的sqlinfo也是可以人为控制的<br>然后在126行有一个sql解析中，selectList会毫无过滤的执行一个从sqlinfo传入的sql语句</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301175747840-492151368.png"></p>
+<h4 id="tips："><a href="#tips：" class="headerlink" title="tips："></a>tips：</h4><p>selectList是SqlSession接口中的方法，然后就是可以用来执行sql语句</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301175800861-1989097538.png"></p>
+<p>最后成功执行任意sql语句</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301175807419-1087663730.png"></p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/03/01/%E7%AC%AC%E4%B9%9D%E7%AB%A0-blueteam-%E7%9A%84%E5%B0%8F%E5%BF%83%E6%80%9D3/" class="prev">← 第九章-blueteam 的小心思3</a>
+    
+    
+      <a href="/2025/02/28/1-%E8%AE%B0%E4%B8%80%E6%AC%A1java%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" class="next">1.记一次java代码审计环境搭建 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

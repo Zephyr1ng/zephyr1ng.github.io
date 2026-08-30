@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>几个edu并发漏洞~ | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">几个edu并发漏洞~</h1>
+    <div class="post-meta">
+      <time datetime="2024-12-11">2024-12-11</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18600247">https://www.cnblogs.com/Zephyr07/articles/18600247</a></p>
+</blockquote>
+<p><strong>前情提要：新手小白src记录，各位大佬勿喷~~~</strong></p>
+<h2 id="edu内心独白"><a href="#edu内心独白" class="headerlink" title="edu内心独白"></a>edu内心独白</h2><p>偶尔某天刷文章看到一个并发漏洞的测试，发现好久没有测试过并发漏洞了，所以去edu逛一圈~<br>收集资产，发现三个大学存在短信轰炸，而且都是证书站，不知道被交过没，也不知道edu里面短信轰炸算不算中危，不然就要有证书了~ _ ~!<br>希望没被人交过，让我捡个漏</p>
+<h2 id="漏洞原理："><a href="#漏洞原理：" class="headerlink" title="漏洞原理："></a>漏洞原理：</h2><p>说白了就是多线程引发的安全问题，没有对部分操作进行操作串行化</p>
+<h2 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h2><p>这个更简单，就是bp的trobo插件，直接多线程发送请求，该插件原理也很简单，就是多线程脚本同时发送请求<br>推荐文章：<a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_63421985/article/details/133899675">并发推荐文章</a></p>
+<h2 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h2><h3 id="1-第一个是某大学的招聘系统，在注册界面发送验证码时存在并发漏洞，且并发不关，验证码不停"><a href="#1-第一个是某大学的招聘系统，在注册界面发送验证码时存在并发漏洞，且并发不关，验证码不停" class="headerlink" title="1.第一个是某大学的招聘系统，在注册界面发送验证码时存在并发漏洞，且并发不关，验证码不停~"></a>1.第一个是某大学的招聘系统，在注册界面发送验证码时存在并发漏洞，且并发不关，验证码不停~</h3><p><img src="https://img2024.cnblogs.com/blog/3551469/202412/3551469-20241211170720791-804239890.png"></p>
+<p>直接抓包，发送到turbo插件，然后加%s参数</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202412/3551469-20241211171912281-1594958450.png"></p>
+<p>然后开始攻击，手机一直接受到验证码</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202412/3551469-20241211172036557-953132.png"></p>
+<h3 id="2-第二个是一个大学的附属中学的后台登陆界面"><a href="#2-第二个是一个大学的附属中学的后台登陆界面" class="headerlink" title="2.第二个是一个大学的附属中学的后台登陆界面"></a>2.第二个是一个大学的附属中学的后台登陆界面</h3><p>该发送验证码处存在两处逻辑缺陷，第一处是未注册即可给手机号发送验证码，第二是存在并发漏洞即短信轰炸</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202412/3551469-20241211172219297-1103665109.png"></p>
+<p>重复上述操作，接收到大量验证码</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202412/3551469-20241211172313251-1627949750.png"></p>
+<h3 id="3-第三个是一个大学的档案利用平台"><a href="#3-第三个是一个大学的档案利用平台" class="headerlink" title="3.第三个是一个大学的档案利用平台"></a>3.第三个是一个大学的档案利用平台</h3><p>这个更奇葩，我都没有注册用户，居然还能找回密码，并发存在找回密码的功能点里面</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202412/3551469-20241211172622690-763780288.png"></p>
+<p>同样重复上述操作，收到大量验证码~</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202412/3551469-20241211172807955-1685442187.png"></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>总而言之，遇到这种可能存在并发的地方试一试就好了，也就几分钟的时间，找到不就赚到了！！！<br>最后来一句，通过一个也行啊，最好是个中危啊，球球了~~~</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/01/13/java%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1-%E8%BF%88%E5%A5%BD%E4%BA%BA%E7%94%9F%E7%AC%AC%E4%B8%80%E6%AD%A5-UrlDns%E9%93%BE%E5%AD%90/" class="prev">← java代码审计，迈好人生第一步---UrlDns链子！</a>
+    
+    
+      <a href="/2024/11/18/%E8%9C%80%E9%81%93%E5%B1%B1ctf2024-WP/" class="next">蜀道山ctf2024[WP] →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

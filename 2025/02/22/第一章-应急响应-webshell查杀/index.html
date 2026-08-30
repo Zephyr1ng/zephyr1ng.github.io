@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第一章 应急响应-webshell查杀 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">第一章 应急响应-webshell查杀</h1>
+    <div class="post-meta">
+      <time datetime="2025-02-22">2025-02-22</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18731523">https://www.cnblogs.com/Zephyr07/articles/18731523</a></p>
+</blockquote>
+<h2 id="1-黑客webshell里面的flag-flag"><a href="#1-黑客webshell里面的flag-flag" class="headerlink" title="1.黑客webshell里面的flag flag"></a>1.黑客webshell里面的flag flag</h2><p>webshell直接find查找即可</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">//搜索目录下适配当前应用的网页文件，查看内容是否有Webshell特征</span><br><span class="line">find ./ type f -name &quot;*.jsp&quot; | xargs grep &quot;exec(&quot; </span><br><span class="line">find ./ type f -name &quot;*.php&quot; | xargs grep &quot;eval(&quot; </span><br><span class="line">find ./ type f -name &quot;*.asp&quot; | xargs grep &quot;execute(&quot; </span><br><span class="line">find ./ type f -name &quot;*.aspx&quot; | xargs grep &quot;eval(&quot;</span><br></pre></td></tr></table></figure>
+
+<p>&#x2F;&#x2F;对于免杀Webshell，可以查看是否使用编码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find ./ type f -name &quot;*.php&quot; | xargs grep &quot;base64_decode&quot;</span><br></pre></td></tr></table></figure>
+
+<p>这是静态查找，也不一定能查找出来，查不出来还要手动查的话就是一个一个目录看了</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find ./ type f -name &quot;*.php&quot; | xargs grep &quot;eval(&quot;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222220319381-728812850.png"></p>
+<p>找到三个，以恶搞一个看就行，然后在gz.php发现了flag</p>
+<h2 id="2-黑客使用的什么工具的shell-github地址的md5-flag"><a href="#2-黑客使用的什么工具的shell-github地址的md5-flag" class="headerlink" title="2.黑客使用的什么工具的shell github地址的md5 flag"></a>2.黑客使用的什么工具的shell github地址的md5 flag</h2><p>这个的话其实一打开gz.php就知道这是啥马了<br><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222220324139-1352550848.png"></p>
+<p>这一看就是哥斯拉马</p>
+<ol>
+<li>@session_start(); - 开启一个会话。</li>
+<li>@set_time_limit(0); - 设置脚本执行时间为无限。</li>
+<li>@error_reporting(0); - 关闭所有错误报告。<br>直接找到哥斯拉github地址md5加密即可</li>
+</ol>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://github.com/BeichenDream/Godzilla">https://github.com/BeichenDream/Godzilla</a><br><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222220344368-1087046048.png"></p>
+</blockquote>
+<h2 id="3-黑客隐藏shell的完整路径的md5-flag"><a href="#3-黑客隐藏shell的完整路径的md5-flag" class="headerlink" title="3.黑客隐藏shell的完整路径的md5 flag"></a>3.黑客隐藏shell的完整路径的md5 flag</h2><p>题目说了隐藏，那应该ls查不到，所以ls -al查就行<br>最后是在&#x2F;var&#x2F;www&#x2F;html&#x2F;include&#x2F;Db找到的，因为那三个php都在&#x2F;var&#x2F;www&#x2F;html&#x2F;include下，同理可得~<br><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222220352565-1280290384.png"></p>
+<p>&#x2F;var&#x2F;www&#x2F;html&#x2F;include&#x2F;Db&#x2F;.Mysqli.php<br><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222220356741-1949853194.png"></p>
+<h2 id="4-黑客免杀马完整路径-md5-flag"><a href="#4-黑客免杀马完整路径-md5-flag" class="headerlink" title="4.黑客免杀马完整路径 md5 flag"></a>4.黑客免杀马完整路径 md5 flag</h2><p>免杀马一般的话静态是检测不到的，因为木马特征值应该是被去掉了，所以就去日志里面找<br>在&#x2F;var&#x2F;log的目录下ls发现了apache日志，所以直接看apache日志就行<br><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222220403897-1361671274.png"></p>
+<p>先看access.log日志，仔细看看发现几个top.php，然后执行了1&#x3D;phpinfo()，很可疑，但是发现两个路径下都有top.php，所以找到两个文件看就好了<br><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222220408976-74545240.png"><br><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222220412584-1541755353.png"></p>
+<p>查看top.php，发现如图，确定就是免杀马了，md5加密即可<br><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222220418446-1649915283.png"><br><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222220424146-1394636573.png"></p>
+<h2 id="拓展：工具查杀"><a href="#拓展：工具查杀" class="headerlink" title="拓展：工具查杀"></a>拓展：工具查杀</h2><p>把源码拉下来直接放到工具里检测就行，客户端和在线端都可以</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/02/22/%E7%AC%AC%E4%BA%8C%E7%AB%A0%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90-apache%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90/" class="prev">← 第二章日志分析-apache日志分析</a>
+    
+    
+      <a href="/2025/02/22/%E7%AC%AC%E4%B8%80%E7%AB%A0-%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94linux%E5%85%A5%E4%BE%B5%E6%8E%92%E6%9F%A5/" class="next">第一章 应急响应linux入侵排查 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

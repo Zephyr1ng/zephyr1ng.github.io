@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第五章 linux实战-黑链 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">第五章 linux实战-黑链</h1>
+    <div class="post-meta">
+      <time datetime="2025-02-28">2025-02-28</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18743006">https://www.cnblogs.com/Zephyr07/articles/18743006</a></p>
+</blockquote>
+<h2 id="1、找到黑链添加在哪个文件-flag-格式-flag"><a href="#1、找到黑链添加在哪个文件-flag-格式-flag" class="headerlink" title="1、找到黑链添加在哪个文件 flag 格式 flag"></a>1、找到黑链添加在哪个文件 flag 格式 flag</h2><p>既然是找黑链，那肯定就是从网站目录里面找<br>grep -rnw ‘&#x2F;var&#x2F;www&#x2F;html&#x2F;‘ -e ‘黑链’<br>就能在&#x2F;var&#x2F;www&#x2F;html&#x2F;下面找到一条模拟黑链</p>
+<h3 id="tips"><a href="#tips" class="headerlink" title="tips:"></a>tips:</h3><blockquote>
+<p>但是现实情况是；<br>在实际情况中，黑链通常不会直接标记为“黑链”。它们可能会隐藏在普通的链接或其他代码中。以下是一些更常见的黑链隐藏方式：<br>隐藏的 HTML 元素：使用 CSS 将链接隐藏在网页中，如 display:none 或 visibility:hidden。<br>JavaScript 动态加载：使用 JavaScript 动态加载黑链，使其在页面加载时才出现。<br>URL 重定向：通过 URL 重定向，将合法链接引导到恶意网站。<br>伪装成正常内容：黑链可能伪装成正常的内容或链接，混杂在正常网页内容中。</p>
+</blockquote>
+<p>然后就找到了flag{header.php}<br>当然也可以把网站目录扒下来放到d盾里面扫也能扫到<br>方法不唯一，仅供参考</p>
+<h2 id="2、webshell的绝对路径-flag"><a href="#2、webshell的绝对路径-flag" class="headerlink" title="2、webshell的绝对路径 flag"></a>2、webshell的绝对路径 flag</h2><p>d盾查杀，找到三个可疑php文件<br>一个一个看最后在404.php问文件里面找到了webshell<br>flag{&#x2F;var&#x2F;www&#x2F;html&#x2F;usr&#x2F;themes&#x2F;default&#x2F;404.php}</p>
+<h2 id="3、黑客注入黑链文件的-md5-md5sum-file-flag"><a href="#3、黑客注入黑链文件的-md5-md5sum-file-flag" class="headerlink" title="3、黑客注入黑链文件的 md5 md5sum file flag"></a>3、黑客注入黑链文件的 md5 md5sum file flag</h2><p>常见黑客注入的黑链文件有：<br>1.javascript<br>2.html<br>3.php<br>4.css<br>5.iframe<br>6..htaccess<br>然后第二题d盾查杀的时候找出一个js文件，打开看一看</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228125314393-448211462.png"></p>
+<p>确定这就是注入黑链的文件<br>flag{10c18029294fdec7b6ddab76d9367c14}</p>
+<h2 id="4、攻击入口是哪里？url请求路径，最后面加-flag"><a href="#4、攻击入口是哪里？url请求路径，最后面加-flag" class="headerlink" title="4、攻击入口是哪里？url请求路径，最后面加&#x2F; flag"></a>4、攻击入口是哪里？url请求路径，最后面加&#x2F; flag</h2><p>本来是想在日志下面找的，但是发现啥都没有<br>然后巧合间在根目录下ls出一个流量包，导出来直接分析<br>过滤器过滤http，因为已经知道注入的文件是poc1.js，所以<br>http contains “poc1.js”<br>然后看数据最大的一条流量包，追踪http流分析<br>发现在cookie里面看到可疑信息，分析之后发现是包含了一段js注入代码<br>然后继续看流量包，然后看到请求目录是&#x2F;index.php&#x2F;archives&#x2F;1&#x2F;<br>追踪流看一下cookie发现和上一个流量包差不多，是一段恶意js注入，会跳转到poc1.js文件然后执行<br>所以最后flag<br>flag{&#x2F;index.php&#x2F;archives&#x2F;1&#x2F;}</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/02/28/%E7%AC%AC%E4%BA%94%E7%AB%A0-Windows-%E5%AE%9E%E6%88%98-evtx-%E6%96%87%E4%BB%B6%E5%88%86%E6%9E%90/" class="prev">← 第五章 Windows 实战-evtx 文件分析</a>
+    
+    
+      <a href="/2025/02/28/%E7%AC%AC%E5%9B%9B%E7%AB%A0-windows%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90/" class="next">第四章-windows日志分析 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

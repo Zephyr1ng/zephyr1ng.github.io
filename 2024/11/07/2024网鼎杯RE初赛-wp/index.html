@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2024网鼎杯RE初赛[wp] | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">2024网鼎杯RE初赛[wp]</h1>
+    <div class="post-meta">
+      <time datetime="2024-11-07">2024-11-07</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18527248">https://www.cnblogs.com/Zephyr07/articles/18527248</a></p>
+</blockquote>
+<h1 id="REVERSE1"><a href="#REVERSE1" class="headerlink" title="REVERSE1"></a>REVERSE1</h1><p>这个题当时是最后两个小时有思路（多亏了咱们的王杰gg），虽然最后没做出来，最后知道了sm4加密，也知道了密钥，结果没找到密文（其实找到了，一串16进制数据，本来以为是要转换成ascii字符，结果16进制本身就是密文…还是做的题不够多…）<br>先是jadx反编译打开之后，开始找程序入口点，即MainActivity，然后找onclick事件，然后一直找一直到找到check检查函数，但是里面只有几行，有个cma<br>﻿<br><img src="https://img2024.cnblogs.com/blog/3551469/202411/3551469-20241107221057955-2099764993.png"></p>
+<p>然后修改文件后缀名zip解压，lib文件找到一个有重叠名字的so文件easystd\lib\arm64-v8a<br>ida64位打开之后函数挺少，一个一个看，然后在sub_75C函数最后找到一个类似最后验证的功能</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202411/3551469-20241107221105203-1939898815.png"></p>
+<p>点开byte_C14数组之后有一大串字符串（其实这去掉0x，提取出来就是密文，但当时可能脑袋宕机了，一直觉得还要再处理一下，然后一直找处理函数）<br>﻿<br><img src="https://img2024.cnblogs.com/blog/3551469/202411/3551469-20241107221116308-1285873286.png"></p>
+<p>然后点开sub_904函数，其实当时是看不懂的，但是有ai助我，大致分析了一下应该是sm4加密（可能是与bswap32这个函数有关）<br>﻿<br><img src="https://img2024.cnblogs.com/blog/3551469/202411/3551469-20241107221231369-1613122272.png"></p>
+<p>然后开始找密钥<br>﻿<br><img src="https://img2024.cnblogs.com/blog/3551469/202411/3551469-20241107221335646-411856728.png"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202411/3551469-20241107221341051-176366102.png"></p>
+<p>这个的意思就是将原本aA1122357753221数组的后八位改成Z0099864，但是要注意的是这里是小端存储，所以要倒着填充后八位，所以实际密钥就是A11223574689900Z，刚好16位，128bit<br>然后直接用密钥对那一串16进制解密就行（就败在最后一步了，桑心~）<br>﻿<br><img src="https://img2024.cnblogs.com/blog/3551469/202411/3551469-20241107221347942-549903526.png"></p>
+<h1 id="REVERSE2"><a href="#REVERSE2" class="headerlink" title="REVERSE2"></a>REVERSE2</h1><p>ida64位打开<br>根据题目提示得知是对flag四段加密，ida反编译有四个return 1，应该就是四段加密<br>﻿<br><img src="https://img2024.cnblogs.com/blog/3551469/202411/3551469-20241107221401939-1001453327.png"></p>
+<p>这一段就是对flag前八位加密，就是很简单的直接密文除2就行，直接上脚本</p>
+<p>点击查看代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># 已知的 s2 数组值</span><br><span class="line">s2 = [112, -62, 108, -54, ord(&#x27;n&#x27;), ord(&#x27;p&#x27;), ord(&#x27;p&#x27;), ord(&#x27;l&#x27;)]</span><br><span class="line">s2 = [(x + 256) if x &lt; 0 else x for x in s2]  # 将负值转换为无符号字节</span><br><span class="line"># 解密出 flag 的前 8 个字符</span><br><span class="line">dest_part1 = &#x27;&#x27;.join([chr(x // 2) for x in s2])</span><br><span class="line">print(&quot;解密的 flag 前 8 个字符:&quot;, dest_part1)</span><br><span class="line">#8a6e7886</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202411/3551469-20241107221414935-1051845675.png"></p>
+<p>这一段也简单，就是简单的异或，v22和v11异或即可  
+﻿</p>
+<p>点击查看代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#已知的 v11 和 v22 值</span><br><span class="line">v11 = [57, 91, 23, 16, 127, 13, 71, 6]</span><br><span class="line">v22 = &quot;XorrLord&quot;</span><br><span class="line"></span><br><span class="line"># 解密出 flag 的第 8-15 个字符</span><br><span class="line">dest_part2 = &#x27;&#x27;.join([chr(v11[i] ^ ord(v22[i])) for i in range(8)])</span><br><span class="line">print(&quot;解密的 flag 第 8-15 个字符:&quot;, dest_part2)</span><br><span class="line">##a4eb3b5b</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202411/3551469-20241107221423309-1795662001.png"></p>
+<p>这个就是base64换表（前面短一个C，需要补一下），然后在线网站解密即可</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202411/3551469-20241107221431710-1246940120.png"></p>
+<p>然后base64解码<br>﻿<br><img src="https://img2024.cnblogs.com/blog/3551469/202411/3551469-20241107221436879-988172251.png"></p>
+<p>第四段：<br>﻿<br><img src="https://img2024.cnblogs.com/blog/3551469/202411/3551469-20241107221445395-585243052.png"></p>
+<p>第四段就是AES_set_encrypt_key函数使用AesMasterAesMast生成一个密钥，然后AES_encrypt函数在根据密钥去加密，最后将加密后的内容hex_to_string处理后与v4数组匹配，所以其实v8其实并没有上面用，就是单纯的充当了一个明文的存在，所以写脚本逆向即可</p>
+<p>点击查看代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">from Crypto.Cipher import AES</span><br><span class="line"></span><br><span class="line"># 定义密钥，添加 &#x27;\0&#x27; 使其长度为 16 字节</span><br><span class="line">key = b&#x27;AesMasterAesMast&#x27;</span><br><span class="line"></span><br><span class="line"># 定义密文 v4，转换为无符号字节</span><br><span class="line">ciphertext = bytes([</span><br><span class="line">    (-89 + 256) % 256, 32, 21, (-1 + 256) % 256,</span><br><span class="line">    (-51 + 256) % 256, (-12 + 256) % 256, 80, (-34 + 256) % 256,</span><br><span class="line">    120, (-66 + 256) % 256, (-89 + 256) % 256, (-108 + 256) % 256,</span><br><span class="line">    127, (-65 + 256) % 256, (-84 + 256) % 256, (-59 + 256) % 256</span><br><span class="line">])</span><br><span class="line"></span><br><span class="line"># 创建 AES 解密器</span><br><span class="line">cipher = AES.new(key, AES.MODE_ECB)</span><br><span class="line"></span><br><span class="line"># 解密得到明文 v8</span><br><span class="line">plaintext = cipher.decrypt(ciphertext)</span><br><span class="line"></span><br><span class="line"># 检查后 8 个字节是否全为数值 8</span><br><span class="line">if plaintext[8:] == bytes([8]*8):</span><br><span class="line">    # 提取前 8 个字节，即为 v18</span><br><span class="line">    v18 = plaintext[:8]</span><br><span class="line">    print(&quot;解密成功，得到的明文 v18 为：&quot;, v18)</span><br><span class="line">    print(&quot;v18 的十六进制表示：&quot;, v18.hex())</span><br><span class="line">    print(&quot;v18 的字符串形式：&quot;, v18.decode(&#x27;utf-8&#x27;))</span><br><span class="line">else:</span><br><span class="line">    print(&quot;解密失败，明文格式不符合预期。&quot;)</span><br><span class="line">#06d28a04</span><br></pre></td></tr></table></figure>
+
+<p>组合起来就是flag<br>wdflag{8a6e7886a4eb3b5b52e93a4506d28a04}</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2024/11/13/%E6%AF%8F%E6%97%A5%E6%B0%B4%E6%B4%9E-1-%E9%80%9A%E8%BE%BEOA-xss%E4%BB%A5%E5%8F%8Aswagger-xss/" class="prev">← 每日水洞+1（通达OA xss以及swagger xss）</a>
+    
+    
+      <a href="/2024/11/06/2024BuildCTF-web-misc-re-crypto-wp/" class="next">2024BuildCTF web-misc-re-crypto[wp] →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

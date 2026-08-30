@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>java代码审计，迈好人生第一步---UrlDns链子！ | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">java代码审计，迈好人生第一步---UrlDns链子！</h1>
+    <div class="post-meta">
+      <time datetime="2025-01-13">2025-01-13</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18669443">https://www.cnblogs.com/Zephyr07/articles/18669443</a></p>
+</blockquote>
+<h1 id="URLdns链的初次学习"><a href="#URLdns链的初次学习" class="headerlink" title="URLdns链的初次学习~"></a>URLdns链的初次学习~</h1><h2 id="前情提要：师从b站白日梦组长，具体细节都可以去看他视频，均可复现下来"><a href="#前情提要：师从b站白日梦组长，具体细节都可以去看他视频，均可复现下来" class="headerlink" title="前情提要：师从b站白日梦组长，具体细节都可以去看他视频，均可复现下来"></a>前情提要：师从b站白日梦组长，具体细节都可以去看他视频，均可复现下来</h2><h2 id="复现步骤"><a href="#复现步骤" class="headerlink" title="复现步骤"></a>复现步骤</h2><ol>
+<li>首先是发现URL实现了Serializable接口，存在反序列化利用危险函数的潜在危害<br>然后看一个常见都存在的函数hashCode，发现URL类种存在该函数，然后点进去handler下的hashcode函数，发现有个getHostAddress函数，存在域名解析的危害即ssrf</li>
+</ol>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202501/3551469-20250113204754464-1845455283.png"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202501/3551469-20250113204806721-391320732.png"></p>
+<ol start="2">
+<li>然后hashmap的put方法也可以调用hashcode方法，这里就存在同名函数可以替换的可能</li>
+</ol>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202501/3551469-20250113204819890-959076115.png"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202501/3551469-20250113204825664-298775996.png"></p>
+<ol start="3">
+<li>这时候如果使用hashmap的put方法，最后其实调用的是url类的hashcode方法，而不是put方法中的hashcode方法<br>但是我们观察发现url类的hashcode方法必须要hashcode的值为-1才行</li>
+</ol>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202501/3551469-20250113204838560-195453330.png"></p>
+<ol start="4">
+<li>但是put方法中的hashcode方法会对传进去的url参数进行hash编码导致最后执行的时候hashcode的值不为-1，进而导致反序列化的时候不会域名解析</li>
+</ol>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202501/3551469-20250113204842663-1188000119.png"></p>
+<ol start="5">
+<li>这时候就需要用到反射，动态修改hashcode的值，使其在put方法之后hashcode的值仍然为-1，进而反序列化的时候可以域名解析</li>
+</ol>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202501/3551469-20250113204847886-2079528774.png"></p>
+<ol start="6">
+<li>这时候序列化的时候并不会发生域名解析，只有反序列化的时候hashcode的值为-1，进而导致域名解析即srf</li>
+</ol>
+<p>最后的代码：</p>
+<p>点击查看代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">import java.io.*;</span><br><span class="line">import java.lang.reflect.Field;</span><br><span class="line">import java.net.HttpURLConnection;</span><br><span class="line">import java.net.URL;</span><br><span class="line">import java.util.HashMap;</span><br><span class="line">import java.util.Map;</span><br><span class="line"></span><br><span class="line">public class SerializationTest &#123;</span><br><span class="line">    public static void serialize(Object obj) throws IOException&#123;</span><br><span class="line">        ObjectOutputStream oos=new ObjectOutputStream(new FileOutputStream(&quot;ser.bin&quot;));</span><br><span class="line">        oos.writeObject(obj);</span><br><span class="line">    &#125;</span><br><span class="line">    public static void main(String[] args) throws Exception&#123;</span><br><span class="line">        Person person=new Person(&quot;aa&quot;,22);</span><br><span class="line">        //System.out.println(person);</span><br><span class="line"></span><br><span class="line">        HashMap&lt;URL,Integer&gt;hashmap=new HashMap&lt;URL,Integer&gt;();</span><br><span class="line">        //这里不要发起请求，先把url对象的hashcode改成不是-1</span><br><span class="line">        URL url=new URL(&quot;&quot;);</span><br><span class="line">        Class c=url.getClass();</span><br><span class="line">        Field hashcodefield=c.getDeclaredField(&quot;hashCode&quot;);</span><br><span class="line">        hashcodefield.setAccessible(true);</span><br><span class="line">        hashcodefield.set(url,1234);</span><br><span class="line">        hashmap.put(url,1);</span><br><span class="line">        //这里通过反射把hashcode改回-1</span><br><span class="line">        hashcodefield.set(url,-1);</span><br><span class="line"></span><br><span class="line">        serialize(person/*hashmap**/);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后自己做的图解（第一次做，有错误的地方还请各位大佬帮忙指点指点orz~）</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202501/3551469-20250113205144346-510786292.png"></p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/02/22/%E7%AC%AC%E4%B8%80%E7%AB%A0-%E5%BA%94%E6%80%A5%E5%93%8D%E5%BA%94linux%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90/" class="prev">← 第一章，应急响应linux日志分析</a>
+    
+    
+      <a href="/2024/12/11/%E5%87%A0%E4%B8%AAedu%E5%B9%B6%E5%8F%91%E6%BC%8F%E6%B4%9E/" class="next">几个edu并发漏洞~ →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

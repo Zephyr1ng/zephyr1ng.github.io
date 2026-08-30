@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第九章-blueteam 的小心思3 | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">第九章-blueteam 的小心思3</h1>
+    <div class="post-meta">
+      <time datetime="2025-03-01">2025-03-01</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18745487">https://www.cnblogs.com/Zephyr07/articles/18745487</a></p>
+</blockquote>
+<h2 id="1-审计日志，攻击者下载恶意木马文件的-ip是多少-flag"><a href="#1-审计日志，攻击者下载恶意木马文件的-ip是多少-flag" class="headerlink" title="1. 审计日志，攻击者下载恶意木马文件的 ip是多少 flag"></a>1. 审计日志，攻击者下载恶意木马文件的 ip是多少 flag</h2><p>题目说审计日志，那就看日志，直接过滤看http数据包<br>然后翻一翻直接就能看到shell.php文件</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301215259125-875869303.png"></p>
+<p>FLAG：192.168.150.253</p>
+<h2 id="2-审计流量包，木马文件连接密码是什么-flag"><a href="#2-审计流量包，木马文件连接密码是什么-flag" class="headerlink" title="2. 审计流量包，木马文件连接密码是什么? flag"></a>2. 审计流量包，木马文件连接密码是什么? flag</h2><p>找一个访问shell.php文件，一般木马的连接密码就在shell.php里面</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301215303060-891290424.png"></p>
+<p>FLAG:cmd</p>
+<h2 id="3-审计流量包，攻击者反弹的IP和端口是什么-flag"><a href="#3-审计流量包，攻击者反弹的IP和端口是什么-flag" class="headerlink" title="3. 审计流量包，攻击者反弹的IP和端口是什么? flag"></a>3. 审计流量包，攻击者反弹的IP和端口是什么? flag</h2><p>让找反弹shell的ip和端口，那同样还是在shell.php文件里查看</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301215308550-1868770209.png"></p>
+<p>删掉前两位，然后base64解密，得到反弹shell(为什么删掉两位可以去看我第六章的文章，里面讲过)</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301215316349-780743115.png"></p>
+<p>FLAG:192.168.150.199:4444</p>
+<h2 id="4-提交黑客上传恶意文件的-md5-md5sum-xxx-so"><a href="#4-提交黑客上传恶意文件的-md5-md5sum-xxx-so" class="headerlink" title="4. 提交黑客上传恶意文件的 md5 md5sum xxx.so"></a>4. 提交黑客上传恶意文件的 md5 md5sum xxx.so</h2><p>这个是看的网上的博主，因为这个知识点我也不太懂<br>这里是因为看到题目提示是.so文件<br>然后筛选的tcp协议，然后找到是利用redis的主从复制上传了modules.so文件</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301215336944-2037451638.png"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301215322874-1681994548.png"></p>
+<p>然后有利用redis反弹shell</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301215331260-1508993571.png"></p>
+<p>md5 modules.so<br>FLAG：d41d8cd98f00b204e9800998ecf8427e</p>
+<h2 id="5-攻击者在服务器内权限维持请求外部地址和恶意文件的地址flag"><a href="#5-攻击者在服务器内权限维持请求外部地址和恶意文件的地址flag" class="headerlink" title="5. 攻击者在服务器内权限维持请求外部地址和恶意文件的地址flag"></a>5. 攻击者在服务器内权限维持请求外部地址和恶意文件的地址flag</h2><p>题目说是维持，既然是维持，第一时间想到的肯定是看计时任务<br>然后发现一眼就看到了一个shell.php</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301215351520-1032028436.png"></p>
+<p>FLAG：<a target="_blank" rel="noopener" href="http://192.168.150.199:88/shell.php">http://192.168.150.199:88/shell.php</a></p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>下载shell.php，然后利用.shell.php文件查看redis配置文件，并且反弹shell，成功之后利用redis的主从复制上传了modul.so文件，然后利用这个文件再次反弹shell，从而进行了权限位置</p>
+<h2 id="参考文章："><a href="#参考文章：" class="headerlink" title="参考文章："></a>参考文章：</h2><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/Aluxian_/article/details/140548804">https://blog.csdn.net/Aluxian_/article/details/140548804</a></p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/03/02/3-%E6%B3%A8%E5%85%A5%E4%B9%8B%E5%90%8E%E7%9A%84RCE%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/" class="prev">← 3.注入之后的RCE代码审计</a>
+    
+    
+      <a href="/2025/03/01/2-%E6%90%AD%E5%BB%BA%E7%8E%AF%E5%A2%83%E6%88%90%E5%8A%9F%E5%90%8E%E7%9A%84%E6%BC%8F%E6%B4%9E%E5%AE%A1%E8%AE%A1/" class="next">2.搭建环境成功后的漏洞审计~ →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

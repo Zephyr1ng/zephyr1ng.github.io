@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>契约锁电子签章系统QVD-2025-27432代码分析(pdfverifier远程代码执行) | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">契约锁电子签章系统QVD-2025-27432代码分析(pdfverifier远程代码执行)</h1>
+    <div class="post-meta">
+      <time datetime="2025-07-29">2025-07-29</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/19010459">https://www.cnblogs.com/Zephyr07/articles/19010459</a></p>
+</blockquote>
+<h1 id="免责声明"><a href="#免责声明" class="headerlink" title="免责声明"></a>免责声明</h1><p>本文档所述漏洞详情及复现方法仅限用于合法授权的安全研究和学术教育用途。任何个人或组织不得利用本文内容从事未经许可的<a target="_blank" rel="noopener" href="https://so.csdn.net/so/search?q=%E6%B8%97%E9%80%8F%E6%B5%8B%E8%AF%95&spm=1001.2101.3001.7020">渗透测试</a>、<a target="_blank" rel="noopener" href="https://so.csdn.net/so/search?q=%E7%BD%91%E7%BB%9C%E6%94%BB%E5%87%BB&spm=1001.2101.3001.7020">网络攻击</a>或其他违法行为。</p>
+<h1 id="漏洞描述："><a href="#漏洞描述：" class="headerlink" title="漏洞描述："></a>漏洞描述：</h1><p>该漏洞源于电子签章系统在处理特定数据格式时，存在解析差异导致安全机制被绕过，远程未经身份验证的攻击者可在服务器上执行任意系统命令</p>
+<h1 id="影响版本："><a href="#影响版本：" class="headerlink" title="影响版本："></a>影响版本：</h1><p>4.0.x &lt;&#x3D; 契约锁 &lt;&#x3D; 4.3.7 &amp;&amp; 补丁版本 &lt; 1.3.8</p>
+<p>4.3.8 &lt;&#x3D; 契约锁 &lt;&#x3D; 5.3.x &amp;&amp; 补丁版本 &lt; 2.1.8</p>
+<h1 id="代码分析："><a href="#代码分析：" class="headerlink" title="代码分析："></a>代码分析：</h1><p>漏洞入口点在privapp.jar包中的com.qiyuesuo.api中的PdfVerifierController中的</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150936847-1787212146.png" alt="image"></p>
+<p>在doverify中函数中，会有几个if判断文件类型</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150946458-352896420.png" alt="image"></p>
+<p>然后我们跟入到ofd文件处理方式中的verify函数中</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line">public OfdVerifyResponse verify(byte[] ofdBytes) throws Exception &#123;</span><br><span class="line">    // 生成临时OFD文件路径，使用UUID确保唯一性</span><br><span class="line">    String ofdPath = OfdStrucSignatureUtils.TMP_FILE_DICTIONARY + UUID.randomUUID().toString() + OfdStrucUtils.OFD_FILE_TYPE;</span><br><span class="line">    // 生成解压目录路径，同样使用UUID确保唯一性</span><br><span class="line">    String decomprarePath = OfdStrucSignatureUtils.TMP_FILE_DICTIONARY + UUID.randomUUID().toString();</span><br><span class="line">    </span><br><span class="line">    try &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            // 检查输入的字节数组是否为有效的OFD文件</span><br><span class="line">            if (OfdStrucSignatureUtils.isOfd(ofdBytes)) &#123;</span><br><span class="line">                // 将字节数组写入临时OFD文件</span><br><span class="line">                FileUtils.writeByteArrayToFile(new File(ofdPath), ofdBytes);</span><br><span class="line">                </span><br><span class="line">                // 创建解压目录</span><br><span class="line">                File decomprareFile = new File(decomprarePath);</span><br><span class="line">                decomprareFile.mkdir();</span><br><span class="line">                </span><br><span class="line">                // 解压OFD文件到指定目录（OFD本质是ZIP格式）</span><br><span class="line">                FileZipUtils.decomprare(ofdPath, decomprarePath);</span><br><span class="line">                </span><br><span class="line">                // 调用核心验证方法，传入解压后的目录路径</span><br><span class="line">                OfdVerifyResponse verify = verify(decomprarePath);</span><br><span class="line">                </span><br><span class="line">                // 清理资源：删除解压目录</span><br><span class="line">                try &#123;</span><br><span class="line">                    FileUtils.deleteDirectory(new File(decomprarePath));</span><br><span class="line">                &#125; catch (Exception e) &#123;</span><br><span class="line">                    // 忽略删除异常</span><br><span class="line">                &#125;</span><br><span class="line">                </span><br><span class="line">                // 清理资源：删除临时OFD文件</span><br><span class="line">                try &#123;</span><br><span class="line">                    FileUtils.forceDelete(new File(ofdPath));</span><br><span class="line">                &#125; catch (Exception e2) &#123;</span><br><span class="line">                    // 忽略删除异常</span><br><span class="line">                &#125;</span><br><span class="line">                </span><br><span class="line">                // 返回验证结果</span><br><span class="line">                return verify;</span><br><span class="line">            &#125;</span><br><span class="line">            </span><br><span class="line">            // 如果不是有效OFD文件，返回无效响应</span><br><span class="line">            return OfdVerifyResponse.invalidOfd();</span><br><span class="line">        &#125; catch (Exception e3) &#123;</span><br><span class="line">            // 处理验证过程中发生的异常</span><br><span class="line">            OfdVerifyResponse errorSignature = OfdVerifyResponse.errorSignature();</span><br><span class="line">            </span><br><span class="line">            // 异常发生时的资源清理</span><br><span class="line">            try &#123;</span><br><span class="line">                FileUtils.deleteDirectory(new File(decomprarePath));</span><br><span class="line">            &#125; catch (Exception e4) &#123;</span><br><span class="line">                // 忽略删除异常</span><br><span class="line">            &#125;</span><br><span class="line">            </span><br><span class="line">            try &#123;</span><br><span class="line">                FileUtils.forceDelete(new File(ofdPath));</span><br><span class="line">            &#125; catch (Exception e5) &#123;</span><br><span class="line">                // 忽略删除异常</span><br><span class="line">            &#125;</span><br><span class="line">            </span><br><span class="line">            // 返回签名错误响应</span><br><span class="line">            return errorSignature;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; catch (Exception e) &#123;</span><br><span class="line">        // 重新抛出异常（这层捕获有些冗余，可优化）</span><br><span class="line">        throw e;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们可以看在第一个if判断中，他会将文件流写入ofdpath中，然后创建解压路径之后，将文件解压到对应文件，但问题出在了isOfd函数中，跟进去看一下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">public static boolean isOfd(byte[] b) &#123;</span><br><span class="line">    // 生成临时文件路径，用于存储待检查的OFD文件</span><br><span class="line">    String ofdPath = TMP_FILE_DICTIONARY + UUID.randomUUID().toString() + OFD_FILE_TYPE;</span><br><span class="line">    // 生成临时解压目录路径，用于解压OFD文件内容</span><br><span class="line">    String decomprarePath = TMP_FILE_DICTIONARY + UUID.randomUUID().toString();</span><br><span class="line">    </span><br><span class="line">    try &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            // 将字节数组写入临时文件</span><br><span class="line">            org.apache.commons.io.FileUtils.writeByteArrayToFile(new File(ofdPath), b);</span><br><span class="line">            </span><br><span class="line">            // 创建解压目录</span><br><span class="line">            File decomprareFile = new File(decomprarePath);</span><br><span class="line">            decomprareFile.mkdir();</span><br><span class="line">            </span><br><span class="line">            // 调用工具类解压临时OFD文件到指定目录</span><br><span class="line">            // OFD文件本质上是ZIP格式，解压后可检查其内部结构</span><br><span class="line">            FileZipUtils.decomprare(ofdPath, decomprarePath);</span><br><span class="line">            </span><br><span class="line">            // 获取解压目录中的文件列表</span><br><span class="line">            File file = new File(decomprarePath);</span><br><span class="line">            </span><br><span class="line">            // 过滤文件列表，查找包含OFD主文档文件名的文件</span><br><span class="line">            // OFD规范要求主文档名为&quot;OFD.xml&quot;（或类似名称）</span><br><span class="line">            File[] listFiles = file.listFiles(new FileFilter() &#123;</span><br><span class="line">                @Override</span><br><span class="line">                public boolean accept(File pathname) &#123;</span><br><span class="line">                    return pathname.getName().contains(OfdStrucUtils.OFD_MAIN_FILE);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">            </span><br><span class="line">            // 判断是否恰好找到一个主文档文件</span><br><span class="line">            // 这是验证OFD格式的关键条件</span><br><span class="line">            boolean z = listFiles != null &amp;&amp; listFiles.length == 1;</span><br><span class="line">            </span><br><span class="line">            // 清理资源：删除解压目录</span><br><span class="line">            try &#123;</span><br><span class="line">                org.apache.commons.io.FileUtils.deleteDirectory(new File(decomprarePath));</span><br><span class="line">            &#125; catch (Exception e) &#123;</span><br><span class="line">                // 忽略删除异常，确保主逻辑不受影响</span><br><span class="line">            &#125;</span><br><span class="line">            </span><br><span class="line">            // 返回验证结果</span><br><span class="line">            return z;</span><br></pre></td></tr></table></figure>
+
+<p>我们发现在判断isofd中提前进行了一次文件解压，并且看代码在创建解压路径的时候也没有判断目录穿越的情况，所以就可以实现路径穿越后文件上传，虽然最后isofd判断失败返回false，但是再次之前文件已经解压上传成功</p>
+<p>但是我们在分析代码的时候可以发现是springboot项目，所以没法直接写webshell来rce，这时候看大佬文章提出就是有三种方法可以考虑，一是写模板文件，但是该项目没有配置视图解析模板，所以pass。二是往jdk的某些地方写文件然后初始化类，但是并不通用，pass。三是写计划任务，但是只针对linux且用户权限不够(只是普通用户qiyuesuo)</p>
+<p>这里很厉害的就是利用了契约锁补丁是热加载这一机制</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807150959991-926355851.png" alt="image"></p>
+<blockquote>
+<p><strong>补丁热加载（Hot Patching &#x2F; Hot Reloading）</strong> 是一种在软件<strong>不停止运行</strong>的情况下，动态加载、更新代码或修复补丁的技术。其核心目标是<strong>避免服务中断</strong>，同时快速修复 bug、更新功能或调整配置，广泛应用于需要高可用性的系统（如服务器、分布式服务、嵌入式设备等）。</p>
+</blockquote>
+<p>所以我们可以通过覆盖补丁文件&#x2F;opt&#x2F;qiyuesuo&#x2F;security&#x2F;private-security-patch.jar从而达到一个代码执行的效果</p>
+<p>但是还需要知道怎么添加恶意代码到补丁包中才会rce，所以再次分析一下private-security-patch.jar</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807151017866-87374858.png" alt="image"></p>
+<p>跟到reload和registerQVDLogic中</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807151025806-1049511937.png" alt="image"></p>
+<p>这里加载jar包</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807151040587-1638319288.png" alt="image"></p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807151050672-685513233.png" alt="image"></p>
+<p>然后跟进到registerQVDLogic-&gt;registerFilterLogic</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807151058562-1740752155.png" alt="image"></p>
+<p>仔细看一下registerFilterLogic，发现就是当类名前缀为<code>com.qiyuesuo.security.patch.filter.logic</code>时，就会实例化这个类，并且可以执行到改类的static代码块，所以我们只需要在正常的<code>private-security-patch.jar</code>里加入<code>com.qiyuesuo.security.patch.filter.logic.xxx</code>的static恶意代码，就可以执行成功</p>
+<h1 id="License破解："><a href="#License破解：" class="headerlink" title="License破解："></a>License破解：</h1><p>在我们获取到契约锁的源码安装的时候，会有一个让我们输入license的一个验证过程</p>
+<p>一般源码中是会包含一个LICENSE文件的，所以我们在源码中查找读取LICENSE文件的地方，最后找到是在<code>private-core-1.0.0-SNAPSHOT.jar</code>的<code>LicenseUtil</code>类中</p>
+<p>我们首先分析一下license是如何生成加密的</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807151107432-1256633631.png" alt="image"></p>
+<p>根据上面的代码我们发现，主要的加密就是在license初始化的时候会生成一个随机数作为identifier，然后设置一个过期时间，最后用aes加密后写到license文件中</p>
+<p>并且还定义了<code>resolveLicense</code>方法用于解析LICENSE：先aes解密，然后字符串转换为json格式</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807151116228-1374223047.png" alt="image"></p>
+<p>现在我们跟进license类有哪些字段(因为这里license类不在private-core-1.0.0-SNAPSHOT.jar中，jadx无法直接跳转到该类，在private-api-1.0.0-SNAPSHOT.jar类中)</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807151130388-174492132.png" alt="image"></p>
+<p>现在我们知道了license有哪些字段和如何加密，现在看一看在安装过程中是如何校验license，定位到privoss.jar中的SetupController（之前在寻找license的时候找到的）</p>
+<p>我们发现最主要的是在最后一步”配置失败，请确认linecse是否正确”，说明在setLicesne中就是安装过程中校验的license的过程</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807151139682-244285297.png" alt="image"></p>
+<p>setLicesne：先读取license文件，然后调用调用上面的<code>resolveLicense()</code>方法解析传入的license，接着三个判断校验</p>
+<p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807151148942-332495100.png" alt="image"></p>
+<p>根据上面License类的字段以及判断条件，构造如下的字符串：这里的时间戳<code>expireTime</code>设置的<code>1767110400000</code>，转换过来就是<code>2025年12月31日</code>。<code>identifier</code>、<code>token</code>和<code>secret</code>设置不能为空</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&quot;licenseId&quot;:&quot;123456&quot;,&quot;token&quot;:&quot;abcd&quot;,&quot;secret&quot;:&quot;xxx&quot;,&quot;version&quot;:&quot;4.3&quot;,&quot;identifier&quot;:&quot;xxx&quot;,&quot;companyName&quot;:test&quot;,&quot;expireTime&quot;:1767110400000,&quot;expire&quot;:true,&quot;config&quot;:&#123;&quot;contract&quot;:true,&quot;print&quot;:false,&quot;seal&quot;:false,&quot;hybrid&quot;:true,&quot;faceSign&quot;:true,&quot;fee&quot;:false&#125;,&quot;sales&quot;:&quot;kk&quot;,&quot;cmaxMark&quot;:false,&quot;icmaxMark&quot;:false,&quot;pcmaxMark&quot;:false,&quot;ipcmaxMark&quot;:false,&quot;operator&quot;:&quot;ec审批通过&quot;,&quot;licenseType&quot;:&quot;com&quot;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最后提供脚本：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line">from Crypto.Cipher import AES</span><br><span class="line">from Crypto.Util.Padding import pad</span><br><span class="line">import base64</span><br><span class="line">import json</span><br><span class="line">from typing import Dict, Any</span><br><span class="line"></span><br><span class="line">def encrypt_data(data: Dict[str, Any], key: bytes) -&gt; str:</span><br><span class="line">    &quot;&quot;&quot;</span><br><span class="line">    AES-ECB加密JSON数据并返回Base64编码结果</span><br><span class="line">    </span><br><span class="line">    Args:</span><br><span class="line">        data: 要加密的字典数据</span><br><span class="line">        key: 16字节的AES密钥</span><br><span class="line">        </span><br><span class="line">    Returns:</span><br><span class="line">        Base64编码的加密字符串</span><br><span class="line">    &quot;&quot;&quot;</span><br><span class="line">    # 参数校验</span><br><span class="line">    if len(key) != 16:</span><br><span class="line">        raise ValueError(&quot;AES key must be 16 bytes long&quot;)</span><br><span class="line"></span><br><span class="line">    # 序列化JSON数据，保持中文和布尔值格式</span><br><span class="line">    plaintext = json.dumps(</span><br><span class="line">        data, </span><br><span class="line">        ensure_ascii=False, </span><br><span class="line">        separators=(&#x27;,&#x27;, &#x27;:&#x27;),  # 紧凑格式，无多余空格</span><br><span class="line">        sort_keys=True          # 按键排序保证输出一致性</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    # 初始化AES加密器(ECB模式)</span><br><span class="line">    cipher = AES.new(key, AES.MODE_ECB)</span><br><span class="line"></span><br><span class="line">    # PKCS7填充并加密</span><br><span class="line">    padded_data = pad(plaintext.encode(&#x27;utf-8&#x27;), AES.block_size)</span><br><span class="line">    encrypted_bytes = cipher.encrypt(padded_data)</span><br><span class="line"></span><br><span class="line">    # Base64编码</span><br><span class="line">    return base64.b64encode(encrypted_bytes).decode(&#x27;utf-8&#x27;)</span><br><span class="line"></span><br><span class="line"># 示例数据</span><br><span class="line">SAMPLE_DATA = &#123;</span><br><span class="line">    &quot;licenseId&quot;: &quot;555&quot;,</span><br><span class="line">    &quot;token&quot;: &quot;AAAAAAAAAAAAAA&quot;,</span><br><span class="line">    &quot;secret&quot;: &quot;aaaaaaaaaaaaa&quot;,</span><br><span class="line">    &quot;version&quot;: &quot;4.3&quot;,</span><br><span class="line">    &quot;identifier&quot;: &quot;xxx&quot;,</span><br><span class="line">    &quot;companyName&quot;: &quot;test&quot;,</span><br><span class="line">    &quot;expireTime&quot;: 1767110400000,</span><br><span class="line">    &quot;expire&quot;: True,</span><br><span class="line">    &quot;config&quot;: &#123;</span><br><span class="line">        &quot;contract&quot;: True,</span><br><span class="line">        &quot;print&quot;: False,</span><br><span class="line">        &quot;seal&quot;: False,</span><br><span class="line">        &quot;hybrid&quot;: True,</span><br><span class="line">        &quot;faceSign&quot;: True,</span><br><span class="line">        &quot;fee&quot;: False</span><br><span class="line">    &#125;,</span><br><span class="line">    &quot;sales&quot;: &quot;kk&quot;,</span><br><span class="line">    &quot;cmaxMark&quot;: False,</span><br><span class="line">    &quot;icmaxMark&quot;: False,</span><br><span class="line">    &quot;pcmaxMark&quot;: False,</span><br><span class="line">    &quot;ipcmaxMark&quot;: False,</span><br><span class="line">    &quot;operator&quot;: &quot;ec审批通过&quot;,</span><br><span class="line">    &quot;licenseType&quot;: &quot;com&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># 示例密钥(16字节)</span><br><span class="line">SAMPLE_KEY = b&#x27;xxxxxxxxxxxxxxxx&#x27;</span><br><span class="line"></span><br><span class="line">if __name__ == &#x27;__main__&#x27;:</span><br><span class="line">    try:</span><br><span class="line">        encrypted_result = encrypt_data(SAMPLE_DATA, SAMPLE_KEY)</span><br><span class="line">        print(&quot;加密结果:&quot;, encrypted_result)</span><br><span class="line">    except Exception as e:</span><br><span class="line">        print(f&quot;加密过程中发生错误: &#123;str(e)&#125;&quot;)</span><br></pre></td></tr></table></figure>
+
+<h1 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h1><p>个人认为该漏洞利用条件还是有点严苛</p>
+<ul>
+<li>首先就是你必须之前安装过这个补丁包，后续的文件覆盖才能成功</li>
+<li>其次就是如果是windows环境部署的话，上传路径太难获取，和linux不同</li>
+</ul>
+<h1 id="参考文章："><a href="#参考文章：" class="headerlink" title="参考文章："></a>参考文章：</h1><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/cwkiller/p/19000543">https://www.cnblogs.com/cwkiller/p/19000543</a></p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/07/31/SpringBoot%E4%BB%BB%E6%84%8F%E6%96%87%E4%BB%B6%E5%86%99%E5%85%A5%E5%88%B0RCE%E5%88%86%E6%9E%90/" class="prev">← SpringBoot任意文件写入到RCE分析</a>
+    
+    
+      <a href="/2025/07/28/java%E5%AE%89%E5%85%A8%E4%B9%8BMysql_JDBC%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%88%86%E6%9E%90/" class="next">java安全之Mysql_JDBC反序列化分析 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>

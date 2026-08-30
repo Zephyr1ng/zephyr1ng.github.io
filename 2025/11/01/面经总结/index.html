@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>面经总结！ | Zephyr</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+<link rel="stylesheet" href="/css/style.css">
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+
+<nav class="top-nav" id="topNav">
+  <div class="nav-left">
+    <a href="/" class="nav-brand">Zephyr</a>
+    <a href="https://github.com/Zephyr1ng" class="nav-github" target="_blank" rel="noopener">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+  </div>
+  <ul class="nav-links">
+    
+      <li><a href="/">文章</a></li>
+    
+      <li><a href="/categories">分类</a></li>
+    
+      <li><a href="/archives">归档</a></li>
+    
+      <li><a href="/friends">友链</a></li>
+    
+      <li><a href="/about">关于</a></li>
+    
+  </ul>
+</nav>
+
+<div class="container">
+  <!-- Single post page -->
+<article class="post-full">
+  <header class="post-header">
+    <a href="/" class="back-link">← Home</a>
+    <h1 class="post-title">面经总结！</h1>
+    <div class="post-meta">
+      <time datetime="2025-11-01">2025-11-01</time>
+      
+    </div>
+  </header>
+
+  <div class="post-content">
+    <blockquote>
+<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/19183765">https://www.cnblogs.com/Zephyr07/articles/19183765</a></p>
+</blockquote>
+<h1 id="前情提要"><a href="#前情提要" class="headerlink" title="前情提要"></a>前情提要</h1><p>很久没有更新博客了，因为暑假结束后回学校放纵了一个多月，学校真的是太舒服了，到底是谁想上班啊啊啊啊啊啊<br>暑假那段实习就待了两个月，主要就是红队，因为那边不打国护，主要就是省市等hw，后续开学就回到学校了，回学校之后仔细考虑了一下到底要不要考研，现在结果显而易见，主包还是选择了提前出来当牛马，唉<br>下面列举一些主包回来之后面的一些厂的面经，但是由于主包没有录音，后续总结发现好多问题都没想起来，所以大家勉强看一下吧</p>
+<h1 id="面试的厂商（都是甲方）"><a href="#面试的厂商（都是甲方）" class="headerlink" title="面试的厂商（都是甲方）"></a>面试的厂商（都是甲方）</h1><h2 id="鹅厂安全项目实习生"><a href="#鹅厂安全项目实习生" class="headerlink" title="鹅厂安全项目实习生"></a>鹅厂安全项目实习生</h2><p>1.谈一下你对安全的理解吧，认为什么样才是做到了安全<br>2.说3-5个web漏洞，并说一下原理和防御的方法<br>3.你说了预编译可以防止sql注入，那请你说说预编译是如何防御的<br>4.那现在有一个项目，开发人员说他项目中的sql查询都使用了预编译，那说明该项目就一定不存在sql注入了吗<br>5.那order by注入的原理是什么，为什么预编译不可以防御<br>6.你提到了ssrf，也说到了一些利用方式和防御方法，那请问（忘记了…）<br>7.你说你了解一些java安全，那请你讲一下spring的一些反序列化问题吧<br>8.内存马你说你也了解过，可以简单聊一聊吗（agent内存马详细问了）<br>…还有一些代审的问题，主包已经忘记了，但是问的时候会结合业务逻辑去问，对于防御的手法必须要特别清楚，了解这样防御的原理</p>
+<h3 id="结果："><a href="#结果：" class="headerlink" title="结果："></a>结果：</h3><p>项目实习生只有一次技术面，大概有40多分钟，后续就hr面完之后发offer了，但是工资太低没去qwq（不了解项目实习生和正式实习生的可以去查一查）</p>
+<h2 id="某家游戏公司（不是老米…）"><a href="#某家游戏公司（不是老米…）" class="headerlink" title="某家游戏公司（不是老米…）"></a>某家游戏公司（不是老米…）</h2><h3 id="一面：（1h20min）"><a href="#一面：（1h20min）" class="headerlink" title="一面：（1h20min）"></a>一面：（1h20min）</h3><p>1.个人介绍<br>2.项目&#x2F;实习细节<br>3.支付漏洞有哪些(很多)，要怎么修复<br>4.csrf原理和修复方法，以及修复方法的原理(依旧要具体)<br>5.xss三种类型的原理和区别，以及修复方式(如果业务要求必须有特殊字符，要怎么处理，前端不渲染具体要怎么做)<br>6.代码审计哪种漏洞你觉得黑盒要比白盒好测<br>7.同源策略<br>8.refer字段绕过<br>9.签名绕过<br>….还有很多，都忘记了，&#x2F;勉强看吧</p>
+<h3 id="二面：（40min）"><a href="#二面：（40min）" class="headerlink" title="二面：（40min）"></a>二面：（40min）</h3><p>1.个人介绍<br>2.php如何实现在任意url后面直接拼接cmd参数执行命令<br>3.红队和渗透你想做什么，为什么<br>4.问项目<br>5.对于团队你有什么希望的地方<br>6.你刚刚指合适的话会长实习，这个合适主要是指哪些方面<br>7.内存马说一下，要如何查杀<br>8.讲一个反序列化漏洞，你一般利用反序列化漏洞是弹shell还是写马，写内存马吗，具体怎么做得到<br>…..同样还有，只写了还记住的问题</p>
+<h3 id="三面hr："><a href="#三面hr：" class="headerlink" title="三面hr："></a>三面hr：</h3><p>…这个就不列举了，我对hr面试一般都秉持着唠嗑的心态去面的，没有准备过</p>
+<h3 id="结果：-1"><a href="#结果：-1" class="headerlink" title="结果："></a>结果：</h3><p>通过了，最后也就去的这家，工资福利也都可以，唯一的缺点就是离学校太远了，没招了qwq</p>
+<h2 id="希音SHEIN"><a href="#希音SHEIN" class="headerlink" title="希音SHEIN:"></a>希音SHEIN:</h2><h3 id="一面：（40min）"><a href="#一面：（40min）" class="headerlink" title="一面：（40min）"></a>一面：（40min）</h3><p>1.个人介绍<br>2.项目细节<br>3.现在给你一个领取优惠券的功能，除了逻辑，还能测试什么漏洞(具体问的很详细，会涉及整个业务的具体流程，并且会问在开发中要如何避免或提前发现)<br>4.还有不同功能的站点打开回调到统一身份认证站点的这一过程中会存在什么风险(人家说了个专业名册没记住，我理解的是这样)<br>5.xss什么情况下能够rce<br>6.ssrf在对于云站点来说存在什么风险<br>7.ssrf黑名单绕过方式，那如果是域名呢，怎么绕过<br>8.对于越权漏洞，如果要找工具进行批量化检测，要怎么做，有什么思路</p>
+<h3 id="结果：一面挂"><a href="#结果：一面挂" class="headerlink" title="结果：一面挂"></a>结果：一面挂</h3><p>其实我觉得我回答的还可以，但是不知道为什么挂了qwq</p>
+<h2 id="京东："><a href="#京东：" class="headerlink" title="京东："></a>京东：</h2><h3 id="一面：（30min）"><a href="#一面：（30min）" class="headerlink" title="一面：（30min）"></a>一面：（30min）</h3><p>1.问以后想做哪些方向的工作<br>2.你提到了sdlc建设，那你简单说一下你理解的sdlc建设是干什么的<br>3.介绍简历项目经验，从工作内容，工作结果(量化)以及遇到什么问题并如何解决的<br>4.项目中提到了一个小程序的业务安全的漏洞，被问到这种漏洞要如何在项目上线前去进行一个批量化的测试<br>5.小程序渗透的一些思路，就是小程序要如何去测试<br>6.存储桶密钥泄露的这种漏洞要如何去防御<br>7.问是否有js逆向的经验，举例说一下（面试官提到了一些具体细节，可能是想看看掌握的怎么样吧）<br>8.那越权漏洞要如何去批量化的测试发现<br>9.从代码层面如何去检测到<br>10.又让讲述了一下另一个项目的具体内容</p>
+<h3 id="结果：-2"><a href="#结果：-2" class="headerlink" title="结果："></a>结果：</h3><p>挂，依旧我觉得面对还可以，答出来差不多80左右，也不知道为什么挂了（最想去的，挂了真是没招了）<br>还有一些厂的面试没有列出来，因为后面当时接受了那家Game的offer，所以就没总结hhh</p>
+<h1 id="总计"><a href="#总计" class="headerlink" title="总计"></a>总计</h1><p>可能是因为我面的厂都是一些甲方安全岗（更偏向于sdlc），所以其实感觉起来和乙方面试的区别还是挺大的，可能你看我的面经感受不出来，觉得问题都挺简单，但那是因为主包只能记得大致的问题，实际上面试过程中面试官的问题都会很结合实际业务中的场景，他会针对一个漏洞在某个具体的场景中要如何利用，会考你某个功能的业务流程具体是什么样的，并且针对你所说的漏洞防御他会考你在哪种场景下适用，哪种不适用，优缺点是什么<br>个人感觉就是甲方可能更针对于结合开发去问你漏洞，所以说单靠网上那些面经其实会有点吃力的，所以说面完之后的感受就是不管哪种漏洞，都要你去从根本上去理解漏洞产生的原因，必须要彻底理解是最好的</p>
+<h1 id="ps："><a href="#ps：" class="headerlink" title="ps："></a>ps：</h1><p>主包的面经中没有内网，但那不是甲方不问，只是因为主包不会，所以面试官都没问hhh<br>噢对，有一个问题很多厂商都问过，因为主包会代码审计，很多厂商除了问一些代审的技术问题之外，都问我有没有了解过ai代审，可惜主包自己的所有成果都是纯手工的，从来没用过hh，感觉后面需要专门去了解一下~</p>
+
+  </div>
+
+  <!-- Donation Section -->
+  <div class="donation">
+    <div class="donation-divider">
+      <span>如果文章对你有帮助</span>
+    </div>
+    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
+    <div class="donation-qrs">
+      <div class="qr-card">
+        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
+        <span>支付宝</span>
+      </div>
+      <div class="qr-card">
+        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
+        <span>微信</span>
+      </div>
+    </div>
+  </div>
+
+  
+  <nav class="post-nav">
+    
+      <a href="/2025/11/08/JSONP-%E6%97%A0%E9%99%90%E6%BA%90%E8%B7%A8%E5%9F%9F%E8%BF%94%E5%9B%9E%E6%95%8F%E6%84%9F%E4%BF%A1%E6%81%AF/" class="prev">← JSONP 无限源跨域返回敏感信息</a>
+    
+    
+      <a href="/2025/08/26/%E9%AB%98%E7%89%88%E6%9C%ACJDK-SpringBoot%E5%8E%9F%E7%94%9F%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E9%80%9A%E6%9D%80%E9%93%BE/" class="next">高版本JDK+SpringBoot原生反序列化通杀链 →</a>
+    
+  </nav>
+  
+</article>
+
+</div>
+
+<script src="/js/main.js"></script>
+</body>
+</html>
