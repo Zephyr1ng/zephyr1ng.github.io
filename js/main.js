@@ -118,3 +118,61 @@ document.querySelectorAll('.tl-item').forEach(function(item, i) {
     item.style.transform = 'translateY(0)';
   }, 100 + i * 80);
 });
+
+// ========== Settings: gear, font size, theme ==========
+(function () {
+  var root = document.documentElement;
+  var gear = document.getElementById('settingsGear');
+  var panel = document.getElementById('settingsPanel');
+  var fontDec = document.getElementById('fontDec');
+  var fontInc = document.getElementById('fontInc');
+  var fontVal = document.getElementById('fontVal');
+  var themeToggle = document.getElementById('themeToggle');
+  if (!gear || !panel || !fontDec || !fontInc || !themeToggle) return;
+
+  // 面板开关
+  gear.addEventListener('click', function (e) {
+    e.stopPropagation();
+    panel.classList.toggle('open');
+  });
+  document.addEventListener('click', function (e) {
+    if (!panel.contains(e.target) && e.target !== gear) {
+      panel.classList.remove('open');
+    }
+  });
+
+  // 字号（用 zoom 实现整体缩放）
+  var FONT_STEPS = [0.9, 1.0, 1.1, 1.2, 1.3];
+  function getFontIdx() {
+    var v = parseFloat(localStorage.getItem('blog-font') || '1.0');
+    var idx = FONT_STEPS.indexOf(v);
+    return idx === -1 ? 1 : idx;
+  }
+  function applyFont(idx) {
+    idx = Math.max(0, Math.min(FONT_STEPS.length - 1, idx));
+    var v = FONT_STEPS[idx];
+    root.style.zoom = String(v);
+    fontVal.textContent = Math.round(v * 100) + '%';
+    try { localStorage.setItem('blog-font', String(v)); } catch (e) {}
+    return idx;
+  }
+  var fontIdx = applyFont(getFontIdx());
+  fontDec.addEventListener('click', function () { fontIdx = applyFont(fontIdx - 1); });
+  fontInc.addEventListener('click', function () { fontIdx = applyFont(fontIdx + 1); });
+
+  // 主题切换
+  function applyTheme(dark) {
+    if (dark) {
+      root.setAttribute('data-theme', 'dark');
+      themeToggle.textContent = '浅色';
+    } else {
+      root.removeAttribute('data-theme');
+      themeToggle.textContent = '暗色';
+    }
+    try { localStorage.setItem('blog-theme', dark ? 'dark' : 'light'); } catch (e) {}
+  }
+  applyTheme(localStorage.getItem('blog-theme') === 'dark');
+  themeToggle.addEventListener('click', function () {
+    applyTheme(root.getAttribute('data-theme') !== 'dark');
+  });
+})();
