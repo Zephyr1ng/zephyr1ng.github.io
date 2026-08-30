@@ -48,10 +48,7 @@
   </header>
 
   <div class="post-content">
-    <blockquote>
-<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18743021">https://www.cnblogs.com/Zephyr07/articles/18743021</a></p>
-</blockquote>
-<h2 id="第一关-在web服务器上发现的可疑活动-流量分析会显示很多请求-这表明存在恶意的扫描行为-通过分析扫描的行为后提交攻击者IP-flag格式：flag-ip-，如：flag"><a href="#第一关-在web服务器上发现的可疑活动-流量分析会显示很多请求-这表明存在恶意的扫描行为-通过分析扫描的行为后提交攻击者IP-flag格式：flag-ip-，如：flag" class="headerlink" title="第一关:在web服务器上发现的可疑活动,流量分析会显示很多请求,这表明存在恶意的扫描行为,通过分析扫描的行为后提交攻击者IP flag格式：flag{ip}，如：flag"></a>第一关:在web服务器上发现的可疑活动,流量分析会显示很多请求,这表明存在恶意的扫描行为,通过分析扫描的行为后提交攻击者IP flag格式：flag{ip}，如：flag</h2><p>下载流量包打开，发现有很多SYN流量<br>这是nmap扫描的流量特征：<br>● 发送大量 SYN 包，尝试建立连接但不完成三次握手过程（半开连接）。<br>● TCP SYN 包的来源端口和目标端口多为随机，常见目标端口为 21（FTP）、22（SSH）、80（HTTP）、443（HTTPS）等常见服务端口。<br>● 如果目标主机回复 SYN-ACK 包，Nmap 会立即发送 RST 包来中断连接<br>flag{14.0.0.120}</p>
+    <h2 id="第一关-在web服务器上发现的可疑活动-流量分析会显示很多请求-这表明存在恶意的扫描行为-通过分析扫描的行为后提交攻击者IP-flag格式：flag-ip-，如：flag"><a href="#第一关-在web服务器上发现的可疑活动-流量分析会显示很多请求-这表明存在恶意的扫描行为-通过分析扫描的行为后提交攻击者IP-flag格式：flag-ip-，如：flag" class="headerlink" title="第一关:在web服务器上发现的可疑活动,流量分析会显示很多请求,这表明存在恶意的扫描行为,通过分析扫描的行为后提交攻击者IP flag格式：flag{ip}，如：flag"></a>第一关:在web服务器上发现的可疑活动,流量分析会显示很多请求,这表明存在恶意的扫描行为,通过分析扫描的行为后提交攻击者IP flag格式：flag{ip}，如：flag</h2><p>下载流量包打开，发现有很多SYN流量<br>这是nmap扫描的流量特征：<br>● 发送大量 SYN 包，尝试建立连接但不完成三次握手过程（半开连接）。<br>● TCP SYN 包的来源端口和目标端口多为随机，常见目标端口为 21（FTP）、22（SSH）、80（HTTP）、443（HTTPS）等常见服务端口。<br>● 如果目标主机回复 SYN-ACK 包，Nmap 会立即发送 RST 包来中断连接<br>flag{14.0.0.120}</p>
 <h2 id="第二关-找到攻击者IP后请通过技术手段确定其所在地址-flag格式-flag"><a href="#第二关-找到攻击者IP后请通过技术手段确定其所在地址-flag格式-flag" class="headerlink" title="第二关:找到攻击者IP后请通过技术手段确定其所在地址 flag格式: flag"></a>第二关:找到攻击者IP后请通过技术手段确定其所在地址 flag格式: flag</h2><p>直接ip查询就行了</p>
 <p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228130236712-772508099.png"></p>
 <p>flag{guangzhou}</p>

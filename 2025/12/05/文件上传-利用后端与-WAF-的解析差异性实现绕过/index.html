@@ -48,10 +48,7 @@
   </header>
 
   <div class="post-content">
-    <blockquote>
-<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/19310795">https://www.cnblogs.com/Zephyr07/articles/19310795</a></p>
-</blockquote>
-<h3 id="一、-从“最后一步”的困境说起"><a href="#一、-从“最后一步”的困境说起" class="headerlink" title="一、 从“最后一步”的困境说起"></a>一、 从“最后一步”的困境说起</h3><p>在外网打点的攻防演练中，文件上传<code>Getshell</code>与<code>Java反序列化</code>是两种最常见且最有效的突破口。然而，随着 WAF 技术的不断演进，文件上传这“最后一公里”变得愈发艰难。我们的恶意文件往往在抵达服务器之前，就被强大的 WAF 规则拦截在外。</p>
+    <h3 id="一、-从“最后一步”的困境说起"><a href="#一、-从“最后一步”的困境说起" class="headerlink" title="一、 从“最后一步”的困境说起"></a>一、 从“最后一步”的困境说起</h3><p>在外网打点的攻防演练中，文件上传<code>Getshell</code>与<code>Java反序列化</code>是两种最常见且最有效的突破口。然而，随着 WAF 技术的不断演进，文件上传这“最后一公里”变得愈发艰难。我们的恶意文件往往在抵达服务器之前，就被强大的 WAF 规则拦截在外。</p>
 <p>面对这种困境，我们通常会尝试各种编码混淆、参数污染、分块传输等技术，但这些方法日益被现代 WAF 所免疫，属于“广撒网”式的攻击，效率低且容易被封禁。</p>
 <p>这里主要想分享一种在文件上传中，不再局限于传统 WAF 的绕过方式，而是利用 WAF 与后端应用程序在 HTTP 请求解析上的“差异性”来实现绕过</p>
 <h3 id="二、-核心理念：WAF-与后端的“视角差”"><a href="#二、-核心理念：WAF-与后端的“视角差”" class="headerlink" title="二、 核心理念：WAF 与后端的“视角差”"></a>二、 核心理念：WAF 与后端的“视角差”</h3><p>要理解这种方法，首先需要明确 WAF 与后端应用的根本不同：</p>

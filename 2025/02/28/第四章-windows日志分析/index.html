@@ -48,10 +48,7 @@
   </header>
 
   <div class="post-content">
-    <blockquote>
-<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18743004">https://www.cnblogs.com/Zephyr07/articles/18743004</a></p>
-</blockquote>
-<h2 id="第一关-审计桌面的logs日志，定位所有扫描IP，并提交扫描次数"><a href="#第一关-审计桌面的logs日志，定位所有扫描IP，并提交扫描次数" class="headerlink" title="第一关:审计桌面的logs日志，定位所有扫描IP，并提交扫描次数"></a>第一关:审计桌面的logs日志，定位所有扫描IP，并提交扫描次数</h2><p>让定位所有扫描ip，并统计次数<br>想到统计次数，就能想到之前linux的日志分析可以用命令直接提取出来，所以复制access.log文件到虚拟机</p>
+    <h2 id="第一关-审计桌面的logs日志，定位所有扫描IP，并提交扫描次数"><a href="#第一关-审计桌面的logs日志，定位所有扫描IP，并提交扫描次数" class="headerlink" title="第一关:审计桌面的logs日志，定位所有扫描IP，并提交扫描次数"></a>第一关:审计桌面的logs日志，定位所有扫描IP，并提交扫描次数</h2><p>让定位所有扫描ip，并统计次数<br>想到统计次数，就能想到之前linux的日志分析可以用命令直接提取出来，所以复制access.log文件到虚拟机</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">awk &#x27;&#123;print $1&#125;&#x27; access.log | sort | uniq -c | sort -nr</span><br></pre></td></tr></table></figure>
 
 <blockquote>

@@ -48,10 +48,7 @@
   </header>
 
   <div class="post-content">
-    <blockquote>
-<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18600247">https://www.cnblogs.com/Zephyr07/articles/18600247</a></p>
-</blockquote>
-<p><strong>前情提要：新手小白src记录，各位大佬勿喷~~~</strong></p>
+    <p><strong>前情提要：新手小白src记录，各位大佬勿喷~~~</strong></p>
 <h2 id="edu内心独白"><a href="#edu内心独白" class="headerlink" title="edu内心独白"></a>edu内心独白</h2><p>偶尔某天刷文章看到一个并发漏洞的测试，发现好久没有测试过并发漏洞了，所以去edu逛一圈~<br>收集资产，发现三个大学存在短信轰炸，而且都是证书站，不知道被交过没，也不知道edu里面短信轰炸算不算中危，不然就要有证书了~ _ ~!<br>希望没被人交过，让我捡个漏</p>
 <h2 id="漏洞原理："><a href="#漏洞原理：" class="headerlink" title="漏洞原理："></a>漏洞原理：</h2><p>说白了就是多线程引发的安全问题，没有对部分操作进行操作串行化</p>
 <h2 id="漏洞利用"><a href="#漏洞利用" class="headerlink" title="漏洞利用"></a>漏洞利用</h2><p>这个更简单，就是bp的trobo插件，直接多线程发送请求，该插件原理也很简单，就是多线程脚本同时发送请求<br>推荐文章：<a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_63421985/article/details/133899675">并发推荐文章</a></p>

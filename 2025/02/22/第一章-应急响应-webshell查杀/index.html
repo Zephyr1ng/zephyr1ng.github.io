@@ -48,10 +48,7 @@
   </header>
 
   <div class="post-content">
-    <blockquote>
-<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18731523">https://www.cnblogs.com/Zephyr07/articles/18731523</a></p>
-</blockquote>
-<h2 id="1-黑客webshell里面的flag-flag"><a href="#1-黑客webshell里面的flag-flag" class="headerlink" title="1.黑客webshell里面的flag flag"></a>1.黑客webshell里面的flag flag</h2><p>webshell直接find查找即可</p>
+    <h2 id="1-黑客webshell里面的flag-flag"><a href="#1-黑客webshell里面的flag-flag" class="headerlink" title="1.黑客webshell里面的flag flag"></a>1.黑客webshell里面的flag flag</h2><p>webshell直接find查找即可</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">//搜索目录下适配当前应用的网页文件，查看内容是否有Webshell特征</span><br><span class="line">find ./ type f -name &quot;*.jsp&quot; | xargs grep &quot;exec(&quot; </span><br><span class="line">find ./ type f -name &quot;*.php&quot; | xargs grep &quot;eval(&quot; </span><br><span class="line">find ./ type f -name &quot;*.asp&quot; | xargs grep &quot;execute(&quot; </span><br><span class="line">find ./ type f -name &quot;*.aspx&quot; | xargs grep &quot;eval(&quot;</span><br></pre></td></tr></table></figure>
 
 <p>&#x2F;&#x2F;对于免杀Webshell，可以查看是否使用编码</p>

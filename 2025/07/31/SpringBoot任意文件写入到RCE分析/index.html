@@ -48,10 +48,7 @@
   </header>
 
   <div class="post-content">
-    <blockquote>
-<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/19015042">https://www.cnblogs.com/Zephyr07/articles/19015042</a></p>
-</blockquote>
-<h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>在之前研究契约锁的一个漏洞的时候，那篇文章的作者提到了一个知识点是springboot服务是不能通过写webshell来达到rce的，所以当时也在想如果是一个springboot的项目的话有什么办法可以rce~</p>
+    <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>在之前研究契约锁的一个漏洞的时候，那篇文章的作者提到了一个知识点是springboot服务是不能通过写webshell来达到rce的，所以当时也在想如果是一个springboot的项目的话有什么办法可以rce~</p>
 <h2 id="springboot不能写webshell-rce原因"><a href="#springboot不能写webshell-rce原因" class="headerlink" title="springboot不能写webshell-&gt;rce原因"></a>springboot不能写webshell-&gt;rce原因</h2><p>springboot项目之所以不能写webshell来rce，主要是因为这种项目一般都是会去打包成一个整体的fatjar，也就是把整个项目所依赖的所有第三方jar包也打包进自身的<code>app.jar</code> 中，最后以 <code>java -jar app.jar</code> 形式来运行整个项目，而运行时候的项目的classpath包括app.jar中的<code>BOOT-INF/classes</code> 目录和 <code>BOOT-INF/lib</code> 目录下的所有 jar，所以你是无法在项目运行的时候在classpath中直接写入文件。除此之外，现在的springboot项目多是以RESTful API 接口向外提供服务，所以他很少会动态解析jsp或者其它外部模板文件(后台有相关功能除外)，所以直接写webshell的情况一般不会出现</p>
 <h2 id="引出问题："><a href="#引出问题：" class="headerlink" title="引出问题："></a>引出问题：</h2><p>那这时候就会想，如果我现在有一个springboot项目存在一个任意文件写入漏洞，我该如何去升级为rce漏洞</p>
 <p>网上由两种常见的方法就是要么通过写linux计划文件，要么就是替换so&#x2F;dll系统文件进行劫持一些操作系统层面的东西来实现rce，但实际环境因为项目的网络波动性以及权限等问题都不是很好用</p>

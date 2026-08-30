@@ -48,10 +48,7 @@
   </header>
 
   <div class="post-content">
-    <blockquote>
-<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18731494">https://www.cnblogs.com/Zephyr07/articles/18731494</a></p>
-</blockquote>
-<h2 id="第一个应急响应靶场，很简单，主要就是熟悉一下常见命令以及了解一下日志的基本结构"><a href="#第一个应急响应靶场，很简单，主要就是熟悉一下常见命令以及了解一下日志的基本结构" class="headerlink" title="第一个应急响应靶场，很简单，主要就是熟悉一下常见命令以及了解一下日志的基本结构"></a>第一个应急响应靶场，很简单，主要就是熟悉一下常见命令以及了解一下日志的基本结构</h2><h3 id="复现步骤："><a href="#复现步骤：" class="headerlink" title="复现步骤："></a>复现步骤：</h3><h4 id="1-xshell连接靶机"><a href="#1-xshell连接靶机" class="headerlink" title="1.xshell连接靶机"></a>1.xshell连接靶机</h4><p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222215008309-1534001154.png"></p>
+    <h2 id="第一个应急响应靶场，很简单，主要就是熟悉一下常见命令以及了解一下日志的基本结构"><a href="#第一个应急响应靶场，很简单，主要就是熟悉一下常见命令以及了解一下日志的基本结构" class="headerlink" title="第一个应急响应靶场，很简单，主要就是熟悉一下常见命令以及了解一下日志的基本结构"></a>第一个应急响应靶场，很简单，主要就是熟悉一下常见命令以及了解一下日志的基本结构</h2><h3 id="复现步骤："><a href="#复现步骤：" class="headerlink" title="复现步骤："></a>复现步骤：</h3><h4 id="1-xshell连接靶机"><a href="#1-xshell连接靶机" class="headerlink" title="1.xshell连接靶机"></a>1.xshell连接靶机</h4><p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222215008309-1534001154.png"></p>
 <p>连接成功<br><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250222215017112-608653912.png"></p>
 <h4 id="2-题目让找出有多少ip在爆破主机ssh的root账户"><a href="#2-题目让找出有多少ip在爆破主机ssh的root账户" class="headerlink" title="2.题目让找出有多少ip在爆破主机ssh的root账户"></a>2.题目让找出有多少ip在爆破主机ssh的root账户</h4><p>一般登录的日志会记录在&#x2F;var&#x2F;log&#x2F;auth.log.1（这是固定的）<br>所以</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cd ..</span><br><span class="line">cd /var/log/</span><br><span class="line">ls             #确定登录日志的名字</span><br><span class="line">cat auth.log.1 | grep -a &quot;Failed password for root&quot; | awk &#x27;&#123;print $11&#125;&#x27; | sort | uniq -c | sort -nr | more</span><br></pre></td></tr></table></figure>

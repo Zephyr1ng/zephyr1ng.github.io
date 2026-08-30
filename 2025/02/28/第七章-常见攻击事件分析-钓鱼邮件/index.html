@@ -48,10 +48,7 @@
   </header>
 
   <div class="post-content">
-    <blockquote>
-<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18743030">https://www.cnblogs.com/Zephyr07/articles/18743030</a></p>
-</blockquote>
-<h2 id="第一关：请分析获取黑客发送钓鱼邮件时使用的IP，flag格式：-flag"><a href="#第一关：请分析获取黑客发送钓鱼邮件时使用的IP，flag格式：-flag" class="headerlink" title="第一关：请分析获取黑客发送钓鱼邮件时使用的IP，flag格式： flag"></a>第一关：请分析获取黑客发送钓鱼邮件时使用的IP，flag格式： flag</h2><p>让找到hacker发邮件的ip，所以分析钓鱼邮件.eml文件<br>打开之后其实很容易就能看到ip</p>
+    <h2 id="第一关：请分析获取黑客发送钓鱼邮件时使用的IP，flag格式：-flag"><a href="#第一关：请分析获取黑客发送钓鱼邮件时使用的IP，flag格式：-flag" class="headerlink" title="第一关：请分析获取黑客发送钓鱼邮件时使用的IP，flag格式： flag"></a>第一关：请分析获取黑客发送钓鱼邮件时使用的IP，flag格式： flag</h2><p>让找到hacker发邮件的ip，所以分析钓鱼邮件.eml文件<br>打开之后其实很容易就能看到ip</p>
 <p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228130850727-760442515.png"></p>
 <h3 id="补充："><a href="#补充：" class="headerlink" title="补充："></a>补充：</h3><p>在分析邮件的来源时，邮件头部的 “Received” 部分是关键。邮件在传输过程中，每经过一个邮件服务器，这部分都会新增一条记录。最早的一条记录（即最后一个 “Received” 部分）通常包含了原始发件者的IP地址，因此通过查看这条记录，可以更准确地找到邮件的真实发件IP地址。</p>
 <p>flag{121.204.224.15}</p>

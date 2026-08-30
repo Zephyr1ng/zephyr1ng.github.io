@@ -48,10 +48,7 @@
   </header>
 
   <div class="post-content">
-    <blockquote>
-<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18743049">https://www.cnblogs.com/Zephyr07/articles/18743049</a></p>
-</blockquote>
-<h2 id="1-攻击者使用的的漏洞扫描工具有哪些-两个-flag"><a href="#1-攻击者使用的的漏洞扫描工具有哪些-两个-flag" class="headerlink" title="1.攻击者使用的的漏洞扫描工具有哪些(两个) flag"></a>1.攻击者使用的的漏洞扫描工具有哪些(两个) flag</h2><p>其实说实话，这个看到flag的提示应该立马就能猜出来是fscan和goby（偷鸡）</p>
+    <h2 id="1-攻击者使用的的漏洞扫描工具有哪些-两个-flag"><a href="#1-攻击者使用的的漏洞扫描工具有哪些-两个-flag" class="headerlink" title="1.攻击者使用的的漏洞扫描工具有哪些(两个) flag"></a>1.攻击者使用的的漏洞扫描工具有哪些(两个) flag</h2><p>其实说实话，这个看到flag的提示应该立马就能猜出来是fscan和goby（偷鸡）</p>
 <h3 id="分析："><a href="#分析：" class="headerlink" title="分析："></a>分析：</h3><p>常见的日志文件中是空的（access.log和error.log）<br>然后在root目录下发现了一个流量包，finalshell导出来<br>流量包很大，所以先筛选http<br>然后在post请求访问apply_sec.cgi文件的流量包下发现了goby的扫描痕迹</p>
 <p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228131806218-1076710813.png"></p>
 <p>然后看一下协议分级，发现了一个可以的ICMP协议，筛选看一下<br>发现有很多Echo ping reply的请求，然后这里其实就是icmp echo 来探测存活（其实就是ping的原理），如fscan和nmap都会用这种方法<br>然后这种请求一般还会附带一段特定的字符</p>

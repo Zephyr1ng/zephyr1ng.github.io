@@ -48,10 +48,7 @@
   </header>
 
   <div class="post-content">
-    <blockquote>
-<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18747365">https://www.cnblogs.com/Zephyr07/articles/18747365</a></p>
-</blockquote>
-<h2 id="单例模式"><a href="#单例模式" class="headerlink" title="单例模式"></a>单例模式</h2><h3 id="概念："><a href="#概念：" class="headerlink" title="概念："></a>概念：</h3><p>1.一个类只有一个实例，并提供一个全局访问点<br>2.提供静态的getInstance()工厂方法用来访问它的唯一实例<br>3.为了防止其它外部对他实例化，所以构造函数私有</p>
+    <h2 id="单例模式"><a href="#单例模式" class="headerlink" title="单例模式"></a>单例模式</h2><h3 id="概念："><a href="#概念：" class="headerlink" title="概念："></a>概念：</h3><p>1.一个类只有一个实例，并提供一个全局访问点<br>2.提供静态的getInstance()工厂方法用来访问它的唯一实例<br>3.为了防止其它外部对他实例化，所以构造函数私有</p>
 <h3 id="作用："><a href="#作用：" class="headerlink" title="作用："></a>作用：</h3><p>1.控制实例数目节省系统资源<br>2.可以在不建立直接关联的条件下, 让多个不相关的两个线程或者进程之间实现通信(作为通信媒介)</p>
 <h3 id="应用场景："><a href="#应用场景：" class="headerlink" title="应用场景："></a>应用场景：</h3><p>一个全局使用的类频繁的创建与销毁，eg：<br>1.网站计数器<br>2.windows系统的任务管理器和回收站<br>3.一般池的设计都是单例模式，例如数据库连接池和多线程连接池，可以降低资源的消耗</p>
 <h3 id="代码示例："><a href="#代码示例：" class="headerlink" title="代码示例："></a>代码示例：</h3><h4 id="饿汉式单例："><a href="#饿汉式单例：" class="headerlink" title="饿汉式单例："></a>饿汉式单例：</h4><p>饿汉式单例在类加载时就创建了单例实例，不管之后是否会使用这个实例。由于实例在类加载时就已经创建好，所以它是线程安全的，因为类加载过程是由 JVM 保证线程安全的</p>

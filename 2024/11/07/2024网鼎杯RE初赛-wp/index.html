@@ -48,10 +48,7 @@
   </header>
 
   <div class="post-content">
-    <blockquote>
-<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18527248">https://www.cnblogs.com/Zephyr07/articles/18527248</a></p>
-</blockquote>
-<h1 id="REVERSE1"><a href="#REVERSE1" class="headerlink" title="REVERSE1"></a>REVERSE1</h1><p>这个题当时是最后两个小时有思路（多亏了咱们的王杰gg），虽然最后没做出来，最后知道了sm4加密，也知道了密钥，结果没找到密文（其实找到了，一串16进制数据，本来以为是要转换成ascii字符，结果16进制本身就是密文…还是做的题不够多…）<br>先是jadx反编译打开之后，开始找程序入口点，即MainActivity，然后找onclick事件，然后一直找一直到找到check检查函数，但是里面只有几行，有个cma<br>﻿<br><img src="https://img2024.cnblogs.com/blog/3551469/202411/3551469-20241107221057955-2099764993.png"></p>
+    <h1 id="REVERSE1"><a href="#REVERSE1" class="headerlink" title="REVERSE1"></a>REVERSE1</h1><p>这个题当时是最后两个小时有思路（多亏了咱们的王杰gg），虽然最后没做出来，最后知道了sm4加密，也知道了密钥，结果没找到密文（其实找到了，一串16进制数据，本来以为是要转换成ascii字符，结果16进制本身就是密文…还是做的题不够多…）<br>先是jadx反编译打开之后，开始找程序入口点，即MainActivity，然后找onclick事件，然后一直找一直到找到check检查函数，但是里面只有几行，有个cma<br>﻿<br><img src="https://img2024.cnblogs.com/blog/3551469/202411/3551469-20241107221057955-2099764993.png"></p>
 <p>然后修改文件后缀名zip解压，lib文件找到一个有重叠名字的so文件easystd\lib\arm64-v8a<br>ida64位打开之后函数挺少，一个一个看，然后在sub_75C函数最后找到一个类似最后验证的功能</p>
 <p><img src="https://img2024.cnblogs.com/blog/3551469/202411/3551469-20241107221105203-1939898815.png"></p>
 <p>点开byte_C14数组之后有一大串字符串（其实这去掉0x，提取出来就是密文，但当时可能脑袋宕机了，一直觉得还要再处理一下，然后一直找处理函数）<br>﻿<br><img src="https://img2024.cnblogs.com/blog/3551469/202411/3551469-20241107221116308-1285873286.png"></p>

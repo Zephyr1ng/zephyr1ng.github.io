@@ -48,10 +48,7 @@
   </header>
 
   <div class="post-content">
-    <blockquote>
-<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18745487">https://www.cnblogs.com/Zephyr07/articles/18745487</a></p>
-</blockquote>
-<h2 id="1-审计日志，攻击者下载恶意木马文件的-ip是多少-flag"><a href="#1-审计日志，攻击者下载恶意木马文件的-ip是多少-flag" class="headerlink" title="1. 审计日志，攻击者下载恶意木马文件的 ip是多少 flag"></a>1. 审计日志，攻击者下载恶意木马文件的 ip是多少 flag</h2><p>题目说审计日志，那就看日志，直接过滤看http数据包<br>然后翻一翻直接就能看到shell.php文件</p>
+    <h2 id="1-审计日志，攻击者下载恶意木马文件的-ip是多少-flag"><a href="#1-审计日志，攻击者下载恶意木马文件的-ip是多少-flag" class="headerlink" title="1. 审计日志，攻击者下载恶意木马文件的 ip是多少 flag"></a>1. 审计日志，攻击者下载恶意木马文件的 ip是多少 flag</h2><p>题目说审计日志，那就看日志，直接过滤看http数据包<br>然后翻一翻直接就能看到shell.php文件</p>
 <p><img src="https://img2024.cnblogs.com/blog/3551469/202503/3551469-20250301215259125-875869303.png"></p>
 <p>FLAG：192.168.150.253</p>
 <h2 id="2-审计流量包，木马文件连接密码是什么-flag"><a href="#2-审计流量包，木马文件连接密码是什么-flag" class="headerlink" title="2. 审计流量包，木马文件连接密码是什么? flag"></a>2. 审计流量包，木马文件连接密码是什么? flag</h2><p>找一个访问shell.php文件，一般木马的连接密码就在shell.php里面</p>

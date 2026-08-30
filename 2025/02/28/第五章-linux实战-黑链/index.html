@@ -48,10 +48,7 @@
   </header>
 
   <div class="post-content">
-    <blockquote>
-<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18743006">https://www.cnblogs.com/Zephyr07/articles/18743006</a></p>
-</blockquote>
-<h2 id="1、找到黑链添加在哪个文件-flag-格式-flag"><a href="#1、找到黑链添加在哪个文件-flag-格式-flag" class="headerlink" title="1、找到黑链添加在哪个文件 flag 格式 flag"></a>1、找到黑链添加在哪个文件 flag 格式 flag</h2><p>既然是找黑链，那肯定就是从网站目录里面找<br>grep -rnw ‘&#x2F;var&#x2F;www&#x2F;html&#x2F;‘ -e ‘黑链’<br>就能在&#x2F;var&#x2F;www&#x2F;html&#x2F;下面找到一条模拟黑链</p>
+    <h2 id="1、找到黑链添加在哪个文件-flag-格式-flag"><a href="#1、找到黑链添加在哪个文件-flag-格式-flag" class="headerlink" title="1、找到黑链添加在哪个文件 flag 格式 flag"></a>1、找到黑链添加在哪个文件 flag 格式 flag</h2><p>既然是找黑链，那肯定就是从网站目录里面找<br>grep -rnw ‘&#x2F;var&#x2F;www&#x2F;html&#x2F;‘ -e ‘黑链’<br>就能在&#x2F;var&#x2F;www&#x2F;html&#x2F;下面找到一条模拟黑链</p>
 <h3 id="tips"><a href="#tips" class="headerlink" title="tips:"></a>tips:</h3><blockquote>
 <p>但是现实情况是；<br>在实际情况中，黑链通常不会直接标记为“黑链”。它们可能会隐藏在普通的链接或其他代码中。以下是一些更常见的黑链隐藏方式：<br>隐藏的 HTML 元素：使用 CSS 将链接隐藏在网页中，如 display:none 或 visibility:hidden。<br>JavaScript 动态加载：使用 JavaScript 动态加载黑链，使其在页面加载时才出现。<br>URL 重定向：通过 URL 重定向，将合法链接引导到恶意网站。<br>伪装成正常内容：黑链可能伪装成正常的内容或链接，混杂在正常网页内容中。</p>
 </blockquote>

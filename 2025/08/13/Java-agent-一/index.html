@@ -48,10 +48,7 @@
   </header>
 
   <div class="post-content">
-    <blockquote>
-<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/19035903">https://www.cnblogs.com/Zephyr07/articles/19035903</a></p>
-</blockquote>
-<h1 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h1><p>最近在看字节码插桩和rasp的一些内容，发现其中都绕不开java agent的使用，刚好之前的agent的内存马还没分析过，所以这篇文章先学习一下java agent的知识，后续再继续出rasp的一些内容</p>
+    <h1 id="0x00-前言"><a href="#0x00-前言" class="headerlink" title="0x00 前言"></a>0x00 前言</h1><p>最近在看字节码插桩和rasp的一些内容，发现其中都绕不开java agent的使用，刚好之前的agent的内存马还没分析过，所以这篇文章先学习一下java agent的知识，后续再继续出rasp的一些内容</p>
 <h1 id="0x01-agent基础"><a href="#0x01-agent基础" class="headerlink" title="0x01 agent基础"></a>0x01 agent基础</h1><p>我们知道在java中多会有.java文件和.class文件的区分，而.class就是将java文件编译后的字节码文件，然后jvm虚拟机执行的就是class文件，这也是为什么java“一次编译到处运行”</p>
 <blockquote>
 <p>不论该字节码文件来自何方，由哪种编译器编译，甚至是手写字节码文件，只要符合java虚拟机的规范，那么它就能够执行该字节码文件。</p>

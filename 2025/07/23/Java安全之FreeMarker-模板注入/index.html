@@ -48,10 +48,7 @@
   </header>
 
   <div class="post-content">
-    <blockquote>
-<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/19001763">https://www.cnblogs.com/Zephyr07/articles/19001763</a></p>
-</blockquote>
-<h1 id="1-前情提要："><a href="#1-前情提要：" class="headerlink" title="1.前情提要："></a>1.前情提要：</h1><p>事情的起因在于某次红队中，看到一位大佬利用FreeMarker 模板注入从而达到了一个rce的效果，因为自己对这方面没有了解过，于是乎现在开始恶补一下~</p>
+    <h1 id="1-前情提要："><a href="#1-前情提要：" class="headerlink" title="1.前情提要："></a>1.前情提要：</h1><p>事情的起因在于某次红队中，看到一位大佬利用FreeMarker 模板注入从而达到了一个rce的效果，因为自己对这方面没有了解过，于是乎现在开始恶补一下~</p>
 <p><img src="https://img2024.cnblogs.com/blog/3551469/202508/3551469-20250807151518861-900085438.png" alt="image"></p>
 <h1 id="2-基本介绍："><a href="#2-基本介绍：" class="headerlink" title="2.基本介绍："></a>2.基本介绍：</h1><p>FreeMarker 是一款用 Java 编写的模板引擎，主要用于生成文本输出，像 HTML 网页、电子邮件、配置文件等都能生成。它并不依赖于 Servlet 或 Web 应用，既可以在 Web 环境中使用，也能在非 Web 环境下发挥作用。</p>
 <p>FreeMarker Template Language也就是FTL是该模板中使用的模板语言，用于定义输出文本的结构和格式。它通过特定的语法标记将静态文本与动态数据结合，最终生成目标文本。</p>

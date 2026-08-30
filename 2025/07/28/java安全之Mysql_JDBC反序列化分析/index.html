@@ -48,10 +48,7 @@
   </header>
 
   <div class="post-content">
-    <blockquote>
-<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/19009244">https://www.cnblogs.com/Zephyr07/articles/19009244</a></p>
-</blockquote>
-<h1 id="前情提要："><a href="#前情提要：" class="headerlink" title="前情提要："></a>前情提要：</h1><p>jdbc这条链总感觉自己学过，但是翻了翻笔记，发现好像又没有，可能是之前为了面试去看过一些，但是还没有分析过源码，所以来补一下~</p>
+    <h1 id="前情提要："><a href="#前情提要：" class="headerlink" title="前情提要："></a>前情提要：</h1><p>jdbc这条链总感觉自己学过，但是翻了翻笔记，发现好像又没有，可能是之前为了面试去看过一些，但是还没有分析过源码，所以来补一下~</p>
 <p><img src="https://img2024.cnblogs.com/blog/3551469/202507/3551469-20250728170420103-412098990.png" alt="死了"></p>
 <h1 id="源码分析："><a href="#源码分析：" class="headerlink" title="源码分析："></a>源码分析：</h1><p>pom.xml</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;  </span><br><span class="line">  &lt;groupId&gt;commons-collections&lt;/groupId&gt;  </span><br><span class="line">  &lt;artifactId&gt;commons-collections&lt;/artifactId&gt;  </span><br><span class="line">  &lt;version&gt;3.2.1&lt;/version&gt;  </span><br><span class="line">&lt;/dependency&gt;  </span><br><span class="line">&lt;dependency&gt;  </span><br><span class="line">  &lt;groupId&gt;mysql&lt;/groupId&gt;  </span><br><span class="line">  &lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;  </span><br><span class="line">  &lt;version&gt;8.0.13&lt;/version&gt;  </span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>

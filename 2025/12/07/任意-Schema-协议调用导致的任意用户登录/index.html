@@ -48,10 +48,7 @@
   </header>
 
   <div class="post-content">
-    <blockquote>
-<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/19318488">https://www.cnblogs.com/Zephyr07/articles/19318488</a></p>
-</blockquote>
-<h2 id="📋-漏洞概述"><a href="#📋-漏洞概述" class="headerlink" title="📋 漏洞概述"></a>📋 漏洞概述</h2><p><strong>漏洞类型</strong>：存储型 XSS + JSBridge API 调用<br><strong>影响范围</strong>：Android App 小程序评论区<br><strong>危害等级</strong>：高危<br><strong>漏洞原理</strong>：通过构造 Schema 协议绕过域名白名单限制，利用 XSS 调用 JSBridge API 窃取用户 Token</p>
+    <h2 id="📋-漏洞概述"><a href="#📋-漏洞概述" class="headerlink" title="📋 漏洞概述"></a>📋 漏洞概述</h2><p><strong>漏洞类型</strong>：存储型 XSS + JSBridge API 调用<br><strong>影响范围</strong>：Android App 小程序评论区<br><strong>危害等级</strong>：高危<br><strong>漏洞原理</strong>：通过构造 Schema 协议绕过域名白名单限制，利用 XSS 调用 JSBridge API 窃取用户 Token</p>
 <hr>
 <h2 id="🔍-技术背景"><a href="#🔍-技术背景" class="headerlink" title="🔍 技术背景"></a>🔍 技术背景</h2><h3 id="1-Schema-协议"><a href="#1-Schema-协议" class="headerlink" title="1. Schema 协议"></a>1. Schema 协议</h3><p><strong>定义</strong>：Schema 协议是 Android 中的一种页面内跳转协议，用于方便 App 内部的页面跳转。</p>
 <p><strong>特点</strong>：</p>

@@ -48,10 +48,7 @@
   </header>
 
   <div class="post-content">
-    <blockquote>
-<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18743614">https://www.cnblogs.com/Zephyr07/articles/18743614</a></p>
-</blockquote>
-<h2 id="一-什么是value？"><a href="#一-什么是value？" class="headerlink" title="一.什么是value？"></a>一.什么是value？</h2><p>tomcat管道机制：<br>tomcat对来自客户端的请求做处理的时候，请求响应对象会先通过StandardEngine，然后再到StandardHost，紧接着StandContext，最后到StandardWrapper交给servlet，完成整个消息的处理<br>而消息在每个容器之间流转的时候，需要经过一些阀门处理，而这些阀门就是value，同样有四个基础阀门对应着每个容器，分别是StandardEngineValve，StandardHostValve,StandardContextValue，StandardWrapperValue<br>而除了这些基础阀门，tomcat是允许开发人员自行添加一些其它的阀门对消息进行相对应的处理（可以理解为对应的业务逻辑）<br>消息在不同容器之间的流转就是管道pipeline，既然可以人为添加value，那这里就有了可操作性，我们可以添加恶意的value来去进行shell<br>并且在每个容器的value(s)中，value是以单链表存储的，末端永远都是basic，每次添加新的value都会添加在单链表的前面</p>
+    <h2 id="一-什么是value？"><a href="#一-什么是value？" class="headerlink" title="一.什么是value？"></a>一.什么是value？</h2><p>tomcat管道机制：<br>tomcat对来自客户端的请求做处理的时候，请求响应对象会先通过StandardEngine，然后再到StandardHost，紧接着StandContext，最后到StandardWrapper交给servlet，完成整个消息的处理<br>而消息在每个容器之间流转的时候，需要经过一些阀门处理，而这些阀门就是value，同样有四个基础阀门对应着每个容器，分别是StandardEngineValve，StandardHostValve,StandardContextValue，StandardWrapperValue<br>而除了这些基础阀门，tomcat是允许开发人员自行添加一些其它的阀门对消息进行相对应的处理（可以理解为对应的业务逻辑）<br>消息在不同容器之间的流转就是管道pipeline，既然可以人为添加value，那这里就有了可操作性，我们可以添加恶意的value来去进行shell<br>并且在每个容器的value(s)中，value是以单链表存储的，末端永远都是basic，每次添加新的value都会添加在单链表的前面</p>
 <h2 id="二-流程分析"><a href="#二-流程分析" class="headerlink" title="二.流程分析"></a>二.流程分析</h2><p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165412951-496905591.png"></p>
 <p>pipeline中会有一个最基础的value，叫做basic，是位于整个value链的最后端也就是最后执行（在业务上面的表现是封装了具体的请求处理和输出响应）<br>首先我们先去看一Pipeline接口，因为value是Pipeline的一个部分</p>
 <p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228165418417-1748273773.png"></p>

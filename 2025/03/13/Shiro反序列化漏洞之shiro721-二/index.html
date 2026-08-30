@@ -48,10 +48,7 @@
   </header>
 
   <div class="post-content">
-    <blockquote>
-<p>本文迁移自博客园，原文链接：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Zephyr07/articles/18771096">https://www.cnblogs.com/Zephyr07/articles/18771096</a></p>
-</blockquote>
-<h2 id="影响版本："><a href="#影响版本：" class="headerlink" title="影响版本："></a>影响版本：</h2><p>1.2.5 &lt;&#x3D; Apache Shiro &lt;&#x3D; 1.4.1</p>
+    <h2 id="影响版本："><a href="#影响版本：" class="headerlink" title="影响版本："></a>影响版本：</h2><p>1.2.5 &lt;&#x3D; Apache Shiro &lt;&#x3D; 1.4.1</p>
 <h2 id="利用条件："><a href="#利用条件：" class="headerlink" title="利用条件："></a>利用条件：</h2><p>● 开启 rememberMe 功能；<br>● rememberMe 值使用 AES-CBC 模式解密；<br>● 能获取到正常 Cookie，即用户正常登录的 Cookie 值；<br>● 密文可控；</p>
 <h2 id="漏洞原理："><a href="#漏洞原理：" class="headerlink" title="漏洞原理："></a>漏洞原理：</h2><p>shiro在550之后就把固定的硬编码的key变成了随机生成的key<br>shiro550之前：</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">public AbstractRememberMeManager() &#123;</span><br><span class="line">        this.serializer = new DefaultSerializer&lt;PrincipalCollection&gt;();</span><br><span class="line">        this.cipherService = new AesCipherService();</span><br><span class="line">        setCipherKey(DEFAULT_CIPHER_KEY_BYTES);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
