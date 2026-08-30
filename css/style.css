@@ -537,12 +537,13 @@ canvas#particles {
   align-items: baseline;
   gap: 8px;
   border-radius: 100px;
-  background: rgba(255, 255, 255, 0.55);
-  -webkit-backdrop-filter: blur(14px);
-  backdrop-filter: blur(14px);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.48));
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.85);
   text-decoration: none;
-  color: #444;
+  color: #3f3f3f;
   white-space: nowrap;
   transition: color 0.22s ease, border-color 0.22s ease, background 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
   transform: rotate(calc(var(--r, 0) * 1deg)) translateY(var(--y, 0px));
@@ -551,7 +552,7 @@ canvas#particles {
 .cat-pill:hover {
   color: var(--accent);
   border-color: var(--accent);
-  background: rgba(5, 150, 105, 0.06);
+  background: rgba(5, 150, 105, 0.05);
   transform: rotate(0deg) translateY(-2px) scale(1.04);
   box-shadow: 0 6px 18px rgba(5, 150, 105, 0.12);
 }
@@ -723,78 +724,46 @@ canvas#particles {
 }
 
 .friend-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 18px 22px;
-  border-radius: 14px;
+  display: block;
+  padding: 22px 28px;
+  border-radius: 12px;
   background: #fff;
   border: 1px solid #eee;
   text-decoration: none;
   color: inherit;
-  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-  animation: fadeUp 0.45s ease both;
-  animation-delay: calc(var(--i, 0) * 60ms);
+  transition: all 0.3s;
 }
 
 .friend-card:hover {
   border-color: var(--accent);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.04);
   transform: translateX(6px);
 }
 
-.friend-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), #34d399);
-  color: #fff;
-  font-size: 20px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.friend-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
 .friend-card .friend-name {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 600;
+  margin-bottom: 4px;
 }
 
 .friend-card .friend-url {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--accent);
+  margin-bottom: 6px;
   word-break: break-all;
 }
 
 .friend-card .friend-desc {
-  font-size: 13px;
+  font-size: 14px;
   color: #999;
 }
 
-.friend-arrow {
-  margin-left: auto;
+.friends-footer {
+  text-align: center;
+  font-size: 13px;
   color: #ccc;
-  font-size: 18px;
-  transition: transform 0.25s ease, color 0.25s ease;
-}
-
-.friend-card:hover .friend-arrow {
-  color: var(--accent);
-  transform: translateX(3px);
-}
-
-@keyframes fadeUp {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  padding: 24px 0;
+  font-weight: 500;
 }
 
 .friends-footer {
