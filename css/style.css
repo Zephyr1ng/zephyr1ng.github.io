@@ -499,69 +499,6 @@ canvas#particles {
   border-bottom-color: var(--accent);
 }
 
-/* ---- Donation section ---- */
-.donation {
-  margin-top: 80px;
-  padding: 48px 0;
-  text-align: center;
-}
-
-.donation-divider {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
-  color: #ccc;
-  font-size: 13px;
-}
-
-.donation-divider::before,
-.donation-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: #e8e8e8;
-}
-
-.donation-hint {
-  font-size: 15px;
-  color: #999;
-  margin-bottom: 28px;
-}
-
-.donation-qrs {
-  display: flex;
-  justify-content: center;
-  gap: 40px;
-}
-
-.qr-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-.qr-card img {
-  width: 180px;
-  height: 180px;
-  border-radius: 12px;
-  border: 1px solid #eee;
-  object-fit: cover;
-  transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.qr-card img:hover {
-  transform: scale(1.04);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-}
-
-.qr-card span {
-  font-size: 13px;
-  color: #bbb;
-  font-weight: 500;
-}
-
 /* ---- Post navigation ---- */
 .post-nav {
   margin-top: 60px;
@@ -588,38 +525,76 @@ canvas#particles {
 
 /* ======== CATEGORIES PAGE ======== */
 .category-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 16px;
 }
 
 .cat-card {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px 24px;
-  border-radius: 12px;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: 14px;
   background: #fff;
   border: 1px solid #eee;
   text-decoration: none;
   color: inherit;
-  transition: all 0.3s;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  animation: fadeUp 0.45s ease both;
+  animation-delay: calc(var(--i, 0) * 45ms);
 }
 
 .cat-card:hover {
-  border-color: var(--accent);
-  box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+  border-color: var(--c, var(--accent));
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  transform: translateY(-4px);
+}
+
+.cat-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--c, var(--accent));
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cat-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .cat-card .cat-name {
   font-size: 16px;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .cat-card .cat-count {
-  font-size: 13px;
-  color: #bbb;
-  font-weight: 500;
+  font-size: 12px;
+  color: #aaa;
+}
+
+.cat-arrow {
+  margin-left: auto;
+  color: #ccc;
+  font-size: 18px;
+  transition: transform 0.25s ease, color 0.25s ease;
+}
+
+.cat-card:hover .cat-arrow {
+  color: var(--c, var(--accent));
+  transform: translateX(3px);
 }
 
 /* ======== TAGS PAGE ======== */
@@ -774,38 +749,78 @@ canvas#particles {
 }
 
 .friend-card {
-  display: block;
-  padding: 22px 28px;
-  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 22px;
+  border-radius: 14px;
   background: #fff;
   border: 1px solid #eee;
   text-decoration: none;
   color: inherit;
-  transition: all 0.3s;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  animation: fadeUp 0.45s ease both;
+  animation-delay: calc(var(--i, 0) * 60ms);
 }
 
 .friend-card:hover {
   border-color: var(--accent);
-  box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
   transform: translateX(6px);
 }
 
+.friend-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #34d399);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.friend-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
 .friend-card .friend-name {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
-  margin-bottom: 4px;
 }
 
 .friend-card .friend-url {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--accent);
-  margin-bottom: 6px;
   word-break: break-all;
 }
 
 .friend-card .friend-desc {
-  font-size: 14px;
+  font-size: 13px;
   color: #999;
+}
+
+.friend-arrow {
+  margin-left: auto;
+  color: #ccc;
+  font-size: 18px;
+  transition: transform 0.25s ease, color 0.25s ease;
+}
+
+.friend-card:hover .friend-arrow {
+  color: var(--accent);
+  transform: translateX(3px);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .friends-footer {
@@ -854,15 +869,6 @@ canvas#particles {
 
   .post-title {
     font-size: 28px;
-  }
-
-  .donation-qrs {
-    gap: 20px;
-  }
-
-  .qr-card img {
-    width: 140px;
-    height: 140px;
   }
 
   .post-nav {

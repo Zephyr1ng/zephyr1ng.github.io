@@ -28,8 +28,6 @@
     
       <li><a href="/categories">分类</a></li>
     
-      <li><a href="/archives">归档</a></li>
-    
       <li><a href="/friends">友链</a></li>
     
       <li><a href="/about">关于</a></li>
@@ -95,24 +93,6 @@
 <p>我们在分析JNDI+RMI的时候可以记的在初始化类加载之前loadclass会先使用Apploadclass在本地查找，之前是找不到所以远程加载，但是现在是可以在本地知道的BeanFactory，最后实例化的时候就可以得到一个BeanFactory类<br>然后在执行factory.getObjectInstance的是或就会执行BeanFactory的getObjectInstance方法，而他里面会有反射调用<br>然后里面大致过程就是有个ra会先从引用中获取forceString，我们传入的值是eval，然后当反射调用ra的时候，会执行里面的方法，我们传入的值是Runtime.getRuntime().exec(‘calc’)，最后就会导致代码执行<br>图解示例</p>
 <p><img src="https://img2024.cnblogs.com/blog/3551469/202502/3551469-20250228164455476-1833344825.png"></p>
 
-  </div>
-
-  <!-- Donation Section -->
-  <div class="donation">
-    <div class="donation-divider">
-      <span>如果文章对你有帮助</span>
-    </div>
-    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
-    <div class="donation-qrs">
-      <div class="qr-card">
-        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
-        <span>支付宝</span>
-      </div>
-      <div class="qr-card">
-        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
-        <span>微信</span>
-      </div>
-    </div>
   </div>
 
   

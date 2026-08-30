@@ -28,8 +28,6 @@
     
       <li><a href="/categories">分类</a></li>
     
-      <li><a href="/archives">归档</a></li>
-    
       <li><a href="/friends">友链</a></li>
     
       <li><a href="/about">关于</a></li>
@@ -64,24 +62,6 @@
 <p>确定这就是注入黑链的文件<br>flag{10c18029294fdec7b6ddab76d9367c14}</p>
 <h2 id="4、攻击入口是哪里？url请求路径，最后面加-flag"><a href="#4、攻击入口是哪里？url请求路径，最后面加-flag" class="headerlink" title="4、攻击入口是哪里？url请求路径，最后面加&#x2F; flag"></a>4、攻击入口是哪里？url请求路径，最后面加&#x2F; flag</h2><p>本来是想在日志下面找的，但是发现啥都没有<br>然后巧合间在根目录下ls出一个流量包，导出来直接分析<br>过滤器过滤http，因为已经知道注入的文件是poc1.js，所以<br>http contains “poc1.js”<br>然后看数据最大的一条流量包，追踪http流分析<br>发现在cookie里面看到可疑信息，分析之后发现是包含了一段js注入代码<br>然后继续看流量包，然后看到请求目录是&#x2F;index.php&#x2F;archives&#x2F;1&#x2F;<br>追踪流看一下cookie发现和上一个流量包差不多，是一段恶意js注入，会跳转到poc1.js文件然后执行<br>所以最后flag<br>flag{&#x2F;index.php&#x2F;archives&#x2F;1&#x2F;}</p>
 
-  </div>
-
-  <!-- Donation Section -->
-  <div class="donation">
-    <div class="donation-divider">
-      <span>如果文章对你有帮助</span>
-    </div>
-    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
-    <div class="donation-qrs">
-      <div class="qr-card">
-        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
-        <span>支付宝</span>
-      </div>
-      <div class="qr-card">
-        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
-        <span>微信</span>
-      </div>
-    </div>
   </div>
 
   

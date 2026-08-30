@@ -28,8 +28,6 @@
     
       <li><a href="/categories">分类</a></li>
     
-      <li><a href="/archives">归档</a></li>
-    
       <li><a href="/friends">友链</a></li>
     
       <li><a href="/about">关于</a></li>
@@ -121,24 +119,6 @@
 <p>本来感觉特别简单，q告诉我了，q和hint1异或后就知道p了，p q e n c都知道了，直接就能解出来明文<br>但是解出来发现e phi不互质<br>ee 与 ϕ(n)ϕ(n) 不互质时，调整 ee 和 ϕ(n)ϕ(n)，计算私钥指数 dd<br>解密密文，得到明文的 kk 次幂 m′m′。<br>计算 kk 次方根，恢复明文 mm。<br>解密脚本</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">from base64 import b64decode</span><br><span class="line">from Crypto.Cipher import Blowfish</span><br><span class="line">from Crypto.Util.Padding import unpad</span><br><span class="line"></span><br><span class="line">def decrypt(encrypted_content, key, algorithm, key_size):</span><br><span class="line">    try:</span><br><span class="line">        # 处理密钥</span><br><span class="line">        key_bytes = bytearray(key_size)</span><br><span class="line">        input_key_bytes = key.encode(&#x27;utf-8&#x27;)</span><br><span class="line">        key_bytes[0:len(input_key_bytes)] = input_key_bytes[0:key_size]</span><br><span class="line"></span><br><span class="line">        # 创建 Cipher 对象</span><br><span class="line">        cipher = Blowfish.new(key_bytes, Blowfish.MODE_ECB)</span><br><span class="line"></span><br><span class="line">        # Base64 解码密文</span><br><span class="line">        encrypted_bytes = b64decode(encrypted_content)</span><br><span class="line"></span><br><span class="line">        # 解密并去除填充（PKCS5Padding）</span><br><span class="line">        decrypted_bytes = cipher.decrypt(encrypted_bytes)</span><br><span class="line">        decrypted_bytes = unpad(decrypted_bytes, Blowfish.block_size, style=&#x27;pkcs5&#x27;)</span><br><span class="line"></span><br><span class="line">        return decrypted_bytes.decode(&#x27;utf-8&#x27;)</span><br><span class="line">    except Exception as e:</span><br><span class="line">        raise RuntimeError(&quot;解密错误: &quot; + str(e))</span><br><span class="line"></span><br><span class="line">if __name__ == &quot;__main__&quot;:</span><br><span class="line">    encrypted_content = &quot;bCvVthlhq6kihQdSBv2WzUZfeSGvRMigmsAMsdEtYOKW577HPZqinI5hlkRNE33xwgwWyWseoI8oERTQEnfoRXc5dJAWtwF+CTkmcoeeu5ccy7Qjp/cJA2Slj/UJDC6UWgvagkU3OYuFIELSc1x6etggbESl2Ug0dwUk3hO/xpYGxgQPCXnzciXSTCmlCq5Wr2EPXNG3wE/+NCpeHDe2WTbyPylOunr7/NWFy+flv0plvq29HzGo7lx4clpnEBKhWV91U7S+Fm5PUy69Aer4mC64NUcNf7m9jKcKeMvQQv5OPU5L6OayrJuh8eBPRjenb1A+JKZGYQK3j7xyNJ30r1F20E+EyZNM/JWcPImyXdh/aebRvlqWH99FoIJZhRhh2lbA6ZXXNwKxx0tZI5IFyH6m5DaUGKe/NN0rZbLCNFZoW93VEPiYwoM94R9uEolHvKjIQlP8qDStic5oXH/UoA==&quot;  # 替换为实际的加密内容</span><br><span class="line">    key = &quot;596d467a5a54593049475a73595763765a6d78685a793536615841&quot;                 # 替换为实际的密钥</span><br><span class="line">    algorithm = &quot;Blowfish&quot;          # 与加密时使用的算法一致</span><br><span class="line">    key_size = 16                   # 与加密时的 keySize 一致</span><br><span class="line"></span><br><span class="line">    decrypted_content = decrypt(encrypted_content, key, algorithm, key_size)</span><br><span class="line">    print(&quot;解密后的内容: &quot;, decrypted_content)</span><br></pre></td></tr></table></figure>
 
-  </div>
-
-  <!-- Donation Section -->
-  <div class="donation">
-    <div class="donation-divider">
-      <span>如果文章对你有帮助</span>
-    </div>
-    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
-    <div class="donation-qrs">
-      <div class="qr-card">
-        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
-        <span>支付宝</span>
-      </div>
-      <div class="qr-card">
-        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
-        <span>微信</span>
-      </div>
-    </div>
   </div>
 
   

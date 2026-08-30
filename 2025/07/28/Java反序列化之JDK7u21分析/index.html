@@ -28,8 +28,6 @@
     
       <li><a href="/categories">分类</a></li>
     
-      <li><a href="/archives">归档</a></li>
-    
       <li><a href="/friends">友链</a></li>
     
       <li><a href="/about">关于</a></li>
@@ -90,24 +88,6 @@
 </ol>
 <p>        解决：这是因为在java readobject恢复对象的时候，set对象中是不允许重复的，所以在添加的对象的时候科宁会有一个比较的操作，当两个对象的hashcode值检测到一样的时候就会对key调用equals方法，那这时候如果我们用AnnotationInvocationHandler代理TemplatesImpl，那在调用equals方法并触发invoke方法，这时候就会调用equalsImpl方法，而在这个方法中会遍历type(TemplatesImpl)中的每个方法，这时候就会触发<code>newTransform()</code> 或getOutputProperties()方法导致字节码加载任意代码的执行</p>
 
-  </div>
-
-  <!-- Donation Section -->
-  <div class="donation">
-    <div class="donation-divider">
-      <span>如果文章对你有帮助</span>
-    </div>
-    <p class="donation-hint">可以请我喝杯咖啡 ☕</p>
-    <div class="donation-qrs">
-      <div class="qr-card">
-        <img src="/images/alipay.jpg" alt="支付宝收款码" onerror="this.parentElement.style.display='none'">
-        <span>支付宝</span>
-      </div>
-      <div class="qr-card">
-        <img src="/images/wechat.jpg" alt="微信收款码" onerror="this.parentElement.style.display='none'">
-        <span>微信</span>
-      </div>
-    </div>
   </div>
 
   
