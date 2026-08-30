@@ -524,78 +524,52 @@ canvas#particles {
 .post-nav a:hover { color: var(--accent); }
 
 /* ======== CATEGORIES PAGE ======== */
-.category-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 16px;
-}
-
-.cat-card {
+.category-cloud {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   gap: 14px;
-  padding: 18px 20px;
-  border-radius: 14px;
-  background: #fff;
-  border: 1px solid #eee;
-  text-decoration: none;
-  color: inherit;
-  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
-  animation: fadeUp 0.45s ease both;
-  animation-delay: calc(var(--i, 0) * 45ms);
-}
-
-.cat-card:hover {
-  border-color: var(--c, var(--accent));
-  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-  transform: translateY(-4px);
-}
-
-.cat-avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: var(--c, var(--accent));
-  color: #fff;
-  font-size: 20px;
-  font-weight: 700;
-  display: flex;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  padding: 28px 8px;
 }
 
-.cat-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.cat-card .cat-name {
-  font-size: 16px;
-  font-weight: 600;
+.cat-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  border-radius: 100px;
+  background: rgba(255, 255, 255, 0.55);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  text-decoration: none;
+  color: #444;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  transition: color 0.22s ease, border-color 0.22s ease, background 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
+  transform: rotate(calc(var(--r, 0) * 1deg)) translateY(var(--y, 0px));
 }
 
-.cat-card .cat-count {
-  font-size: 12px;
-  color: #aaa;
+.cat-pill:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(5, 150, 105, 0.06);
+  transform: rotate(0deg) translateY(-2px) scale(1.04);
+  box-shadow: 0 6px 18px rgba(5, 150, 105, 0.12);
 }
 
-.cat-arrow {
-  margin-left: auto;
-  color: #ccc;
-  font-size: 18px;
-  transition: transform 0.25s ease, color 0.25s ease;
+.cat-pill .pill-name {
+  font-weight: 600;
 }
 
-.cat-card:hover .cat-arrow {
-  color: var(--c, var(--accent));
-  transform: translateX(3px);
+.cat-pill .pill-count {
+  font-size: 0.72em;
+  opacity: 0.55;
+  font-weight: 600;
 }
+
+.cat-pill.xl { font-size: 22px; padding: 16px 30px; }
+.cat-pill.lg { font-size: 18px; padding: 13px 26px; }
+.cat-pill.md { font-size: 15px; padding: 11px 22px; }
+.cat-pill.sm { font-size: 13px; padding: 9px 18px; }
 
 /* ======== TAGS PAGE ======== */
 .tag-cloud {
