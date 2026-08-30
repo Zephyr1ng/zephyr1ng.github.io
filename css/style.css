@@ -121,7 +121,7 @@ canvas#particles {
 .container {
   position: relative;
   z-index: 1;
-  max-width: 880px;
+  max-width: 980px;
   margin: 0 auto;
   padding: 100px 32px 80px;
 }
@@ -364,7 +364,7 @@ canvas#particles {
 
 /* ======== POST PAGE ======== */
 .post-full {
-  max-width: 760px;
+  max-width: 940px;
   margin: 0 auto;
 }
 
@@ -422,6 +422,17 @@ canvas#particles {
   font-size: 16px;
   line-height: 1.85;
   color: #333;
+  border: 1px solid #f0f0f0;
+  border-radius: 14px;
+  padding: 28px 34px;
+  transition: box-shadow 0.35s ease;
+}
+
+.post-content:hover {
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.02),
+    0 0 16px rgba(0, 0, 0, 0.055),
+    0 0 34px rgba(0, 0, 0, 0.04);
 }
 
 .post-content h2 {
@@ -777,11 +788,11 @@ canvas#particles {
 /* ======== RESPONSIVE ======== */
 @media (min-width: 1400px) {
   .container {
-    max-width: 960px;
+    max-width: 1080px;
   }
 
   .post-full {
-    max-width: 780px;
+    max-width: 980px;
   }
 
   .year-indicator {
