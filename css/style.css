@@ -2,29 +2,29 @@
 
 :root {
   --line: #e0e0e0;
-  --accent: var(--accent);
-  --accent2: var(--accent2);
+  --accent: #059669;
+  --accent2: #34d399;
   --bg: #fafafa;
-  --card: var(--card)fff;
-  --text: var(--text);
-  --text-2: var(--text-2)333;
-  --text-3: var(--text-3)666;
-  --muted: var(--muted)999;
-  --muted-2: var(--muted-2)bbb;
-  --muted-3: var(--muted-3)ccc;
-  --muted-4: var(--muted-4)888;
-  --line-2: var(--line-2);
-  --line-3: var(--line-3)eee;
-  --code-bg: var(--code-bg);
-  --blockquote-bg: var(--blockquote-bg);
-  --pre-bg: var(--text);
+  --card: #ffffff;
+  --text: #1c1c1e;
+  --text-2: #333333;
+  --text-3: #666666;
+  --muted: #999999;
+  --muted-2: #bbbbbb;
+  --muted-3: #cccccc;
+  --muted-4: #888888;
+  --line-2: #e8e8e8;
+  --line-3: #eeeeee;
+  --code-bg: #f0f0f0;
+  --blockquote-bg: #f8f8f6;
+  --pre-bg: #1c1c1e;
   --pre-fg: #e0e0e0;
 }
 
 :root[data-theme="dark"] {
   --line: #2a2b2e;
   --accent: #10b981;
-  --accent2: var(--accent2);
+  --accent2: #34d399;
   --bg: #111214;
   --card: #1c1d21;
   --text: #e6e6e9;
