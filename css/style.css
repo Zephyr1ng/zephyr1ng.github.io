@@ -972,3 +972,14 @@ canvas#particles {
   min-width: 40px;
   text-align: center;
 }
+
+/* ======== POST META ICONS ======== */
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.meta-icon {
+  opacity: 0.75;
+  flex-shrink: 0;
+}
